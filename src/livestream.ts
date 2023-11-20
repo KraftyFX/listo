@@ -19,16 +19,17 @@ export class LiveStream
             }
         });
 
-        this.startedAt = new Date();
+        this._startedAt = new Date();
     }
 
-    public startedAt:Date;
+    get startedAt() { return this._startedAt; }
+    private _startedAt:Date;
 
     get currentTime() { return this.videoElt.currentTime; }
 
     get duration() { 
         if (!this.videoElt.paused) {
-            this.startedAt = new Date(new Date().valueOf() - (this.videoElt.currentTime * 1000));
+            this._startedAt = new Date(new Date().valueOf() - (this.videoElt.currentTime * 1000));
             const actualDuration = this.videoElt.currentTime;
 
             return actualDuration;
