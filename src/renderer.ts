@@ -33,8 +33,7 @@ window.onload = (async () => {
     await getDevices();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const canvas = document.getElementById('camera') as HTMLCanvasElement;
-    const rec = new LiveRecorder(video, canvas);
+    const rec = new LiveRecorder(video);
 
     (window as any).rec = rec;
 
