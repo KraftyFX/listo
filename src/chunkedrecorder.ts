@@ -103,8 +103,7 @@ export class ChunkedRecorder
             return new Promise<boolean>(resolve => {
                 this.log('Forcing segment rendering');
                 this.hasSegmentToRenderDone = resolve;
-                this.recorder.ondataavailable = this.onDataAvailable2;
-                // this.recorder.ondataavailable = this.onFinalDataAvailable;
+                this.recorder.ondataavailable = this.onDataAvailable;
                 this.stop();
             })
         } else {
@@ -112,29 +111,10 @@ export class ChunkedRecorder
         }
     }
 
-    private onDataAvailable2 = (event: BlobEvent) => {
+    private onDataAvailable = (event: BlobEvent) => {
         if (this.segments.length === 1) {
             this._startedAt = new Date(new Date().valueOf() - (this.liveStream.videoElt.currentTime * 1000));
         }
-
-        this.onFinalDataAvailable(event);
-    }
-
-    /*
-    private onDataAvailable = (event: BlobEvent) => {
-        this.log('onDataAvailable ' + this.activeSegmentDuration);
-
-        this.saveDataBlob(event.data);
-
-        if (this.activeSegmentDuration >= MIN_SEGMENT_DURATION_SEC) {
-            this.recorder.ondataavailable = this.onFinalDataAvailable;
-            this.recorder.stop();
-        }
-    }
-    */
-
-    private onFinalDataAvailable = (event: BlobEvent) => {
-        // this.log('onFinalDataAvailable ' + this.activeSegmentDuration);
 
         this.saveDataBlob(event.data);
 
@@ -209,7 +189,7 @@ export class ChunkedRecorder
         this.segments.push(segment);
 
         this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
-        this.recorder.ondataavailable = this.onDataAvailable2;
+        this.recorder.ondataavailable = this.onDataAvailable;
         this.recorder.start();
 
         if (!this.interval) {
