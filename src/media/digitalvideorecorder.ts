@@ -1,7 +1,7 @@
 import { LiveStream } from "./livestream";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 
-export class LiveRecorder
+export class DigitalVideoRecorder
 {
     private videoElt:HTMLMediaElement;
     private liveStream:LiveStream;

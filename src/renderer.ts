@@ -27,13 +27,13 @@
  */
 
 import './index.css';
-import { LiveRecorder } from './liverecorder';
+import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 
 window.onload = (async () => {
     await getDevices();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const rec = new LiveRecorder(video);
+    const rec = new DigitalVideoRecorder(video);
 
     (window as any).rec = rec;
 
