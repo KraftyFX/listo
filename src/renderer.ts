@@ -33,11 +33,11 @@ window.onload = (async () => {
     await getDevices();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const rec = new DigitalVideoRecorder(video);
+    const dvr = new DigitalVideoRecorder(video);
 
-    (window as any).rec = rec;
+    (window as any).dvr = dvr;
 
-    rec.onUpdate = (currentTime, duration, multiplier) => {
+    dvr.onTimeUpdate = (currentTime, duration, multiplier) => {
         currentTime = Math.floor(currentTime);
         duration = Math.floor(duration);
 
@@ -56,7 +56,7 @@ window.onload = (async () => {
         $('elapsed').innerText = parts.join(' ');
     };
 
-    rec.onModeChange = (isLive) => {
+    dvr.onModeChange = (isLive) => {
         if (isLive) {
             showLiveStreamMode();
         } else {
@@ -64,20 +64,20 @@ window.onload = (async () => {
         }
     }
 
-    await rec.initAndStartRecording();
+    await dvr.initAndStartRecording();
 
-    assign('play', 'click', () => { rec.play(); showPause(); });
-    assign('pause', 'click', () => { rec.pause(); showPlay(); });
+    assign('play', 'click', () => { dvr.play(); showPause(); });
+    assign('pause', 'click', () => { dvr.pause(); showPlay(); });
 
-    assign('rewind', 'click', () => { rec.rewind(); showPause(); });
-    assign('fastForward', 'click', () => { rec.fastforward(); showPause(); });
-    assign('slowForward', 'click', () => { rec.slowForward(); showPause(); });
-    assign('nextFrame', 'click', () => { rec.nextFrame(); showPlay(); });
+    assign('rewind', 'click', () => { dvr.rewind(); showPause(); });
+    assign('fastForward', 'click', () => { dvr.fastforward(); showPause(); });
+    assign('slowForward', 'click', () => { dvr.slowForward(); showPause(); });
+    assign('nextFrame', 'click', () => { dvr.nextFrame(); showPlay(); });
 
-    assign('mid', 'click', () => { rec.goToPlaybackTime(.5); });
-    assign('live', 'click', () => { rec.switchToLiveStream(); });
+    assign('mid', 'click', () => { dvr.goToPlaybackTime(.5); });
+    assign('live', 'click', () => { dvr.switchToLiveStream(); });
 
-    assign('lastNSec', 'click', () => { rec.switchToPlayback(); });
+    assign('lastNSec', 'click', () => { dvr.switchToPlayback(); });
 });
 
 function showPause() {

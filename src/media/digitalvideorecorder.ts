@@ -7,7 +7,7 @@ export class DigitalVideoRecorder
     private liveStream:LiveStream;
     private playback:LiveStreamRecorder;
 
-    onUpdate?: (currentTime: number, duration: number, speed: number) => void;
+    onTimeUpdate?: (currentTime: number, duration: number, speed: number) => void;
 
     constructor(videoElt:HTMLMediaElement) {
         this.videoElt = videoElt;
@@ -36,7 +36,7 @@ export class DigitalVideoRecorder
         this.playback.onUpdate = null;
         await this.playback.releaseAsVideoSource();
 
-        this.liveStream.onUpdate = (currentTime, duration) => this.onUpdate(currentTime, duration, 0);
+        this.liveStream.onUpdate = (currentTime, duration) => this.onTimeUpdate(currentTime, duration, 0);
         await this.liveStream.setAsVideoSource();
 
         await this.play();
@@ -56,7 +56,7 @@ export class DigitalVideoRecorder
         this.liveStream.onUpdate = null;
         await this.liveStream.releaseAsVideoSource();
         
-        this.playback.onUpdate = (currentTime, duration, speed) => this.onUpdate(currentTime, duration, speed);
+        this.playback.onUpdate = (currentTime, duration, speed) => this.onTimeUpdate(currentTime, duration, speed);
         await this.playback.setAsVideoSource(currentTime);
 
         this.raiseOnModeChange();
