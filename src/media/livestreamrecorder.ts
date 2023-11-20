@@ -14,7 +14,7 @@ export class LiveStreamRecorder
         this.chunkedRecorder = new ChunkedRecorder(this.liveStream);
     }
 
-    async initAndStartRecording() {
+    async startRecording() {
         await this.chunkedRecorder.start();
     }
 

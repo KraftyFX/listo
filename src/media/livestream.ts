@@ -14,7 +14,7 @@ export class LiveStream
         this.videoElt = videoElt;
     }
 
-    async init() {
+    async acquireCameraPermission() {
         this._stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: BUILT_IN // LOGITECH_BRIO_CAMERA_ID,

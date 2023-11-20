@@ -15,10 +15,10 @@ export class DigitalVideoRecorder
 
     async initAndStartRecording() {
         this.liveStream = new LiveStream(this.videoElt);
-        await this.liveStream.init();
+        await this.liveStream.acquireCameraPermission();
 
         this.playback = new LiveStreamRecorder(this.liveStream);
-        await this.playback.initAndStartRecording();
+        await this.playback.startRecording();
 
         await this.switchToLiveStream();
     }
