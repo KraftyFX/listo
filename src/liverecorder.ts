@@ -23,10 +23,6 @@ export class LiveRecorder
         await this.switchToLiveStream();
     }
 
-    async dispose() {
-        await this.playback.stop();
-    }
-
     public get isLive() { return this._isLive; }
     private _isLive = false;
 
