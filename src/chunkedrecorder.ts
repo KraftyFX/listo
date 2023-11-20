@@ -1,3 +1,4 @@
+import { nowAsSeconds } from "./dateutil";
 import { LiveStream } from "./livestream";
 
 const mimeType = 'video/webm';
@@ -113,7 +114,7 @@ export class ChunkedRecorder
 
     private onDataAvailable = (event: BlobEvent) => {
         if (this.segments.length === 1) {
-            this._startedAt = new Date(new Date().valueOf() - (this.liveStream.videoElt.currentTime * 1000));
+            this._startedAt = nowAsSeconds(this.liveStream.videoElt.currentTime);
         }
 
         this.saveDataBlob(event.data);

@@ -1,3 +1,5 @@
+import { nowAsSeconds } from "./dateutil";
+
 const LOGITECH_BRIO_CAMERA_ID = '94f3aff55f18fcaa8238d5ae2437608852fcdeae132d61a15b94f197cf364acb';
 const BUILT_IN = '5134f09eebf96f0a8bc51de97e5b2bfb78e846b2cb5791c35516010b8350fc18';
 
@@ -29,7 +31,7 @@ export class LiveStream
 
     get duration() { 
         if (!this.videoElt.paused) {
-            this._startedAt = new Date(new Date().valueOf() - (this.videoElt.currentTime * 1000));
+            this._startedAt = nowAsSeconds(this.videoElt.currentTime);
             const actualDuration = this.videoElt.currentTime;
 
             return actualDuration;
