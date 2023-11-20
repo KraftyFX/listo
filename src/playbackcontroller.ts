@@ -19,7 +19,7 @@ export class PlaybackController
     public get direction() {
         switch (this.mode) {
             case "normal":
-                return this.mode;
+                return "normal";
             case "fastForward":
             case "slowForward":
                 return "forward";
@@ -28,16 +28,18 @@ export class PlaybackController
         }
     }
 
+    public get videoElt() { return this.recorder.videoElt; }
+
     public get mode() { return this._mode; }
     private _mode:"normal" | "rewind" | "slowForward" | "fastForward" = "normal";
 
     async play() {
         this.stopInterval();
 
-        if (this.recorder.videoElt.paused) {
+        if (this.videoElt.paused) {
             await new Promise((resolve) => {
-                this.recorder.videoElt.addEventListener('play', () => resolve, { once : true });
-                this.recorder.videoElt.play();
+                this.videoElt.addEventListener('play', () => resolve, { once : true });
+                this.videoElt.play();
             });
         }
     }
@@ -45,13 +47,13 @@ export class PlaybackController
     async pause() {
         this.stopInterval();
         
-        if (this.recorder.videoElt.paused) {
+        if (this.videoElt.paused) {
             return;
         }
 
         await new Promise((resolve) => {
-            this.recorder.videoElt.addEventListener('pause', () => resolve, { once: true });
-            this.recorder.videoElt.pause();
+            this.videoElt.addEventListener('pause', () => resolve, { once: true });
+            this.videoElt.pause();
         });
     }
 

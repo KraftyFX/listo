@@ -33,7 +33,7 @@ export class LiveStream
 
             return actualDuration;
         } else {
-            console.warn('Using estimated duration of live feed.');
+            console.trace('Using estimated duration of live feed.');
 
             const estimatedDuration = ((new Date().valueOf() - this.startedAt.valueOf()) / 1000);
 

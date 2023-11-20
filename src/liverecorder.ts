@@ -18,8 +18,8 @@ export class LiveRecorder
         await this.liveStream.init();
 
         this.playback = new LiveStreamRecorder(this.liveStream);
-
         await this.playback.initAndStartRecording();
+
         await this.switchToLiveStream();
     }
 
@@ -55,13 +55,13 @@ export class LiveRecorder
 
         this._isLive = false;
 
+        const currentTime = this.liveStream.currentTime;
+
         this.liveStream.onUpdate = null;
         await this.liveStream.releaseAsVideoSource();
         
-        this.playback.onUpdate = (currentTime, duration, speed) => {
-            this.onUpdate(currentTime, duration, speed);
-        }
-        await this.playback.setAsVideoSource(this.liveStream.currentTime);
+        this.playback.onUpdate = (currentTime, duration, speed) => this.onUpdate(currentTime, duration, speed);
+        await this.playback.setAsVideoSource(currentTime);
 
         this.raiseOnModeChange();
     }
