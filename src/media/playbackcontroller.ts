@@ -33,6 +33,14 @@ export class PlaybackController extends EventEmitter
 
     public get videoElt() { return this.recorder.videoElt; }
 
+    public get paused() {
+        if (this.mode === 'normal') {
+            return this.videoElt.paused;
+        } else {
+            return false;
+        }
+    }
+
     public get mode() { return this._mode; }
     private _mode:"normal" | "rewind" | "slowForward" | "fastForward" = "normal";
 
@@ -141,6 +149,8 @@ export class PlaybackController extends EventEmitter
     private _interval:any = 0;
 
     private startInterval() {
+        this.info('Starting playback timer');
+
         this._interval = this._interval || setInterval(async () => {
             const nextTimestamp = this.recorder.currentTime + this._speed;
 
@@ -196,12 +206,16 @@ export class PlaybackController extends EventEmitter
     }
 
     private stopInterval() {
-        clearInterval(this._interval);
-        this._interval = 0;        
+        if (this._interval !== 0) {
+            this.info('Stopping playback timer');
 
-        this._multiplier = 0;
-        this._speed = 0;
-
-        this._mode = "normal";
+            clearInterval(this._interval);
+            this._interval = 0;        
+    
+            this._multiplier = 0;
+            this._speed = 0;
+    
+            this._mode = "normal";
+        }
     }
 }
