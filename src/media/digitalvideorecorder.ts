@@ -37,7 +37,7 @@ export class DigitalVideoRecorder extends EventEmitter
         this.playback.removeAllListeners();
         await this.playback.releaseAsVideoSource();
 
-        this.liveStream.onUpdate = (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0);
+        this.liveStream.on('timeupdate', (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0));
         await this.liveStream.setAsVideoSource();
 
         await this.play();
@@ -54,7 +54,7 @@ export class DigitalVideoRecorder extends EventEmitter
 
         const currentTime = this.liveStream.currentTime;
 
-        this.liveStream.onUpdate = null;
+        this.liveStream.removeAllListeners();
         await this.liveStream.releaseAsVideoSource();
         
         this.playback.on('timestampupdate', (currentTime, duration, speed) => this.emitTimeUpdate(currentTime, duration, speed));

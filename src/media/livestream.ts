@@ -1,9 +1,10 @@
+import EventEmitter from "events";
 import { nowAsSeconds } from "./dateutil";
 
 const LOGITECH_BRIO_CAMERA_ID = '94f3aff55f18fcaa8238d5ae2437608852fcdeae132d61a15b94f197cf364acb';
 const BUILT_IN = '5134f09eebf96f0a8bc51de97e5b2bfb78e846b2cb5791c35516010b8350fc18';
 
-export class LiveStream
+export class LiveStream extends EventEmitter
 {
     videoElt: HTMLMediaElement;
 
@@ -11,6 +12,8 @@ export class LiveStream
     private _stream: MediaStream;
 
     constructor(videoElt: HTMLMediaElement) {
+        super();
+
         this.videoElt = videoElt;
     }
 
@@ -44,18 +47,14 @@ export class LiveStream
         }
     }
 
-    onUpdate?: (currentTime: number, duration: number) => void;
-
-    private raiseOnUpdate() {
-        if (this.onUpdate) {
-            this.onUpdate(this.videoElt.currentTime, this.duration);
-        }
+    private emitTimeUpdate() {
+        this.emit('timeupdate', this.videoElt.currentTime, this.duration);
     }
 
     async setAsVideoSource() {
         this.videoElt.src = null;
         this.videoElt.srcObject = this._stream;
-        this.videoElt.ontimeupdate = () => this.raiseOnUpdate();
+        this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
     }
 
     async releaseAsVideoSource() {
