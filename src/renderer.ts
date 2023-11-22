@@ -27,6 +27,7 @@
  */
 
 import './index.css';
+import { formatSeconds } from './media/dateutil';
 import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 
 window.onload = (async () => {
@@ -35,7 +36,7 @@ window.onload = (async () => {
     const video = document.getElementById('camera') as HTMLMediaElement;
     const dvr = new DigitalVideoRecorder(video);
 
-    (window as any).dvr = dvr;
+    window.dvr = dvr;
 
     dvr.onTimeUpdate = (currentTime, duration, multiplier) => {
         currentTime = Math.floor(currentTime);
@@ -44,9 +45,9 @@ window.onload = (async () => {
         const parts = [];
 
         if (currentTime === duration) {
-            parts.push(currentTime);
+            parts.push(formatSeconds(currentTime));
         } else {
-            parts.push(currentTime.toString() + ' / ' + duration.toString());
+            parts.push(formatSeconds(currentTime) + ' / ' + formatSeconds(duration));
         }
 
         if (multiplier !== 0) {
