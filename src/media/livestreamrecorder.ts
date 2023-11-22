@@ -51,8 +51,8 @@ export class LiveStreamRecorder
 
         this.videoElt.onended = () => this.playNextSegment();
 
-        this.controller.onRewindStartReached = async () => this.raiseOnRewindStartReached();
-        this.controller.onForwardEndReached = async () => this.raiseOnForwardEndReached();
+        this.controller.on('rewindstartreached', () => this.raiseOnRewindStartReached());
+        this.controller.on('fastforwardendreached', () => this.raiseOnForwardEndReached());
 
         await this.renderSegmentAtTime(timestamp);
     }
@@ -64,9 +64,7 @@ export class LiveStreamRecorder
         this.videoElt.onended = null;
         this.videoElt.ontimeupdate = null;
 
-        this.controller.onTimestampUpdate = null;
-        this.controller.onRewindStartReached = null;
-        this.controller.onForwardEndReached = null;
+        this.controller.removeAllListeners();
 
         await this.controller.stop();
     }
@@ -101,9 +99,9 @@ export class LiveStreamRecorder
                 this.raiseOnUpdate();
             };
     
-            this.controller.onTimestampUpdate = async (timestamp) => {
+            this.controller.on('timestampupdate', (timestamp) => {
                 this.renderSegmentAtTime(timestamp);
-            }
+            });
 
             this.info(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
         }

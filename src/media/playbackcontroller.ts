@@ -1,14 +1,17 @@
+import EventEmitter from "events";
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./interfaces";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 
 /*
  * This class exists b/c the HTMLElement.playbackRate property only works forwards, not backwards.
  */
-export class PlaybackController
+export class PlaybackController extends EventEmitter
 {
     private recorder: LiveStreamRecorder;
 
     constructor(recorder: LiveStreamRecorder) {
+        super();
+
         this.recorder = recorder;
     }
 
@@ -91,7 +94,7 @@ export class PlaybackController
         }
 
         this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
-        this.onTimestampUpdate(nextTimestamp);
+        this.emitTimestampUpdate(nextTimestamp);
     }
 
     async slowForward() {
@@ -134,10 +137,6 @@ export class PlaybackController
         this.startInterval();
     }
 
-    onTimestampUpdate:(timestamp: number) => Promise<void>;
-    onRewindStartReached:() => Promise<void>;
-    onForwardEndReached:() => Promise<void>;
-
     public get isActive() { return this._interval !== 0; }
     private _interval:any = 0;
 
@@ -155,30 +154,37 @@ export class PlaybackController
                 this.info('Reached the beginning');
 
                 this.stopInterval();
-                await this.onTimestampUpdate(0);
 
-                if (this.onRewindStartReached) {
-                    await this.onRewindStartReached();
-                }
+                this.emitTimestampUpdate(0);
+                this.emitRewindStartReached();
             }
             else if (nextTimestamp >= this.recorder.duration && this.direction === 'forward')
             {
                 this.info('Reached the end');
 
                 this.stopInterval();
-                await this.onTimestampUpdate(this.recorder.duration);
 
-                if (this.onForwardEndReached) {
-                    await this.onForwardEndReached();
-                }
+                this.emitTimestampUpdate(this.recorder.duration);
+                this.emitFastForwardEndReached();
             }
             else
             {
-                this.log(`Updating ${this.direction} to ${nextTimestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
-
-                this.onTimestampUpdate(nextTimestamp);
+                this.emitTimestampUpdate(nextTimestamp);
             }
         }, REFRESH_RATE_IN_MS);
+    }
+
+    private emitTimestampUpdate(timestamp: number) {
+        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
+        this.emit('timestampupdate', timestamp);
+    }
+
+    private emitFastForwardEndReached() {
+        this.emit('fastforwardendreached');
+    }
+
+    private emitRewindStartReached() {
+        this.emit('rewindstartreached');
     }
 
     private info(message: string) {
