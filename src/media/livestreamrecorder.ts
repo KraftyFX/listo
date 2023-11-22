@@ -121,7 +121,7 @@ export class LiveStreamRecorder extends EventEmitter
         await this.renderSegmentAtTime(timecode);
     }
 
-    get canPlay() { return this.videoElt.paused; }
+    get paused() { return this.controller.paused; }
 
     async play() {
         await this.controller.play();

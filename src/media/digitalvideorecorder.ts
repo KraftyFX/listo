@@ -63,8 +63,8 @@ export class DigitalVideoRecorder extends EventEmitter
         this.emitModeChange();
     }
 
-    get canPlay() { 
-        return this.isLive ? this.liveStream.canPlay : this.playback.canPlay;
+    get paused() { 
+        return this.isLive ? this.liveStream.paused : this.playback.paused;
     }
 
     async play() {
@@ -85,7 +85,7 @@ export class DigitalVideoRecorder extends EventEmitter
     }
 
     async goToPlaybackTime(percent: number) {
-        const wasPlaying = !this.canPlay;
+        const wasPlaying = !this.paused;
 
         await this.switchToPlayback();
         await this.playback.goToTimecode(this.playback.duration * percent);

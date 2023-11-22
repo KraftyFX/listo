@@ -61,7 +61,7 @@ export class LiveStream extends EventEmitter
         this.videoElt.ontimeupdate = null;
     }
 
-    get canPlay() { return this.videoElt.paused; }
+    get paused() { return this.videoElt.paused; }
 
     async play() {
         await this.videoElt.play();
