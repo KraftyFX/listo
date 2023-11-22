@@ -31,7 +31,7 @@ export class PlaybackController extends EventEmitter
         }
     }
 
-    public get videoElt() { return this.recorder.videoElt; }
+    private get videoElt() { return this.recorder.videoElt; }
 
     public get paused() {
         if (this.mode === 'normal') {
@@ -41,8 +41,7 @@ export class PlaybackController extends EventEmitter
         }
     }
 
-    public get mode() { return this._mode; }
-    private _mode:"normal" | "rewind" | "slowForward" | "fastForward" = "normal";
+    private mode:"normal" | "rewind" | "slowForward" | "fastForward" = "normal";
 
     async play() {
         this.stopInterval();
@@ -85,7 +84,7 @@ export class PlaybackController extends EventEmitter
             this._speed *= 2;
         }
 
-        this._mode = 'rewind';
+        this.mode = 'rewind';
 
         this.info('Rewinding at ' + this.multiplier + 'x');
 
@@ -110,7 +109,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this._speed <= 0|| this._mode == "fastForward") {
+        if (this._speed <= 0|| this.mode == "fastForward") {
             this._multiplier = 0.5;
             this._speed = SECONDS_PER_FRAME * this._multiplier;
         } else {
@@ -118,7 +117,7 @@ export class PlaybackController extends EventEmitter
             this._speed /= 2;
         }
 
-        this._mode = 'slowForward';
+        this.mode = 'slowForward';
 
         this.info('Slow Forwarding at ' + this.multiplier + 'x');
 
@@ -130,7 +129,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this._speed <= 0 || this._mode == "slowForward") {
+        if (this._speed <= 0 || this.mode == "slowForward") {
             this._multiplier = 1;
             this._speed = SECONDS_PER_FRAME * this._multiplier;
         } else {
@@ -138,7 +137,7 @@ export class PlaybackController extends EventEmitter
             this._speed *= 2;
         }
 
-        this._mode = 'fastForward';
+        this.mode = 'fastForward';
 
         this.info('Forwarding at ' + this.multiplier + 'x');
 
@@ -215,7 +214,7 @@ export class PlaybackController extends EventEmitter
             this._multiplier = 0;
             this._speed = 0;
     
-            this._mode = "normal";
+            this.mode = "normal";
         }
     }
 }
