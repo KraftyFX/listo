@@ -1,15 +1,16 @@
+import EventEmitter from "events";
 import { LiveStream } from "./livestream";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 
-export class DigitalVideoRecorder
+export class DigitalVideoRecorder extends EventEmitter
 {
     private videoElt:HTMLMediaElement;
     private liveStream:LiveStream;
     private playback:LiveStreamRecorder;
 
-    onTimeUpdate?: (currentTime: number, duration: number, speed: number) => void;
-
     constructor(videoElt:HTMLMediaElement) {
+        super();
+
         this.videoElt = videoElt;
     }
 
@@ -36,12 +37,12 @@ export class DigitalVideoRecorder
         this.playback.removeAllListeners();
         await this.playback.releaseAsVideoSource();
 
-        this.liveStream.onUpdate = (currentTime, duration) => this.onTimeUpdate(currentTime, duration, 0);
+        this.liveStream.onUpdate = (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0);
         await this.liveStream.setAsVideoSource();
 
         await this.play();
 
-        this.raiseOnModeChange();
+        this.emitModeChange();
     }
 
     async switchToPlayback() {
@@ -56,18 +57,10 @@ export class DigitalVideoRecorder
         this.liveStream.onUpdate = null;
         await this.liveStream.releaseAsVideoSource();
         
-        this.playback.on('timestampupdate', (currentTime, duration, speed) => this.onTimeUpdate(currentTime, duration, speed));
+        this.playback.on('timestampupdate', (currentTime, duration, speed) => this.emitTimeUpdate(currentTime, duration, speed));
         await this.playback.setAsVideoSource(currentTime);
 
-        this.raiseOnModeChange();
-    }
-
-    onModeChange?: (isLive: boolean) => void;
-
-    private raiseOnModeChange() {
-        if (this.onModeChange) {
-            this.onModeChange(this.isLive);
-        }
+        this.emitModeChange();
     }
 
     get canPlay() { 
@@ -130,5 +123,13 @@ export class DigitalVideoRecorder
         if (this.isLive) {
             throw new Error(`You can't fast forward when you're live`);
         }
+    }
+
+    private emitModeChange() {
+        this.emit('modechange', this.isLive);
+    }
+
+    private emitTimeUpdate(currentTime: number, duration: number, speed: number): void {
+        this.emit('timeupdate', currentTime, duration, speed);
     }
 }

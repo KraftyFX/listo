@@ -38,7 +38,7 @@ window.onload = (async () => {
 
     window.dvr = dvr;
 
-    dvr.onTimeUpdate = (currentTime, duration, multiplier) => {
+    dvr.on('timeupdate', (currentTime, duration, multiplier) => {
         currentTime = Math.floor(currentTime);
         duration = Math.floor(duration);
 
@@ -55,15 +55,15 @@ window.onload = (async () => {
         }
 
         $('elapsed').innerText = parts.join(' ');
-    };
+    });
 
-    dvr.onModeChange = (isLive) => {
+    dvr.on('modechange', (isLive) => {
         if (isLive) {
             showLiveStreamMode();
         } else {
             showPlaybackMode();
         }
-    }
+    });
 
     await dvr.initAndStartRecording();
 
