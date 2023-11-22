@@ -20,10 +20,78 @@ export class ChunkedRecorder
 {
     private liveStream: LiveStream;
     private recorder:  MediaRecorder;
-    private segments: Segment[] = [];
+    public segments: Segment[] = [];
 
     constructor(liveStream: LiveStream) {
         this.liveStream = liveStream;
+    }
+
+    private interval: any;
+    
+    start() {
+        const segment:Segment = {
+            index: this.segments.length,
+            url: "",
+            startTime: this.segments.length == 0 ? 0 : this.currentTime,
+            duration: 0,
+            chunks: []
+        };
+
+        this.segments.push(segment);
+
+        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
+        this.recorder.ondataavailable = this.onDataAvailable;
+        this.recorder.start();
+
+        if (!this.interval) {
+            this.interval = setInterval(() => {
+                this.recorder.stop();
+            }, MIN_SEGMENT_DURATION_SEC * 1000);
+        }
+    }
+
+    async stop() {
+        clearInterval(this.interval);
+        this.interval = 0;
+
+        this.recorder.stop();
+    }
+
+    private onDataAvailable = (event: BlobEvent) => {
+        if (this.segments.length === 1) {
+            this._startedAt = nowAsSeconds(this.liveStream.videoElt.currentTime);
+        }
+
+        this.saveDataBlob(event.data);
+
+        this.finalizeSegment();
+        this.start();
+
+        if (this.hasSegmentToRenderDone) {
+            this.hasSegmentToRenderDone(true);
+            this.hasSegmentToRenderDone = null;
+        }
+    }
+
+    private saveDataBlob(blob: Blob) {
+        if (typeof blob === "undefined" || blob.size === 0) {
+            return;
+        }
+
+        this.activeSegment.chunks.push(blob);
+    }
+
+    private finalizeSegment() {
+        const segment = this.activeSegment;
+
+        const blob = new Blob(segment.chunks, { type: mimeType });
+
+        segment.url = URL.createObjectURL(blob);
+        segment.duration = this.activeSegmentDuration;
+
+        this._recordedDuration += segment.duration;
+
+        this.log(`Finalizing segment ${printSegment(segment)}`)
     }
 
     async getSegmentAtTime(timestamp: number) {
@@ -112,47 +180,6 @@ export class ChunkedRecorder
         }
     }
 
-    private onDataAvailable = (event: BlobEvent) => {
-        if (this.segments.length === 1) {
-            this._startedAt = nowAsSeconds(this.liveStream.videoElt.currentTime);
-        }
-
-        this.saveDataBlob(event.data);
-
-        this.finalizeSegment();
-        this.start();
-
-        if (this.hasSegmentToRenderDone) {
-            this.hasSegmentToRenderDone(true);
-            this.hasSegmentToRenderDone = null;
-        }
-    }
-
-    private saveDataBlob(blob: Blob) {
-        if (typeof blob === "undefined" || blob.size === 0) {
-            return;
-        }
-
-        this.activeSegment.chunks.push(blob);
-    }
-
-    private finalizeSegment() {
-        const segment = this.activeSegment;
-
-        const blob = new Blob(segment.chunks, { type: mimeType });
-
-        segment.url = URL.createObjectURL(blob);
-        segment.duration = this.activeSegmentDuration;
-
-        this._recordedDuration += segment.duration;
-
-        this.log(`Finalizing segment ${printSegment(segment)}`)
-    }
-
-    private log(message: string) {
-        // console.log(message);
-    }
-
     resetSegmentDuration(segment:Segment, duration:number) {
         if (duration == -1 || segment.duration === duration) {
             return;
@@ -175,35 +202,9 @@ export class ChunkedRecorder
 
         this._recordedDuration = prev.startTime + prev.duration;
     }
-
-    private interval: any;
     
-    start() {
-        const segment:Segment = {
-            index: this.segments.length,
-            url: "",
-            startTime: this.segments.length == 0 ? 0 : this.currentTime,
-            duration: 0,
-            chunks: []
-        };
-
-        this.segments.push(segment);
-
-        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
-        this.recorder.ondataavailable = this.onDataAvailable;
-        this.recorder.start();
-
-        if (!this.interval) {
-            this.interval = setInterval(() => {
-                this.recorder.stop();
-            }, MIN_SEGMENT_DURATION_SEC * 1000);
-        }
+    private log(message: string) {
+        // console.log(message);
     }
 
-    async stop() {
-        clearInterval(this.interval);
-        this.interval = 0;
-
-        this.recorder.stop();
-    }
 }
