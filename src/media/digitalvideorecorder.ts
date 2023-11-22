@@ -33,7 +33,7 @@ export class DigitalVideoRecorder
 
         this._isLive = true;
 
-        this.playback.onUpdate = null;
+        this.playback.removeAllListeners();
         await this.playback.releaseAsVideoSource();
 
         this.liveStream.onUpdate = (currentTime, duration) => this.onTimeUpdate(currentTime, duration, 0);
@@ -56,7 +56,7 @@ export class DigitalVideoRecorder
         this.liveStream.onUpdate = null;
         await this.liveStream.releaseAsVideoSource();
         
-        this.playback.onUpdate = (currentTime, duration, speed) => this.onTimeUpdate(currentTime, duration, speed);
+        this.playback.on('timestampupdate', (currentTime, duration, speed) => this.onTimeUpdate(currentTime, duration, speed));
         await this.playback.setAsVideoSource(currentTime);
 
         this.raiseOnModeChange();

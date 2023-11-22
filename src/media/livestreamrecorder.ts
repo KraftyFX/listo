@@ -1,14 +1,17 @@
+import EventEmitter from "events";
 import { ChunkedRecorder, Segment, printSegment } from "./chunkedrecorder";
 import { LiveStream } from "./livestream";
 import { PlaybackController } from "./playbackcontroller";
 
-export class LiveStreamRecorder
+export class LiveStreamRecorder extends EventEmitter
 {
     private liveStream:LiveStream;
     private controller:PlaybackController;
     private chunkedRecorder:ChunkedRecorder;
 
     constructor(liveStream:LiveStream) {
+        super();
+        
         this.liveStream = liveStream;
         this.controller = new PlaybackController(this);
         this.chunkedRecorder = new ChunkedRecorder(this.liveStream);
@@ -32,14 +35,6 @@ export class LiveStreamRecorder
     get duration() { return this._duration; }
     private _duration = 0;
 
-    onUpdate?: (currentTime:number, duration:number, speed:number) => void;
-
-    private raiseOnUpdate() {
-        if (this.onUpdate) {
-            this.onUpdate(this.currentTime, this.duration, this.controller.multiplier);
-        }
-    }
-
     tryGetActiveVideoDuration() {
         const duration = this.videoElt.duration;
 
@@ -51,8 +46,8 @@ export class LiveStreamRecorder
 
         this.videoElt.onended = () => this.playNextSegment();
 
-        this.controller.on('rewindstartreached', () => this.raiseOnRewindStartReached());
-        this.controller.on('fastforwardendreached', () => this.raiseOnForwardEndReached());
+        this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
+        this.controller.on('fastforwardendreached', () => this.emitForwardEndReached());
 
         await this.renderSegmentAtTime(timestamp);
     }
@@ -96,7 +91,7 @@ export class LiveStreamRecorder
 
             this.videoElt.ontimeupdate = () => {
                 this.chunkedRecorder.resetSegmentDuration(this.currentSegment, this.tryGetActiveVideoDuration());
-                this.raiseOnUpdate();
+                this.emitTimestampUpdate();
             };
     
             this.controller.on('timestampupdate', (timestamp) => {
@@ -156,19 +151,15 @@ export class LiveStreamRecorder
         await this.controller.nextFrame();
     }
 
-    onRewindStartReached?:() => void;
-
-    private raiseOnRewindStartReached() {
-        if (this.onRewindStartReached) {
-            this.onRewindStartReached();
-        }
+    private emitTimestampUpdate() {
+        this.emit('timestampupdate', this.currentTime, this.duration, this.controller.multiplier);
     }
 
-    onFastForwardEndReached?:() => void;
+    private emitRewindStartReached() {
+        this.emit('rewindstartreached');
+    }
 
-    private raiseOnForwardEndReached() {
-        if (this.onFastForwardEndReached) {
-            this.onFastForwardEndReached();
-        }
+    private emitForwardEndReached() {
+        this.emit('forwardendreached');
     }
 }
