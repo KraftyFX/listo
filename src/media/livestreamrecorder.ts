@@ -91,10 +91,10 @@ export class LiveStreamRecorder extends EventEmitter
 
             this.videoElt.ontimeupdate = () => {
                 this.chunkedRecorder.resetSegmentDuration(this.currentSegment, this.tryGetActiveVideoDuration());
-                this.emitTimestampUpdate();
+                this.emitTimeUpdate();
             };
     
-            this.controller.on('timestampupdate', (timestamp) => {
+            this.controller.on('timeupdate', (timestamp) => {
                 this.renderSegmentAtTime(timestamp);
             });
 
@@ -151,8 +151,8 @@ export class LiveStreamRecorder extends EventEmitter
         await this.controller.nextFrame();
     }
 
-    private emitTimestampUpdate() {
-        this.emit('timestampupdate', this.currentTime, this.duration, this.controller.multiplier);
+    private emitTimeUpdate() {
+        this.emit('timeupdate', this.currentTime, this.duration, this.controller.multiplier);
     }
 
     private emitRewindStartReached() {

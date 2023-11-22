@@ -94,7 +94,7 @@ export class PlaybackController extends EventEmitter
         }
 
         this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
-        this.emitTimestampUpdate(nextTimestamp);
+        this.emitTimeUpdate(nextTimestamp);
     }
 
     async slowForward() {
@@ -155,7 +155,7 @@ export class PlaybackController extends EventEmitter
 
                 this.stopInterval();
 
-                this.emitTimestampUpdate(0);
+                this.emitTimeUpdate(0);
                 this.emitRewindStartReached();
             }
             else if (nextTimestamp >= this.recorder.duration && this.direction === 'forward')
@@ -164,19 +164,19 @@ export class PlaybackController extends EventEmitter
 
                 this.stopInterval();
 
-                this.emitTimestampUpdate(this.recorder.duration);
+                this.emitTimeUpdate(this.recorder.duration);
                 this.emitFastForwardEndReached();
             }
             else
             {
-                this.emitTimestampUpdate(nextTimestamp);
+                this.emitTimeUpdate(nextTimestamp);
             }
         }, REFRESH_RATE_IN_MS);
     }
 
-    private emitTimestampUpdate(timestamp: number) {
+    private emitTimeUpdate(timestamp: number) {
         this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
-        this.emit('timestampupdate', timestamp);
+        this.emit('timeupdate', timestamp);
     }
 
     private emitFastForwardEndReached() {
