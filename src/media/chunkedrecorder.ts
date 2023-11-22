@@ -18,12 +18,15 @@ export function printSegment(segment:Segment) {
 
 export class ChunkedRecorder
 {
-    private liveStream: LiveStream;
-    private recorder:  MediaRecorder;
+    private readonly liveStream: LiveStream;
+    private readonly recorder:  MediaRecorder;
     public segments: Segment[] = [];
 
     constructor(liveStream: LiveStream) {
         this.liveStream = liveStream;
+
+        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
+        this.recorder.ondataavailable = this.onDataAvailable;
     }
 
     private interval: any;
@@ -39,8 +42,6 @@ export class ChunkedRecorder
 
         this.segments.push(segment);
 
-        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
-        this.recorder.ondataavailable = this.onDataAvailable;
         this.recorder.start();
 
         if (!this.interval) {
@@ -67,10 +68,7 @@ export class ChunkedRecorder
         this.finalizeSegment();
         this.start();
 
-        if (this.hasSegmentToRenderDone) {
-            this.hasSegmentToRenderDone(true);
-            this.hasSegmentToRenderDone = null;
-        }
+        this.resolveForceRenderDonePromise();
     }
 
     private saveDataBlob(blob: Blob) {
@@ -165,18 +163,24 @@ export class ChunkedRecorder
         return (new Date().valueOf() - this._startedAt.valueOf()) / 1000;
     }
 
-    private hasSegmentToRenderDone: (hadToRender: boolean) => void;
+    private forcedRenderDone: (hadToRender: boolean) => void;
 
     ensureHasSegmentToRender() {
         if (this.segments.length === 1) {
             return new Promise<boolean>(resolve => {
                 this.log('Forcing segment rendering');
-                this.hasSegmentToRenderDone = resolve;
-                this.recorder.ondataavailable = this.onDataAvailable;
+                this.forcedRenderDone = resolve;
                 this.stop();
             })
         } else {
             return Promise.resolve(false);
+        }
+    }
+
+    private resolveForceRenderDonePromise() {
+        if (this.forcedRenderDone) {
+            this.forcedRenderDone(true);
+            this.forcedRenderDone = null;
         }
     }
 
@@ -202,7 +206,7 @@ export class ChunkedRecorder
 
         this._recordedDuration = prev.startTime + prev.duration;
     }
-    
+
     private log(message: string) {
         // console.log(message);
     }
