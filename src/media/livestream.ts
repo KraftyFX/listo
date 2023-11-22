@@ -1,5 +1,6 @@
 import EventEmitter from "events";
 import { nowAsSeconds } from "./dateutil";
+import { pauseAndWait, playAndWait } from "./videoutil";
 
 const LOGITECH_BRIO_CAMERA_ID = '94f3aff55f18fcaa8238d5ae2437608852fcdeae132d61a15b94f197cf364acb';
 const BUILT_IN = '5134f09eebf96f0a8bc51de97e5b2bfb78e846b2cb5791c35516010b8350fc18';
@@ -64,10 +65,10 @@ export class LiveStream extends EventEmitter
     get paused() { return this.videoElt.paused; }
 
     async play() {
-        await this.videoElt.play();
+        await playAndWait(this.videoElt);
     }
 
     async pause() {
-        await this.videoElt.pause();
+        await pauseAndWait(this.videoElt);
     }
 }

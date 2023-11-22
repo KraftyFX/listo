@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./interfaces";
 import { LiveStreamRecorder } from "./livestreamrecorder";
+import { pauseAndWait, playAndWait } from "./videoutil";
 
 /*
  * This class exists b/c the HTMLElement.playbackRate property only works forwards, not backwards.
@@ -47,10 +48,7 @@ export class PlaybackController extends EventEmitter
         this.stopInterval();
 
         if (this.videoElt.paused) {
-            await new Promise((resolve) => {
-                this.videoElt.addEventListener('play', () => resolve, { once : true });
-                this.videoElt.play();
-            });
+            await playAndWait(this.videoElt);
         }
     }
 
@@ -61,10 +59,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        await new Promise((resolve) => {
-            this.videoElt.addEventListener('pause', () => resolve, { once: true });
-            this.videoElt.pause();
-        });
+        await pauseAndWait(this.videoElt);
     }
 
     public get multiplier() { return this._multiplier; }

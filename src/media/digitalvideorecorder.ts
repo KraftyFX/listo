@@ -69,9 +69,9 @@ export class DigitalVideoRecorder extends EventEmitter
 
     async play() {
         if (this.isLive) {
-            this.liveStream.play();
+            await this.liveStream.play();
         } else {
-            this.playback.play();
+            await this.playback.play();
         }
     }
 
@@ -121,7 +121,7 @@ export class DigitalVideoRecorder extends EventEmitter
     
     private assertIsInPlayback() {
         if (this.isLive) {
-            throw new Error(`You can't fast forward when you're live`);
+            throw new Error(`You can only do this in playback mode`);
         }
     }
 
