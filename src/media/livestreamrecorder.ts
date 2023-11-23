@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import { ChunkedRecorder } from "./chunkedrecorder";
-import { nowAsSeconds } from "./dateutil";
+import { secondsSince, subtractSecondsFromNow } from "./dateutil";
 import { RecordingOptions } from "./dvrconfig";
 
 export class LiveStreamRecorder extends EventEmitter
@@ -37,21 +37,19 @@ export class LiveStreamRecorder extends EventEmitter
         }
     }
 
-    get startedAt() { return this._recordStartTime; }
-    private _recordStartTime:Date;
-
     get currentTime() { return this.videoElt.currentTime; }
+    private _recordStartTime:Date;
 
     get duration() { 
         if (!this.videoElt.paused) {
-            this._recordStartTime = nowAsSeconds(this.videoElt.currentTime);
+            this._recordStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
             const actualDuration = this.videoElt.currentTime;
 
             return actualDuration;
         } else {
             this.info('Using estimated duration of live feed.');
 
-            const estimatedDuration = ((new Date().valueOf() - this.startedAt.valueOf()) / 1000);
+            const estimatedDuration = secondsSince(this._recordStartTime);
 
             return estimatedDuration;
         }

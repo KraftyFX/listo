@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import { DEFAULT_RECORDING_OPTIONS } from "./constants";
-import { nowAsSeconds } from "./dateutil";
+import { secondsSince, subtractSecondsFromNow } from "./dateutil";
 import { RecordingOptions } from "./dvrconfig";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 import { SegmentCollection } from "./segmentcollection";
@@ -68,12 +68,12 @@ export class ChunkedRecorder extends EventEmitter
 
     private onDataAvailable = (event: BlobEvent) => {
         if (this.segments.length === 1) {
-            this._recordStartTime = nowAsSeconds(this.liveStream.videoElt.currentTime);
+            this._recordingStartTime = subtractSecondsFromNow(this.liveStream.videoElt.currentTime);
         }
 
         this.saveDataBlob(event.data);
 
-        this.finalizeSegment();
+        this.finalizeActiveSegment();
         this.start();
 
         this.resolveForceRenderDonePromise();
@@ -84,16 +84,16 @@ export class ChunkedRecorder extends EventEmitter
             return;
         }
 
-        this.activeSegment.chunks.push(blob);
+        this.activeSegmentBeingRecorded.chunks.push(blob);
     }
 
-    private finalizeSegment() {
-        const segment = this.activeSegment;
+    private finalizeActiveSegment() {
+        const segment = this.activeSegmentBeingRecorded;
 
         const blob = new Blob(segment.chunks, { type: this.options.mimeType });
 
         segment.url = URL.createObjectURL(blob);
-        segment.duration = this.activeSegmentDuration;
+        segment.duration = this.estimatedDurationOfActiveSegment;
 
         this.info(`Finalizing segment ${printSegment(segment)}`);
 
@@ -108,26 +108,18 @@ export class ChunkedRecorder extends EventEmitter
         return new SegmentCollection(this, segments);
     }
 
-    get renderableSegmentCount() {
-        if (this.segments.length < 2) {
-            return 0;
-        } else {
-            return this.segments.length - 2;
-        }
-    }
-
-    private get activeSegment() {
+    private get activeSegmentBeingRecorded() {
         return this.segments[this.segments.length - 1];
     }
 
-    private get activeSegmentDuration() {
-        return this.currentTime - this.activeSegment.startTime;
+    private get estimatedDurationOfActiveSegment() {
+        return this.currentTime - this.activeSegmentBeingRecorded.startTime;
     }
 
-    private _recordStartTime:Date;
+    private _recordingStartTime:Date;
 
     private get currentTime() {
-        return (new Date().valueOf() - this._recordStartTime.valueOf()) / 1000;
+        return secondsSince(this._recordingStartTime);
     }
 
     private forcedRenderDone: (hadToRender: boolean) => void;
@@ -155,7 +147,7 @@ export class ChunkedRecorder extends EventEmitter
 
     private assertHasSegmentToRender() {
         if (this.segments.length <= 1) {
-            throw new Error(`The chunked recorder was told to force render a frame. It did that but the segments array is somehow empty.`);
+            throw new Error(`The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`);
         }
     }
 
