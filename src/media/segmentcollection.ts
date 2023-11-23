@@ -17,10 +17,6 @@ export class SegmentCollection
             if (!segment) {
                 throw new Error(`The timestamp ${timestamp} is in the bounds of this chunked recording ${this.duration} but a segment was not found. This likely means the segments array is corrupt.`);
             }
-
-            if (!(segment.startTime <= timestamp && timestamp <= (segment.startTime + segment.duration))) {
-                throw new Error(`The wrong segment was found`);
-            }
         }
 
         const segments = this.segments;
@@ -34,7 +30,7 @@ export class SegmentCollection
             this.log(`Max ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
             return { segment, offset : segment.startTime + segment.duration };
         } else {
-            const segment = segments.find(segment => timestamp < segment.startTime + segment.duration);
+            const segment = segments.find(segment => segment.startTime <= timestamp && timestamp < (segment.startTime + segment.duration));
 
             assertCorrectSegmentWasFound(segment);
 
