@@ -32,6 +32,8 @@ import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
 
 window.onload = (async () => {
+    showLiveStreamMode();
+    
     await initDeviceList();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
