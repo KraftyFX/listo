@@ -53,6 +53,8 @@ export class PlaybackController extends EventEmitter
         this._speed = 1;
         this.mode = 'normal';
 
+        this.info(`Play`);
+
         this.emitPlay();
     }
 
@@ -64,6 +66,8 @@ export class PlaybackController extends EventEmitter
         this._speed = 0;
         this.mode = 'normal';
 
+        this.info(`Pause`);
+        
         this.emitPause();
     }
 
@@ -84,7 +88,7 @@ export class PlaybackController extends EventEmitter
 
         this.mode = 'rewind';
 
-        this.info('Rewinding at ' + this.speed + 'x');
+        this.info(`Rewinding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
@@ -119,7 +123,7 @@ export class PlaybackController extends EventEmitter
 
         this.mode = 'slowForward';
 
-        this.info('Slow Forwarding at ' + this.speed + 'x');
+        this.info(`Slow Forwarding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
@@ -138,7 +142,7 @@ export class PlaybackController extends EventEmitter
 
         this.mode = 'fastForward';
 
-        this.info('Forwarding at ' + this.speed + 'x');
+        this.info(`Forwarding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
