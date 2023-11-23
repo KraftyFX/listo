@@ -54,6 +54,14 @@ export class SegmentCollection
         }
     }
 
+    isFirstSegment(segment: Segment) {
+        return segment.index == 0;
+    }
+
+    isLastSegment(segment: Segment) {
+        return segment.index == this.segments[this.segments.length - 1].index;
+    }
+
     resetSegmentDuration(segment:Segment, duration:number) {
         this.chunkedRecorder.resetSegmentDuration(segment, duration);
     }

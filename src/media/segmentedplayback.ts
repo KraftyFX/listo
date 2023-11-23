@@ -125,19 +125,47 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     async rewind() {
+        if (this.isAtBeginning()) {
+            this.info('At playback start');
+            return;
+        }
+
         await this.controller.rewind();
     }
 
     async slowForward() {
+        if (this.isAtEnd()) {
+            this.info('At playback end');
+            return;
+        }
+
         await this.controller.slowForward();
     }
 
     async fastForward() {
+        if (this.isAtEnd()) {
+            this.info('At playback end');
+            return;
+        }
+
         await this.controller.fastForward();
     }
 
     async nextFrame() {
+        if (this.isAtEnd()) {
+            this.info('At playback end');
+            return;
+        }
+
         await this.controller.nextFrame();
+    }
+
+    private isAtBeginning() {
+        return this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0;
+    }
+
+    private isAtEnd() {
+        return this.segments.isLastSegment(this.currentSegment) && this.videoElt.currentTime === this.videoElt.duration;
     }
 
     private emitTimeUpdate() {

@@ -21,7 +21,7 @@ export class PlaybackController extends EventEmitter
         this.stopInterval();
     }
 
-    public get direction() {
+    private get direction() {
         switch (this.mode) {
             case "normal":
                 return "normal";
