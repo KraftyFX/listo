@@ -29,12 +29,18 @@
 import './index.css';
 import { formatSeconds } from './media/dateutil';
 import { DigitalVideoRecorder } from './media/digitalvideorecorder';
+import { DvrOptions } from './media/dvrconfig';
 
 window.onload = (async () => {
-    await getDevices();
+    await initDeviceList();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const dvr = new DigitalVideoRecorder(video, null);
+    const options = { 
+        recording : { 
+            source : getSelectedVideoDeviceId()
+        }
+    } as DvrOptions;
+    const dvr = new DigitalVideoRecorder(video, options);
 
     window.dvr = dvr;
 
@@ -106,16 +112,29 @@ function showPlaybackMode() {
     $('nextFrame').style.display = 'inline-block';
 }
 
-async function getDevices() {
+function getSelectedVideoDeviceId() {
+    return localStorage.getItem('videoinput') || 'default';
+}
+
+async function initDeviceList() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const menu = $("inputs");
+    const menu = $("inputs") as HTMLSelectElement;
+
+    menu.onchange = () => {
+        console.log(menu.value);
+        localStorage.setItem('videoinput', menu.value);
+    }
+
+    const def = getSelectedVideoDeviceId();
 
     devices
         .filter(d => d.kind === 'videoinput')
         .forEach((device) => {
-            const item = document.createElement("option");
+            const item = document.createElement("option") as HTMLOptionElement;
             item.textContent = device.label;
             item.value = device.deviceId;
+            item.selected = device.deviceId === def;
+
             menu.appendChild(item);
         });
 }
