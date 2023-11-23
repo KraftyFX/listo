@@ -1,6 +1,6 @@
 import EventEmitter from "events";
+import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./constants";
 import { PlaybackOptions } from "./dvrconfig";
-import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./interfaces";
 import { SegmentedPlayback } from "./segmentedplayback";
 import { pauseAndWait, playAndWait } from "./videoutil";
 
@@ -50,6 +50,7 @@ export class PlaybackController extends EventEmitter
 
         await playAndWait(this.videoElt);
 
+        this._speed = 1;
         this.emitPlay();
     }
 
@@ -58,24 +59,24 @@ export class PlaybackController extends EventEmitter
         
         await pauseAndWait(this.videoElt);
 
+        this._speed = 0;
+
         this.emitPause();
     }
 
     public get speed() { return this._speed; }
     private _speed = 0;
-    private _deltaInSec = 0;
+    private get deltaInSec() { return SECONDS_PER_FRAME * this._speed };
 
     async rewind() {
         if (this.isActive && this._speed <= -8) {
             return;
         }
 
-        if (this._deltaInSec >= 0) {
+        if (this.speed >= 0) {
             this._speed = -1;
-            this._deltaInSec = SECONDS_PER_FRAME * this._speed;
         } else {
             this._speed *= 2;
-            this._deltaInSec *= 2;
         }
 
         this.mode = 'rewind';
@@ -101,16 +102,14 @@ export class PlaybackController extends EventEmitter
     }
 
     async slowForward() {
-        if (this._deltaInSec > 0 && this._speed <= (1 / 8)) {
+        if (this.isActive && 0 < this._speed && this._speed <= (1 / 8)) {
             return;
         }
 
-        if (this._deltaInSec <= 0|| this.mode == "fastForward") {
+        if (this._speed <= 0|| this.mode == "fastForward") {
             this._speed = 0.5;
-            this._deltaInSec = SECONDS_PER_FRAME * this._speed;
         } else {
             this._speed /= 2;
-            this._deltaInSec /= 2;
         }
 
         this.mode = 'slowForward';
@@ -126,12 +125,10 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this._deltaInSec <= 0 || this.mode == "slowForward") {
+        if (this._speed <= 0 || this.mode == "slowForward") {
             this._speed = 1;
-            this._deltaInSec = SECONDS_PER_FRAME * this._speed;
         } else {
             this._speed *= 2;
-            this._deltaInSec *= 2;
         }
 
         this.mode = 'fastForward';
@@ -149,9 +146,9 @@ export class PlaybackController extends EventEmitter
         this.log('Starting playback timer');
 
         this._interval = this._interval || setInterval(async () => {
-            const nextTimestamp = this.recorder.currentTime + this._deltaInSec;
+            const nextTimestamp = this.recorder.currentTime + this.deltaInSec;
 
-            if (this._deltaInSec === 0)
+            if (this.deltaInSec === 0)
             {
                 this.info('Unexpected Stop');
 
@@ -195,14 +192,12 @@ export class PlaybackController extends EventEmitter
             this._interval = 0;        
     
             this._speed = 0;
-            this._deltaInSec = 0;
-    
             this.mode = "normal";
         }
     }
 
     private emitTimeUpdate(timestamp: number) {
-        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._deltaInSec.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
+        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
         this.emit('timeupdate', timestamp);
     }
 
