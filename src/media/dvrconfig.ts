@@ -10,5 +10,7 @@ export interface RecordingOptions {
 }
 
 export interface PlaybackOptions {
+    maxPlaySpeedFactor: number,
+    minPlaySpeedFactor: number,
     logging: string
 }

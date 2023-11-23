@@ -66,10 +66,10 @@ export class PlaybackController extends EventEmitter
 
     public get speed() { return this._speed; }
     private _speed = 0;
-    private get deltaInSec() { return SECONDS_PER_FRAME * this._speed };
+    private get deltaInSec() { return SECONDS_PER_FRAME * this._speed; }
 
     async rewind() {
-        if (this.isActive && this._speed <= -8) {
+        if (this.isActive && this._speed <= (-1 * this.options.maxPlaySpeedFactor)) {
             return;
         }
 
@@ -102,7 +102,7 @@ export class PlaybackController extends EventEmitter
     }
 
     async slowForward() {
-        if (this.isActive && 0 < this._speed && this._speed <= (1 / 8)) {
+        if (this.isActive && 0 < this._speed && this._speed <= this.options.minPlaySpeedFactor) {
             return;
         }
 
@@ -121,7 +121,7 @@ export class PlaybackController extends EventEmitter
     }
 
     async fastForward() {
-        if (this.isActive && this._speed >= 8) {
+        if (this.isActive && this._speed >= this.options.maxPlaySpeedFactor) {
             return;
         }
 
