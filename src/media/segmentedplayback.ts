@@ -81,7 +81,7 @@ export class SegmentedPlayback extends EventEmitter
     private syncSegmentDuration(segment: Segment) {
         const duration = this.tryGetActiveVideoDuration();
 
-        if (duration !== -1 && segment.duration !== duration) {
+        if (duration !== -1) {
             this.segments.resetSegmentDuration(segment, duration);
             this.emitTimeUpdate();
         }
