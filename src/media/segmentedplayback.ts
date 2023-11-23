@@ -1,16 +1,20 @@
 import EventEmitter from "events";
 import { Segment, printSegment } from "./chunkedrecorder";
+import { DEFAULT_PLAYBACK_OPTIONS } from "./constants";
+import { PlaybackOptions } from "./dvrconfig";
 import { PlaybackController } from "./playbackcontroller";
 import { SegmentCollection } from "./segmentcollection";
 
 export class SegmentedPlayback extends EventEmitter
 {
     private controller:PlaybackController;
+    public readonly options: PlaybackOptions;
 
-    constructor(public readonly videoElt: HTMLMediaElement, public readonly segments: SegmentCollection) {
+    constructor(public readonly videoElt: HTMLMediaElement, public readonly segments: SegmentCollection, opt?: PlaybackOptions) {
         super();
-        
-        this.controller = new PlaybackController(this);
+        this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
+
+        this.controller = new PlaybackController(this, this.options);
     }
 
     get currentTime() { 
@@ -55,7 +59,7 @@ export class SegmentedPlayback extends EventEmitter
     private async renderSegmentAtTime(timestamp:number) {
         const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
 
-        this.log(`Requesting segment at ${timestamp.toFixed(2)}`);
+        this.info(`Requesting segment at ${timestamp.toFixed(2)}`);
 
         this.renderSegment(segment, offset);
     }
@@ -67,7 +71,7 @@ export class SegmentedPlayback extends EventEmitter
             this.videoElt.src = segment.url;
             this.videoElt.srcObject = null;
 
-            this.info(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
+            this.log(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
         }
 
         this.syncSegmentDuration(this.currentSegment);
@@ -97,9 +101,11 @@ export class SegmentedPlayback extends EventEmitter
         const nextSegment = this.segments.getNextSegment(this.currentSegment);
 
         if (nextSegment) {
+            this.log(`Playing next segment ${printSegment(nextSegment)}`);
             this.renderSegment(nextSegment, 0);
             this.play();
         } else {
+            this.info('No next segment available to play');
             this.emitEnded();
         }
     }
@@ -155,10 +161,14 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     private info(message: string) {
-        console.info(message);
+        if (this.options.logging === 'info' || this.options.logging === 'log') {
+            console.info(message);
+        }
     }
-
+    
     private log(message: string) {
-        // console.log(message);
+        if (this.options.logging === 'log') {
+            console.log(message);
+        }
     }
 }

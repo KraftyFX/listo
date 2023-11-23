@@ -52,7 +52,7 @@ export class ChunkedRecorder
         if (!this.interval) {
             this.interval = setInterval(() => {
                 this.recorder.stop();
-            }, this.options.minSegmentSize * 1000);
+            }, this.options.minSegmentSizeInSec * 1000);
         }
     }
 

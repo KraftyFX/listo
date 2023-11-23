@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import { PlaybackOptions } from "./dvrconfig";
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./interfaces";
 import { SegmentedPlayback } from "./segmentedplayback";
 import { pauseAndWait, playAndWait } from "./videoutil";
@@ -10,7 +11,7 @@ export class PlaybackController extends EventEmitter
 {
     private recorder: SegmentedPlayback;
 
-    constructor(recorder: SegmentedPlayback) {
+    constructor(recorder: SegmentedPlayback, public readonly options: PlaybackOptions) {
         super();
 
         this.recorder = recorder;
@@ -209,19 +210,23 @@ export class PlaybackController extends EventEmitter
         this.emit('ended');
     }
 
-    private info(message: string) {
-        console.info(message);
-    }
-
-    private log(message: string) {
-        // console.log(message);
-    }
-
     private emitPlay() {
         this.emit('play');
     }
 
     private emitPause() {
         this.emit('pause');
+    }
+    
+    private info(message: string) {
+        if (this.options.logging === 'info' || this.options.logging === 'log') {
+            console.info(message);
+        }
+    }
+    
+    private log(message: string) {
+        if (this.options.logging === 'log') {
+            console.log(message);
+        }
     }
 }
