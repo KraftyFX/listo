@@ -153,7 +153,11 @@ export class PlaybackController extends EventEmitter
             if (this._speed === 0)
             {
                 this.info('Unexpected Stop');
+
+                this.emitTimeUpdate(this.recorder.currentTime);
+                
                 this.stopInterval();
+                this.emitPause();
             } 
             else if (nextTimestamp <= 0 && this.direction === 'backward')
             {
@@ -171,7 +175,7 @@ export class PlaybackController extends EventEmitter
                 this.stopInterval();
 
                 this.emitTimeUpdate(this.recorder.duration);
-                this.emitFastForwardEndReached();
+                this.emitEnded();
             }
             else
             {
@@ -197,10 +201,6 @@ export class PlaybackController extends EventEmitter
     private emitTimeUpdate(timestamp: number) {
         this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
         this.emit('timeupdate', timestamp);
-    }
-
-    private emitFastForwardEndReached() {
-        this.emit('fastforwardendreached');
     }
 
     private emitEnded() {
