@@ -18,9 +18,10 @@ export class DigitalVideoRecorder extends EventEmitter
         this.options = Object.assign({}, DEFAULT_DVR_OPTIONS, opt);
     }
 
-    async initAndStartRecording() {
+    async showLiveStreamAndStartRecording() {
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt, this.options.recording);
 
+        await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
     }
 

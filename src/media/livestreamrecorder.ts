@@ -27,7 +27,6 @@ export class LiveStreamRecorder extends EventEmitter
         assertLiveStreamAcquired();
 
         const recorder = new LiveStreamRecorder(videoElt, stream, options);
-        await recorder.startRecording();
 
         return recorder;
 
