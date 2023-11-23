@@ -2,7 +2,7 @@ import EventEmitter from "events";
 import { ChunkedRecorder } from "./chunkedrecorder";
 import { BUILT_IN } from "./constants";
 import { nowAsSeconds } from "./dateutil";
-import { RecordOptions } from "./dvrconfig";
+import { RecordingOptions } from "./dvrconfig";
 
 export class LiveStreamRecorder extends EventEmitter
 {
@@ -11,14 +11,14 @@ export class LiveStreamRecorder extends EventEmitter
     private constructor(
         public readonly videoElt: HTMLMediaElement,
         public readonly stream: MediaStream,
-        public readonly options: RecordOptions
+        public readonly options: RecordingOptions
     ) {
         super();
 
         this.chunkedRecorder = new ChunkedRecorder(this, options);
     }
 
-    static async createFromUserCamera(videoElt: HTMLMediaElement, options: RecordOptions) {
+    static async createFromUserCamera(videoElt: HTMLMediaElement, options: RecordingOptions) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: BUILT_IN
@@ -51,7 +51,7 @@ export class LiveStreamRecorder extends EventEmitter
 
             return actualDuration;
         } else {
-            console.trace('Using estimated duration of live feed.');
+            this.info('Using estimated duration of live feed.');
 
             const estimatedDuration = ((new Date().valueOf() - this.startedAt.valueOf()) / 1000);
 
@@ -106,5 +106,17 @@ export class LiveStreamRecorder extends EventEmitter
 
     private emitPause() {
         this.emit('pause');
+    }
+
+    private info(message: string) {
+        if (this.options.logging === 'info' || this.options.logging === 'log') {
+            console.info(message);
+        }
+    }
+    
+    private log(message: string) {
+        if (this.options.logging === 'log') {
+            console.log(message);
+        }
     }
 }

@@ -4,5 +4,6 @@ export interface DvrOptions {
 
 export interface RecordingOptions {
     mimeType: string,
-    minSegmentSize: number
+    minSegmentSize: number,
+    logging: string
 }

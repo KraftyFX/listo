@@ -1,10 +1,9 @@
+import { DEFAULT_RECORDING_OPTIONS } from "./constants";
 import { nowAsSeconds } from "./dateutil";
-import { RecordOptions } from "./dvrconfig";
+import { RecordingOptions } from "./dvrconfig";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 import { SegmentCollection } from "./segmentcollection";
 
-const mimeType = 'video/webm';
-const MIN_SEGMENT_DURATION_SEC = 5;
 
 export interface Segment {
     index: number;
@@ -21,14 +20,16 @@ export function printSegment(segment:Segment) {
 export class ChunkedRecorder
 {
     private readonly recorder:  MediaRecorder;
+    public readonly options: RecordingOptions;
 
     constructor(
         private readonly liveStream: LiveStreamRecorder,
-        public readonly options: RecordOptions
+        opt?: Partial<RecordingOptions>
     ) {
         this.liveStream = liveStream;
+        this.options = Object.assign({}, DEFAULT_RECORDING_OPTIONS, opt);
 
-        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
+        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType: this.options.mimeType });
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
@@ -51,7 +52,7 @@ export class ChunkedRecorder
         if (!this.interval) {
             this.interval = setInterval(() => {
                 this.recorder.stop();
-            }, MIN_SEGMENT_DURATION_SEC * 1000);
+            }, this.options.minSegmentSize * 1000);
         }
     }
 
@@ -86,12 +87,12 @@ export class ChunkedRecorder
     private finalizeSegment() {
         const segment = this.activeSegment;
 
-        const blob = new Blob(segment.chunks, { type: mimeType });
+        const blob = new Blob(segment.chunks, { type: this.options.mimeType });
 
         segment.url = URL.createObjectURL(blob);
         segment.duration = this.activeSegmentDuration;
 
-        this.log(`Finalizing segment ${printSegment(segment)}`)
+        this.info(`Finalizing segment ${printSegment(segment)}`)
     }
 
     async getRecordedSegments() {
@@ -129,7 +130,7 @@ export class ChunkedRecorder
     ensureHasSegmentToRender() {
         if (this.segments.length === 1) {
             return new Promise<boolean>(resolve => {
-                this.log('Forcing segment rendering');
+                this.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
                 this.stop();
             })
@@ -158,7 +159,7 @@ export class ChunkedRecorder
             return false;
         }
 
-        this.log(`Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(3)} to ${duration.toFixed(3)}`);
+        this.info(`Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(3)} to ${duration.toFixed(3)}`);
         segment.duration = duration;
 
         let prev = this.segments[0];
@@ -176,7 +177,15 @@ export class ChunkedRecorder
         return true;
     }
 
+    private info(message: string) {
+        if (this.options.logging === 'info' || this.options.logging === 'log') {
+            console.info(message);
+        }
+    }
+    
     private log(message: string) {
-        console.log(message);
+        if (this.options.logging === 'log') {
+            console.log(message);
+        }
     }
 }

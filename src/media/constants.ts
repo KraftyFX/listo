@@ -8,7 +8,8 @@ const MIN_SEGMENT_DURATION_SEC = 5;
 
 export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     mimeType,
-    minSegmentSize : MIN_SEGMENT_DURATION_SEC
+    minSegmentSize : MIN_SEGMENT_DURATION_SEC,
+    logging: null
 }
 
 export const DEFAULT_DVR_OPTIONS: DvrOptions = {
