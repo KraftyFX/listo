@@ -1,3 +1,4 @@
+import EventEmitter from "events";
 import { DEFAULT_RECORDING_OPTIONS } from "./constants";
 import { nowAsSeconds } from "./dateutil";
 import { RecordingOptions } from "./dvrconfig";
@@ -17,7 +18,7 @@ export function printSegment(segment:Segment) {
     return `segment=${segment.index}, start=${segment.startTime.toFixed(2)}, duration=${segment.duration.toFixed(2)}`
 }
 
-export class ChunkedRecorder
+export class ChunkedRecorder extends EventEmitter
 {
     private readonly recorder:  MediaRecorder;
     public readonly options: RecordingOptions;
@@ -26,6 +27,8 @@ export class ChunkedRecorder
         private readonly liveStream: LiveStreamRecorder,
         opt?: Partial<RecordingOptions>
     ) {
+        super();
+
         this.liveStream = liveStream;
         this.options = Object.assign({}, DEFAULT_RECORDING_OPTIONS, opt);
 
@@ -92,7 +95,9 @@ export class ChunkedRecorder
         segment.url = URL.createObjectURL(blob);
         segment.duration = this.activeSegmentDuration;
 
-        this.info(`Finalizing segment ${printSegment(segment)}`)
+        this.info(`Finalizing segment ${printSegment(segment)}`);
+
+        this.emitSegmentAvailable(segment)
     }
 
     async getRecordedSegments() {
@@ -175,6 +180,10 @@ export class ChunkedRecorder
         });
 
         return true;
+    }
+
+    private emitSegmentAvailable(segment: Segment) {
+        this.emit('segmentavailable', segment);
     }
 
     private info(message: string) {

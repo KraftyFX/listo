@@ -65,6 +65,8 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     private renderSegment(segment:Segment, offset:number) {
+        let segmentChanged = false;
+
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
@@ -72,10 +74,16 @@ export class SegmentedPlayback extends EventEmitter
             this.videoElt.srcObject = null;
 
             this.log(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
+
+            segmentChanged = true;
         }
 
         this.syncSegmentDuration(this.currentSegment);
         this.videoElt.currentTime = offset;
+
+        if (segmentChanged) {
+            this.emitSegmentRendered(segment);
+        }
     }
 
     private syncSegmentDuration(segment: Segment) {
@@ -166,6 +174,10 @@ export class SegmentedPlayback extends EventEmitter
 
     private isAtEnd() {
         return this.segments.isLastSegment(this.currentSegment) && this.videoElt.currentTime === this.videoElt.duration;
+    }
+
+    private emitSegmentRendered(segment: Segment) {
+        this.emit('segmentrendered', segment);
     }
 
     private emitTimeUpdate() {
