@@ -65,20 +65,23 @@ window.onload = (async () => {
         }
     });
 
+    dvr.on('play', () => showPause());
+    dvr.on('pause', () => showPlay());
+
     await dvr.initAndStartRecording();
 
-    assign('play', 'click', () => { dvr.play(); showPause(); });
-    assign('pause', 'click', () => { dvr.pause(); showPlay(); });
+    assign('play', 'click', () => dvr.play());
+    assign('pause', 'click', () => dvr.pause());
 
-    assign('rewind', 'click', () => { dvr.rewind(); showPause(); });
-    assign('fastForward', 'click', () => { dvr.fastforward(); showPause(); });
-    assign('slowForward', 'click', () => { dvr.slowForward(); showPause(); });
-    assign('nextFrame', 'click', () => { dvr.nextFrame(); showPlay(); });
+    assign('rewind', 'click', () => dvr.rewind());
+    assign('fastForward', 'click', () => dvr.fastforward());
+    assign('slowForward', 'click', () => dvr.slowForward());
+    assign('nextFrame', 'click', () => dvr.nextFrame());
 
-    assign('mid', 'click', () => { dvr.goToPlaybackTime(.5); });
-    assign('live', 'click', () => { dvr.switchToLiveStream(); });
+    assign('mid', 'click', () => dvr.goToPlaybackTime(.5));
+    assign('live', 'click', () => dvr.switchToLiveStream());
 
-    assign('lastNSec', 'click', () => { dvr.switchToPlayback(); });
+    assign('lastNSec', 'click', () => dvr.switchToPlayback());
 });
 
 function showPause() {

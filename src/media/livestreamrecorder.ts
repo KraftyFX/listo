@@ -57,10 +57,14 @@ export class LiveStreamRecorder extends EventEmitter
     async setAsVideoSource() {
         this.videoElt.src = null;
         this.videoElt.srcObject = this.stream;
+        this.videoElt.onplay = () => this.emitPlay();
+        this.videoElt.onpause = () => this.emitPause();
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
     }
 
     releaseAsVideoSource() {
+        this.videoElt.onplay = null;
+        this.videoElt.onpause = null;
         this.videoElt.ontimeupdate = null;
     }
 
@@ -89,5 +93,13 @@ export class LiveStreamRecorder extends EventEmitter
 
     private emitTimeUpdate() {
         this.emit('timeupdate', this.videoElt.currentTime, this.duration);
+    }
+
+    private emitPlay() {
+        this.emit('play');
+    }
+
+    private emitPause() {
+        this.emit('pause');
     }
 }

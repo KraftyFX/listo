@@ -20,19 +20,29 @@ export class SegmentedPlayback extends EventEmitter
     get duration() { return this.segments.duration; }
 
     async setAsVideoSource(timestamp:number) {
-        this.videoElt.onended = () => this.playNextSegment();
-
-        this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
-        this.controller.on('fastforwardendreached', () => this.emitForwardEndReached());
-
         await this.renderSegmentAtTime(timestamp);
+
+        this.videoElt.onended = () => this.playNextSegment();
+        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
+
+        this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
+        this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
+        this.controller.on('ended', () => this.emitEnded());
+        this.controller.on('play', () => this.emitPlay());
+        this.controller.on('pause', () => this.emitPause());
+
+        if (this.videoElt.paused) {
+            this.emitPause();
+        } else {
+            this.emitPlay();
+        }
     }
 
     async releaseAsVideoSource() {
         this.currentSegment = null;
 
         this.videoElt.onended = null;
-        this.videoElt.ontimeupdate = null;
+        this.videoElt.ondurationchange = null;
 
         this.controller.removeAllListeners();
         this.controller.stop();
@@ -49,24 +59,11 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     private renderSegment(segment:Segment, offset:number) {
-        const isFirstSegmentBeingRendered = !this.currentSegment;
-
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
             this.videoElt.src = segment.url;
             this.videoElt.srcObject = null;
-
-            if (isFirstSegmentBeingRendered) {
-                this.videoElt.ontimeupdate = () => {
-                    this.syncSegmentDuration(this.currentSegment);
-                    this.emitTimeUpdate();
-                };
-        
-                this.controller.on('timeupdate', (timestamp) => {
-                    this.renderSegmentAtTime(timestamp);
-                });
-            }
 
             this.info(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
         }
@@ -80,6 +77,7 @@ export class SegmentedPlayback extends EventEmitter
 
         if (duration !== -1 && segment.duration !== duration) {
             this.segments.resetSegmentDuration(segment, duration);
+            this.emitTimeUpdate();
         }
     }
 
@@ -99,6 +97,8 @@ export class SegmentedPlayback extends EventEmitter
         if (nextSegment) {
             this.renderSegment(nextSegment, 0);
             this.play();
+        } else {
+            this.emitEnded();
         }
     }
 
@@ -140,8 +140,16 @@ export class SegmentedPlayback extends EventEmitter
         this.emit('rewindstartreached');
     }
 
-    private emitForwardEndReached() {
-        this.emit('forwardendreached');
+    private emitPlay() {
+        this.emit('play');
+    }
+
+    private emitPause() {
+        this.emit('pause');
+    }
+    
+    private emitEnded() {
+        this.emit('ended');
     }
 
     private info(message: string) {

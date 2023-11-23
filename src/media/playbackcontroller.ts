@@ -48,12 +48,16 @@ export class PlaybackController extends EventEmitter
         this.stopInterval();
 
         await playAndWait(this.videoElt);
+
+        this.emitPlay();
     }
 
     async pause() {
         this.stopInterval();
         
         await pauseAndWait(this.videoElt);
+
+        this.emitPause();
     }
 
     public get multiplier() { return this._multiplier; }
@@ -78,6 +82,7 @@ export class PlaybackController extends EventEmitter
         this.info('Rewinding at ' + this.multiplier + 'x');
 
         this.startInterval();
+        this.emitPlay();
     }
 
     async nextFrame() {
@@ -91,6 +96,7 @@ export class PlaybackController extends EventEmitter
 
         this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
         this.emitTimeUpdate(nextTimestamp);
+        this.emitPause();
     }
 
     async slowForward() {
@@ -111,6 +117,7 @@ export class PlaybackController extends EventEmitter
         this.info('Slow Forwarding at ' + this.multiplier + 'x');
 
         this.startInterval();
+        this.emitPlay();
     }
 
     async fastForward() {
@@ -131,6 +138,7 @@ export class PlaybackController extends EventEmitter
         this.info('Forwarding at ' + this.multiplier + 'x');
 
         this.startInterval();
+        this.emitPlay();
     }
 
     public get isActive() { return this._interval !== 0; }
@@ -154,7 +162,7 @@ export class PlaybackController extends EventEmitter
                 this.stopInterval();
 
                 this.emitTimeUpdate(0);
-                this.emitRewindStartReached();
+                this.emitEnded();
             }
             else if (nextTimestamp >= this.recorder.duration && this.direction === 'forward')
             {
@@ -172,27 +180,6 @@ export class PlaybackController extends EventEmitter
         }, REFRESH_RATE_IN_MS);
     }
 
-    private emitTimeUpdate(timestamp: number) {
-        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
-        this.emit('timeupdate', timestamp);
-    }
-
-    private emitFastForwardEndReached() {
-        this.emit('fastforwardendreached');
-    }
-
-    private emitRewindStartReached() {
-        this.emit('rewindstartreached');
-    }
-
-    private info(message: string) {
-        console.info(message);
-    }
-
-    private log(message: string) {
-        // console.log(message);
-    }
-
     private stopInterval() {
         if (this._interval !== 0) {
             this.log('Stopping playback timer');
@@ -205,5 +192,34 @@ export class PlaybackController extends EventEmitter
     
             this.mode = "normal";
         }
+    }
+
+    private emitTimeUpdate(timestamp: number) {
+        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this._speed.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
+        this.emit('timeupdate', timestamp);
+    }
+
+    private emitFastForwardEndReached() {
+        this.emit('fastforwardendreached');
+    }
+
+    private emitEnded() {
+        this.emit('ended');
+    }
+
+    private info(message: string) {
+        console.info(message);
+    }
+
+    private log(message: string) {
+        // console.log(message);
+    }
+
+    private emitPlay() {
+        this.emit('play');
+    }
+
+    private emitPause() {
+        this.emit('pause');
     }
 }

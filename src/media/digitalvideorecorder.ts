@@ -33,6 +33,8 @@ export class DigitalVideoRecorder extends EventEmitter
         }
 
         this.liveStreamRecorder.on('timeupdate', (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0));
+        this.liveStreamRecorder.on('play', () => this.emitPlay());
+        this.liveStreamRecorder.on('pause', () => this.emitPause());
         await this.liveStreamRecorder.setAsVideoSource();
 
         await this.play();
@@ -56,6 +58,8 @@ export class DigitalVideoRecorder extends EventEmitter
 
         this.playback = new SegmentedPlayback(this.videoElt, recordedVideoUntilNow);
         this.playback.on('timeupdate', (currentTime, duration, speed) => this.emitTimeUpdate(currentTime, duration, speed));
+        this.playback.on('play', () => this.emitPlay());
+        this.playback.on('pause', () => this.emitPause());
 
         await this.playback.setAsVideoSource(currentTime);
 
@@ -130,5 +134,13 @@ export class DigitalVideoRecorder extends EventEmitter
 
     private emitTimeUpdate(currentTime: number, duration: number, speed: number): void {
         this.emit('timeupdate', currentTime, duration, speed);
+    }
+
+    private emitPlay() {
+        this.emit('play');
+    }
+
+    private emitPause() {
+        this.emit('pause');
     }
 }
