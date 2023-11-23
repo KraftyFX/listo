@@ -50,12 +50,15 @@ export class ChunkedRecorder extends EventEmitter
 
         this.segments.push(segment);
 
-        this.recorder.start();
-
-        if (!this.interval) {
-            this.interval = setInterval(() => {
-                this.recorder.stop();
-            }, this.options.minSegmentSizeInSec * 1000);
+        try {
+            this.recorder.start();
+            if (!this.interval) {
+                this.interval = setInterval(() => {
+                    this.recorder.stop();
+                }, this.options.minSegmentSizeInSec * 1000);
+            }
+        } catch  (err) {
+            this.emit('recordingerror', err);
         }
     }
 

@@ -20,6 +20,7 @@ export class DigitalVideoRecorder extends EventEmitter
 
     async showLiveStreamAndStartRecording() {
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt, this.options.recording);
+        this.liveStreamRecorder.on('recordingerror', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
