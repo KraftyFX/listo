@@ -132,7 +132,7 @@ export class PlaybackController extends EventEmitter
         }
 
         if (this.mode !== 'fastForward') {
-            this._speed = 1;
+            this._speed = 2;
         } else {
             this._speed *= 2;
         }
