@@ -1,7 +1,8 @@
 export interface DvrOptions {
-    record : RecordOptions,
+    recording : RecordingOptions,
 }
 
-export interface RecordOptions {
-
+export interface RecordingOptions {
+    mimeType: string,
+    minSegmentSize: number
 }
