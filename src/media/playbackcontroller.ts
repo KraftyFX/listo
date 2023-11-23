@@ -47,18 +47,12 @@ export class PlaybackController extends EventEmitter
     async play() {
         this.stopInterval();
 
-        if (this.videoElt.paused) {
-            await playAndWait(this.videoElt);
-        }
+        await playAndWait(this.videoElt);
     }
 
     async pause() {
         this.stopInterval();
         
-        if (this.videoElt.paused) {
-            return;
-        }
-
         await pauseAndWait(this.videoElt);
     }
 
