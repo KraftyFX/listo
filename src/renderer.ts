@@ -98,8 +98,6 @@ function showLiveStreamMode() {
     $('slowForward').style.display = 'none';
     $('fastForward').style.display = 'none';
     $('nextFrame').style.display = 'none';
-
-    showPause();
 }
 
 function showPlaybackMode() {
