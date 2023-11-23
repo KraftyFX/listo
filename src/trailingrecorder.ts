@@ -1,4 +1,4 @@
-import { LiveStream } from "./media/livestream";
+import { LiveStream } from "./media/livestreamrecorder";
 
 const mimeType = 'video/webm';
 

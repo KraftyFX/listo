@@ -1,25 +1,18 @@
 import EventEmitter from "events";
-import { LiveStream } from "./livestream";
 import { LiveStreamRecorder } from "./livestreamrecorder";
+import { SegmentedPlayback } from "./segmentedplayback";
 
 export class DigitalVideoRecorder extends EventEmitter
 {
-    private videoElt:HTMLMediaElement;
-    private liveStream:LiveStream;
-    private playback:LiveStreamRecorder;
+    private liveStreamRecorder:LiveStreamRecorder;
+    private playback:SegmentedPlayback;
 
-    constructor(videoElt:HTMLMediaElement) {
+    constructor(private readonly videoElt:HTMLMediaElement) {
         super();
-
-        this.videoElt = videoElt;
     }
 
     async initAndStartRecording() {
-        this.liveStream = new LiveStream(this.videoElt);
-        await this.liveStream.acquireCameraPermission();
-
-        this.playback = new LiveStreamRecorder(this.liveStream);
-        await this.playback.startRecording();
+        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt);
 
         await this.switchToLiveStream();
     }
@@ -34,11 +27,13 @@ export class DigitalVideoRecorder extends EventEmitter
 
         this._isLive = true;
 
-        this.playback.removeAllListeners();
-        await this.playback.releaseAsVideoSource();
+        if (this.playback) {
+            this.playback.removeAllListeners();
+            this.playback.releaseAsVideoSource();
+        }
 
-        this.liveStream.on('timeupdate', (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0));
-        await this.liveStream.setAsVideoSource();
+        this.liveStreamRecorder.on('timeupdate', (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0));
+        await this.liveStreamRecorder.setAsVideoSource();
 
         await this.play();
 
@@ -52,24 +47,28 @@ export class DigitalVideoRecorder extends EventEmitter
 
         this._isLive = false;
 
-        const currentTime = this.liveStream.currentTime;
+        const currentTime = this.liveStreamRecorder.currentTime;
 
-        this.liveStream.removeAllListeners();
-        await this.liveStream.releaseAsVideoSource();
+        this.liveStreamRecorder.removeAllListeners();
+        this.liveStreamRecorder.releaseAsVideoSource();
         
+        const recordedVideoUntilNow = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
+
+        this.playback = new SegmentedPlayback(this.videoElt, recordedVideoUntilNow);
         this.playback.on('timeupdate', (currentTime, duration, speed) => this.emitTimeUpdate(currentTime, duration, speed));
+
         await this.playback.setAsVideoSource(currentTime);
 
         this.emitModeChange();
     }
 
     get paused() { 
-        return this.isLive ? this.liveStream.paused : this.playback.paused;
+        return this.isLive ? this.liveStreamRecorder.paused : this.playback.paused;
     }
 
     async play() {
         if (this.isLive) {
-            await this.liveStream.play();
+            await this.liveStreamRecorder.play();
         } else {
             await this.playback.play();
         }
@@ -77,7 +76,7 @@ export class DigitalVideoRecorder extends EventEmitter
 
     async pause() {
         if (this.isLive) {
-            await this.liveStream.pause();
+            await this.liveStreamRecorder.pause();
             await this.switchToPlayback();
         } else {
             await this.playback.pause();

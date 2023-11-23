@@ -1,5 +1,6 @@
 import { nowAsSeconds } from "./dateutil";
-import { LiveStream } from "./livestream";
+import { LiveStreamRecorder } from "./livestreamrecorder";
+import { SegmentCollection } from "./segmentcollection";
 
 const mimeType = 'video/webm';
 const MIN_SEGMENT_DURATION_SEC = 5;
@@ -18,11 +19,9 @@ export function printSegment(segment:Segment) {
 
 export class ChunkedRecorder
 {
-    private readonly liveStream: LiveStream;
     private readonly recorder:  MediaRecorder;
-    public segments: Segment[] = [];
 
-    constructor(liveStream: LiveStream) {
+    constructor(private readonly liveStream: LiveStreamRecorder) {
         this.liveStream = liveStream;
 
         this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
@@ -31,6 +30,8 @@ export class ChunkedRecorder
 
     private interval: any;
     
+    private segments: Segment[] = [];
+
     start() {
         const segment:Segment = {
             index: this.segments.length,
@@ -60,7 +61,7 @@ export class ChunkedRecorder
 
     private onDataAvailable = (event: BlobEvent) => {
         if (this.segments.length === 1) {
-            this._startedAt = nowAsSeconds(this.liveStream.videoElt.currentTime);
+            this._recordStartTime = nowAsSeconds(this.liveStream.videoElt.currentTime);
         }
 
         this.saveDataBlob(event.data);
@@ -87,55 +88,15 @@ export class ChunkedRecorder
         segment.url = URL.createObjectURL(blob);
         segment.duration = this.activeSegmentDuration;
 
-        this._recordedDuration += segment.duration;
-
         this.log(`Finalizing segment ${printSegment(segment)}`)
     }
 
-    async getSegmentAtTime(timestamp: number) {
-        const assertCorrectSegmentWasFound = (segment: Segment) => {
-            if (!segment) {
-                throw new Error(`The timestamp ${timestamp} is in the bounds of this chunked recording ${this.recordedDuration} but a segment was not found. This likely means the segments array is corrupt.`);
-            }
+    async getRecordedSegments() {
+        await this.ensureHasSegmentToRender();
 
-            if (!(segment.startTime <= timestamp && timestamp <= (segment.startTime + segment.duration))) {
-                throw new Error(`The wrong segment was found`);
-            }
-        }
+        const segments = this.segments.filter(s => s.duration > 0);
 
-        if (await this.ensureHasSegmentToRender()) {
-            this.log('Segment was force rendered.');
-        }
-
-        const segments = this.segments;
-
-        if (timestamp <= 0) {
-            const segment = segments[0];
-            this.log(`Min ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
-            return { segment, offset : 0 };
-        } else if (timestamp >= this.recordedDuration) {
-            const segment = segments[segments.length - 2];
-            this.log(`Max ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
-            return { segment, offset : segment.startTime + segment.duration };
-        } else {
-            const segment = segments.find(segment => timestamp < segment.startTime + segment.duration);
-
-            assertCorrectSegmentWasFound(segment);
-
-            this.log(`Mid ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
-
-            const offset = Math.max(0, timestamp - segment.startTime);
-
-            return { segment, offset };
-        }
-    }
-
-    getNextSegment(segment: Segment) {
-        if (segment.index >= this.segments.length - 2) {
-            return null;
-        } else {
-            return this.segments[segment.index + 1];
-        }
+        return new SegmentCollection(this, segments);
     }
 
     get renderableSegmentCount() {
@@ -146,9 +107,6 @@ export class ChunkedRecorder
         }
     }
 
-    private _recordedDuration = 0;
-    get recordedDuration() { return this._recordedDuration; }
-
     private get activeSegment() {
         return this.segments[this.segments.length - 1];
     }
@@ -157,10 +115,10 @@ export class ChunkedRecorder
         return this.currentTime - this.activeSegment.startTime;
     }
 
-    private _startedAt:Date;
+    private _recordStartTime:Date;
 
     private get currentTime() {
-        return (new Date().valueOf() - this._startedAt.valueOf()) / 1000;
+        return (new Date().valueOf() - this._recordStartTime.valueOf()) / 1000;
     }
 
     private forcedRenderDone: (hadToRender: boolean) => void;
@@ -179,17 +137,25 @@ export class ChunkedRecorder
 
     private resolveForceRenderDonePromise() {
         if (this.forcedRenderDone) {
+            this.assertHasSegmentToRender();
+
             this.forcedRenderDone(true);
             this.forcedRenderDone = null;
         }
     }
 
+    private assertHasSegmentToRender() {
+        if (this.segments.length <= 1) {
+            throw new Error(`The chunked recorder was told to force render a frame. It did that but the segments array is somehow empty.`);
+        }
+    }
+
     resetSegmentDuration(segment:Segment, duration:number) {
-        if (duration == -1 || segment.duration === duration) {
-            return;
+        if (segment.duration === duration) {
+            return false;
         }
 
-        this.log(`Resetting segment ${printSegment(segment)}`)
+        this.log(`Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(3)} to ${duration.toFixed(3)}`);
         segment.duration = duration;
 
         let prev = this.segments[0];
@@ -204,11 +170,10 @@ export class ChunkedRecorder
             prev = curr;
         });
 
-        this._recordedDuration = prev.startTime + prev.duration;
+        return true;
     }
 
     private log(message: string) {
-        // console.log(message);
+        console.log(message);
     }
-
 }

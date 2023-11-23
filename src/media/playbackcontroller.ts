@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./interfaces";
-import { LiveStreamRecorder } from "./livestreamrecorder";
+import { SegmentedPlayback } from "./segmentedplayback";
 import { pauseAndWait, playAndWait } from "./videoutil";
 
 /*
@@ -8,9 +8,9 @@ import { pauseAndWait, playAndWait } from "./videoutil";
  */
 export class PlaybackController extends EventEmitter
 {
-    private recorder: LiveStreamRecorder;
+    private recorder: SegmentedPlayback;
 
-    constructor(recorder: LiveStreamRecorder) {
+    constructor(recorder: SegmentedPlayback) {
         super();
 
         this.recorder = recorder;
@@ -143,7 +143,7 @@ export class PlaybackController extends EventEmitter
     private _interval:any = 0;
 
     private startInterval() {
-        this.info('Starting playback timer');
+        this.log('Starting playback timer');
 
         this._interval = this._interval || setInterval(async () => {
             const nextTimestamp = this.recorder.currentTime + this._speed;
@@ -201,7 +201,7 @@ export class PlaybackController extends EventEmitter
 
     private stopInterval() {
         if (this._interval !== 0) {
-            this.info('Stopping playback timer');
+            this.log('Stopping playback timer');
 
             clearInterval(this._interval);
             this._interval = 0;        
