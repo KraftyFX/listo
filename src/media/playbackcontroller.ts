@@ -51,6 +51,8 @@ export class PlaybackController extends EventEmitter
         await playAndWait(this.videoElt);
 
         this._speed = 1;
+        this.mode = 'normal';
+
         this.emitPlay();
     }
 
@@ -60,6 +62,7 @@ export class PlaybackController extends EventEmitter
         await pauseAndWait(this.videoElt);
 
         this._speed = 0;
+        this.mode = 'normal';
 
         this.emitPause();
     }
@@ -73,7 +76,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this.speed >= 0) {
+        if (this.mode !== 'rewind') {
             this._speed = -1;
         } else {
             this._speed *= 2;
@@ -96,6 +99,8 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
+        this.mode = "normal";
+
         this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
         this.emitTimeUpdate(nextTimestamp);
         this.emitPause();
@@ -106,7 +111,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this._speed <= 0|| this.mode == "fastForward") {
+        if (this.mode !== 'slowForward') {
             this._speed = 0.5;
         } else {
             this._speed /= 2;
@@ -125,7 +130,7 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        if (this._speed <= 0 || this.mode == "slowForward") {
+        if (this.mode !== 'fastForward') {
             this._speed = 1;
         } else {
             this._speed *= 2;
