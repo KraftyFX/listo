@@ -12,7 +12,7 @@ export class DigitalVideoRecorder extends EventEmitter
     private playback:SegmentedPlayback;
     public readonly options: DvrOptions;
 
-    constructor(private readonly videoElt:HTMLMediaElement, opt?: Partial<DvrOptions>) {
+    constructor(public readonly videoElt:HTMLMediaElement, opt?: Partial<DvrOptions>) {
         super();
 
         this.options = Object.assign({}, DEFAULT_DVR_OPTIONS, opt);
