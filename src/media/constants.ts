@@ -8,6 +8,7 @@ export const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 export const REFRESH_RATE_IN_MS = 1000 / FRAMES_PER_SECOND;
 
 export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
+    source: LOGITECH_BRIO_CAMERA_ID,
     mimeType: 'video/webm',
     minSegmentSizeInSec : 5,
     logging: null

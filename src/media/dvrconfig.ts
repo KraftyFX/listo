@@ -4,6 +4,7 @@ export interface DvrOptions {
 }
 
 export interface RecordingOptions {
+    source: 'default' | string,
     mimeType: string,
     minSegmentSizeInSec: number,
     logging: string

@@ -1,6 +1,5 @@
 import EventEmitter from "events";
 import { ChunkedRecorder } from "./chunkedrecorder";
-import { BUILT_IN } from "./constants";
 import { nowAsSeconds } from "./dateutil";
 import { RecordingOptions } from "./dvrconfig";
 
@@ -21,7 +20,7 @@ export class LiveStreamRecorder extends EventEmitter
     static async createFromUserCamera(videoElt: HTMLMediaElement, options: RecordingOptions) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                deviceId: BUILT_IN
+                deviceId: options.source
             }
         });
 
