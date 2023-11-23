@@ -67,9 +67,7 @@ export class ChunkedRecorder extends EventEmitter
     }
 
     private onDataAvailable = (event: BlobEvent) => {
-        if (this.segments.length === 1) {
-            this._recordingStartTime = subtractSecondsFromNow(this.liveStream.videoElt.currentTime);
-        }
+        this.acquireAccurateRecordingStartTime();
 
         this.saveDataBlob(event.data);
 
@@ -77,6 +75,12 @@ export class ChunkedRecorder extends EventEmitter
         this.start();
 
         this.resolveForceRenderDonePromise();
+    }
+
+    private acquireAccurateRecordingStartTime() {
+        if (!this._recordingStartTime) {
+            this._recordingStartTime = subtractSecondsFromNow(this.liveStream.videoElt.currentTime);
+        }
     }
 
     private saveDataBlob(blob: Blob) {
@@ -116,9 +120,17 @@ export class ChunkedRecorder extends EventEmitter
         return this.currentTime - this.activeSegmentBeingRecorded.startTime;
     }
 
-    private _recordingStartTime:Date;
+    private _recordingStartTime:Date = null;
 
     private get currentTime() {
+        if (!this._recordingStartTime) {
+            throw new Error(
+                `The current time is only available after onDataAvailable is called ` + 
+                `at least once and an acurate start time is acquired. Make sure you're ` +
+                `accessing this property after that point.`
+            );
+        }
+
         return secondsSince(this._recordingStartTime);
     }
 
