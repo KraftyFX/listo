@@ -34,7 +34,7 @@ window.onload = (async () => {
     await getDevices();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const dvr = new DigitalVideoRecorder(video);
+    const dvr = new DigitalVideoRecorder(video, null);
 
     window.dvr = dvr;
 

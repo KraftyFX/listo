@@ -1,4 +1,5 @@
 import { nowAsSeconds } from "./dateutil";
+import { RecordOptions } from "./dvrconfig";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 import { SegmentCollection } from "./segmentcollection";
 
@@ -21,16 +22,18 @@ export class ChunkedRecorder
 {
     private readonly recorder:  MediaRecorder;
 
-    constructor(private readonly liveStream: LiveStreamRecorder) {
+    constructor(
+        private readonly liveStream: LiveStreamRecorder,
+        public readonly options: RecordOptions
+    ) {
         this.liveStream = liveStream;
 
         this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType });
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
-    private interval: any;
-    
     private segments: Segment[] = [];
+    private interval: any;
 
     start() {
         const segment:Segment = {

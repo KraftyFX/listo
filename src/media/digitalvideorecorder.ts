@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import { DvrOptions } from "./dvrconfig";
 import { LiveStreamRecorder } from "./livestreamrecorder";
 import { SegmentedPlayback } from "./segmentedplayback";
 
@@ -7,12 +8,12 @@ export class DigitalVideoRecorder extends EventEmitter
     private liveStreamRecorder:LiveStreamRecorder;
     private playback:SegmentedPlayback;
 
-    constructor(private readonly videoElt:HTMLMediaElement) {
+    constructor(private readonly videoElt:HTMLMediaElement, public readonly options: DvrOptions) {
         super();
     }
 
     async initAndStartRecording() {
-        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt);
+        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt, this.options);
 
         await this.switchToLiveStream();
     }

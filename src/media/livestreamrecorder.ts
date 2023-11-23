@@ -2,18 +2,23 @@ import EventEmitter from "events";
 import { ChunkedRecorder } from "./chunkedrecorder";
 import { BUILT_IN } from "./constants";
 import { nowAsSeconds } from "./dateutil";
+import { RecordOptions } from "./dvrconfig";
 
 export class LiveStreamRecorder extends EventEmitter
 {
     private readonly chunkedRecorder:ChunkedRecorder;
 
-    private constructor(public readonly videoElt: HTMLMediaElement, public readonly stream: MediaStream) {
+    private constructor(
+        public readonly videoElt: HTMLMediaElement,
+        public readonly stream: MediaStream,
+        public readonly options: RecordOptions
+    ) {
         super();
 
-        this.chunkedRecorder = new ChunkedRecorder(this);
+        this.chunkedRecorder = new ChunkedRecorder(this, options);
     }
 
-    static async createFromUserCamera(videoElt: HTMLMediaElement) {
+    static async createFromUserCamera(videoElt: HTMLMediaElement, options: RecordOptions) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: BUILT_IN
@@ -22,7 +27,7 @@ export class LiveStreamRecorder extends EventEmitter
 
         assertLiveStreamAcquired();
 
-        const recorder = new LiveStreamRecorder(videoElt, stream);
+        const recorder = new LiveStreamRecorder(videoElt, stream, options);
         await recorder.startRecording();
 
         return recorder;
