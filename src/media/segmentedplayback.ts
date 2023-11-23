@@ -23,6 +23,7 @@ export class SegmentedPlayback extends EventEmitter
         await this.renderSegmentAtTime(timestamp);
 
         this.videoElt.onended = () => this.playNextSegment();
+        this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
 
         this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
@@ -42,6 +43,7 @@ export class SegmentedPlayback extends EventEmitter
         this.currentSegment = null;
 
         this.videoElt.onended = null;
+        this.videoElt.ontimeupdate = null;
         this.videoElt.ondurationchange = null;
 
         this.controller.removeAllListeners();
