@@ -155,7 +155,7 @@ export class PlaybackController extends EventEmitter
                 this.info('Unexpected Stop');
 
                 this.emitTimeUpdate(this.recorder.currentTime);
-                
+
                 this.stopInterval();
                 this.emitPause();
             } 
@@ -166,6 +166,7 @@ export class PlaybackController extends EventEmitter
                 this.stopInterval();
 
                 this.emitTimeUpdate(0);
+                this.emitPause();
                 this.emitEnded();
             }
             else if (nextTimestamp >= this.recorder.duration && this.direction === 'forward')
@@ -175,6 +176,7 @@ export class PlaybackController extends EventEmitter
                 this.stopInterval();
 
                 this.emitTimeUpdate(this.recorder.duration);
+                this.emitPause();
                 this.emitEnded();
             }
             else
