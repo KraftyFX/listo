@@ -76,7 +76,22 @@ window.onload = (async () => {
     dvr.on('play', () => showPause());
     dvr.on('pause', () => showPlay());
 
-    await dvr.initAndStartRecording();
+    let oldSegElt:HTMLElement = null;
+
+    dvr.on('segmentrendered', (seg) => {
+        if (oldSegElt) {
+            oldSegElt.style.backgroundColor = '';
+        }
+
+        const segElt = $(`seg${seg.index}`);
+
+        if (segElt) {
+            segElt.style.backgroundColor = 'beige';
+            oldSegElt = segElt;
+        }
+    });
+
+    await dvr.showLiveStreamAndStartRecording();
 
     assign('play', 'click', () => dvr.play());
     assign('pause', 'click', () => dvr.pause());
@@ -110,6 +125,18 @@ function showPlaybackMode() {
     $('slowForward').style.display = 'inline-block';
     $('fastForward').style.display = 'inline-block';
     $('nextFrame').style.display = 'inline-block';
+
+    updateSegmentList();
+}
+
+function updateSegmentList() {
+    $('segments').innerHTML = window.dvr.segments.segments.map(s => {
+        return `<div id="seg${s.index}">` + [
+            s.index,
+            s.startTime.toFixed(3), '-', (s.startTime + s.duration).toFixed(3),
+            `(${s.duration.toFixed(3)})`
+        ].join(' ');
+    }).join('</div>\n');
 }
 
 function getSelectedVideoDeviceId() {

@@ -21,6 +21,9 @@
     </style>
   </head>
   <body>
+    <div class="section">
+      <select id="inputs"></select>
+    </div>
     <video controls id="camera" width="640" height="480"></video>
     <div class="section">
       <button id="rewind">Rewind</button>
@@ -30,14 +33,13 @@
       <button id="slowForward">Slow Forward</button>
       <button id="nextFrame">Next Frame</button>
     </div>
-
     <div class="section">
       <button id="mid">Goto middle</button>
       <span id="elapsed"></span>
       <button id="live">Live</button>
     </div>
-    <div class="section">
-      <select id="inputs"></select>
-    </div>
+    <pre id="segments" class="segments">
+      Waiting for segments
+    </pre>
   </body>
 </html>
