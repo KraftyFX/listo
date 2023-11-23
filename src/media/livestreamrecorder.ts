@@ -20,14 +20,18 @@ export class LiveStreamRecorder extends EventEmitter
             }
         });
 
-        if (!stream) {
-            throw new Error(`User denied camera permissions. Can't initialize.`);
-        }
+        assertLiveStreamAcquired();
 
         const recorder = new LiveStreamRecorder(videoElt, stream);
         await recorder.startRecording();
 
         return recorder;
+
+        function assertLiveStreamAcquired() {
+            if (!stream) {
+                throw new Error(`User denied access to the camera. Can't acquire live stream.`);
+            }
+        }
     }
 
     get startedAt() { return this._recordStartTime; }
