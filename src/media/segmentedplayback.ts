@@ -141,7 +141,7 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     private emitTimeUpdate() {
-        this.emit('timeupdate', this.currentTime, this.duration, this.controller.multiplier);
+        this.emit('timeupdate', this.currentTime, this.duration, this.controller.speed);
     }
 
     private emitRewindStartReached() {
