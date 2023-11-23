@@ -88,8 +88,6 @@ window.onload = (async () => {
 
     assign('mid', 'click', () => dvr.goToPlaybackTime(.5));
     assign('live', 'click', () => dvr.switchToLiveStream());
-
-    assign('lastNSec', 'click', () => dvr.switchToPlayback());
 });
 
 function showPause() {
