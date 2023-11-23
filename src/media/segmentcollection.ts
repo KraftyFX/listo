@@ -23,22 +23,26 @@ export class SegmentCollection
 
         if (timestamp <= 0) {
             const segment = segments[0];
-            this.log(`Min ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
+            this.log(printSegmentRange('Min', segment));
             return { segment, offset : 0 };
         } else if (timestamp >= this.duration) {
             const segment = segments[segments.length - 1];
-            this.log(`Max ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
+            this.log(printSegmentRange('Max', segment));
             return { segment, offset : segment.startTime + segment.duration };
         } else {
             const segment = segments.find(segment => segment.startTime <= timestamp && timestamp < (segment.startTime + segment.duration));
 
             assertCorrectSegmentWasFound(segment);
 
-            this.log(`Mid ${segment.index} = ${segment.startTime} <= ${timestamp} <= ${segment.startTime + segment.duration}`);
+            this.log(printSegmentRange('Mid', segment));
 
             const offset = Math.max(0, timestamp - segment.startTime);
 
             return { segment, offset };
+        }
+
+        function printSegmentRange(prefix: string, segment: Segment) {
+            return `${prefix} ${segment.index} = ${segment.startTime} <= ${timestamp} < ${segment.startTime + segment.duration}`;
         }
     }
 
