@@ -4,9 +4,6 @@ import { PlaybackOptions } from "./dvrconfig";
 import { SegmentedPlayback } from "./segmentedplayback";
 import { pauseAndWait, playAndWait } from "./videoutil";
 
-/*
- * This class exists b/c the HTMLElement.playbackRate property only works forwards, not backwards.
- */
 export class PlaybackController extends EventEmitter
 {
     private recorder: SegmentedPlayback;
@@ -67,7 +64,7 @@ export class PlaybackController extends EventEmitter
         this.mode = 'normal';
 
         this.info(`Pause`);
-        
+
         this.emitPause();
     }
 
