@@ -48,14 +48,6 @@ export class SegmentedPlayback extends EventEmitter
         this.renderSegment(segment, offset);
     }
 
-    private info(message: string) {
-        console.info(message);
-    }
-
-    private log(message: string) {
-        // console.log(message);
-    }
-
     private renderSegment(segment:Segment, offset:number) {
         const isFirstSegmentBeingRendered = !this.currentSegment;
 
@@ -150,5 +142,13 @@ export class SegmentedPlayback extends EventEmitter
 
     private emitForwardEndReached() {
         this.emit('forwardendreached');
+    }
+
+    private info(message: string) {
+        console.info(message);
+    }
+
+    private log(message: string) {
+        // console.log(message);
     }
 }
