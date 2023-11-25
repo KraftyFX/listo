@@ -13,8 +13,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
-  "engines" : { 
-    "node" : ">=16.0.0"
+  "engines": {
+    "node": ">=16.0.0"
   },
   "keywords": [],
   "author": {
@@ -54,6 +54,7 @@
     "style-loader": "^3.0.0",
     "ts-loader": "^9.2.2",
     "ts-node": "^10.0.0",
+    "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.3.2"
   },
   "dependencies": {
