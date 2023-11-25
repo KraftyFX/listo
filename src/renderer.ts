@@ -33,7 +33,7 @@ import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
 
 window.onload = async () => {
-    initListo($('page'));
+    await initListo($('page'));
 
     showLiveStreamMode();
 
