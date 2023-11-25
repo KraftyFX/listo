@@ -2,5 +2,5 @@ import React from 'react';
 import 'react-dom';
 
 export function VideoPlayer() {
-    return <div>Video Player</div>;
+    return <video width="640" height="480" />;
 }

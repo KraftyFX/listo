@@ -1,32 +1,28 @@
-import React, { useEffect, useState } from 'react';
-
-export interface Camera {
-    deviceId: string;
-    label: string;
-}
+import React from 'react';
+import { Camera } from './interfaces';
 
 export interface CameraListProps {
+    cameraId?: string;
+    cameras: Camera[];
+    onChangeCamera?: (camera: Camera) => void;
     onError?: (err: Error) => void;
 }
 
 export function CameraList(props: CameraListProps) {
-    const [cameras, setCameraList] = useState<Camera[]>([]);
+    const handleOnChange = (deviceId: string) => {
+        const camera = props.cameras.filter((c) => c.deviceId === deviceId)[0];
 
-    useEffect(() => {
-        const initAsync = async () => {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const cameras = devices.filter((d) => d.kind === 'videoinput');
-
-            setCameraList(cameras);
-        };
-
-        initAsync().catch(props.onError);
-    }, []);
+        props.onChangeCamera?.(camera);
+    };
 
     return (
-        <select>
-            {cameras.map(({ deviceId, label }) => {
-                return <option value={deviceId}>{label}</option>;
+        <select onChange={(ev) => handleOnChange(ev.currentTarget.value)}>
+            {props.cameras.map(({ deviceId, label }) => {
+                return (
+                    <option value={deviceId} selected={props.cameraId === deviceId}>
+                        {label}
+                    </option>
+                );
             })}
         </select>
     );

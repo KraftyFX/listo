@@ -33,6 +33,8 @@ import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
 
 window.onload = async () => {
+    initListo(document.getElementById('page'));
+
     showLiveStreamMode();
 
     await initDeviceList();
@@ -104,8 +106,6 @@ window.onload = async () => {
 
     assign('mid', 'click', () => dvr.goToPlaybackTime(0.5));
     assign('live', 'click', () => dvr.switchToLiveStream());
-
-    initListo(document.getElementById('page'));
 };
 
 function showPause() {
