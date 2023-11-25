@@ -1,37 +1,56 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Camera } from '~/media';
 import { CameraStore } from '~/media/cameraStore';
 
 export interface CameraListProps {
-    onChangeCamera?: (camera: Camera) => void;
+    cameras?: Camera[];
+    selectedCamera?: string;
+    onChangeCamera?: (cameraId: string) => void;
     onError?: (err: Error) => void;
 }
 
 export const CameraList = observer(function CameraList(props: CameraListProps) {
-    const cameraStore: CameraStore = CameraStore.instance;
+    const cameraStore = new CameraStore();
 
-    useEffect(() => {
+    const [cameras, setCameras] = useState<Camera[]>(props.cameras || []);
+    const [selectedCamera, setSelectedCamera] = useState(
+        props.selectedCamera || cameraStore.lastSelectedCameraId
+    );
+
+    useEffect(function mount() {
         const init = async () => {
-            await cameraStore.init();
+            if (!props.cameras) {
+                navigator.mediaDevices.ondevicechange = async () => await refreshCameraList();
+                await refreshCameraList();
+            }
         };
 
         init().catch(console.error);
+
+        return function dismount() {
+            navigator.mediaDevices.ondevicechange = null;
+        };
     }, []);
 
-    const handleOnChange = action((deviceId: string) => {
-        const camera = cameraStore.getCameraByDeviceId(deviceId);
-        cameraStore.lastSelectedCamera = camera;
+    async function refreshCameraList() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter((d) => d.kind === 'videoinput');
 
-        props.onChangeCamera?.(camera);
+        setCameras(cameras);
+    }
+
+    const handleOnChange = action((deviceId: string) => {
+        cameraStore.lastSelectedCameraId = deviceId;
+        setSelectedCamera(deviceId);
+
+        props.onChangeCamera?.(deviceId);
     });
 
     return (
-        <select
-            onChange={(ev) => handleOnChange(ev.currentTarget.value)}
-            value={cameraStore.lastSelectedCamera.deviceId}>
-            {cameraStore.cameras.map(({ deviceId, label }) => {
+        <select value={selectedCamera} onChange={(ev) => handleOnChange(ev.currentTarget.value)}>
+            {cameras.map(({ deviceId, label }) => {
                 return (
                     <option key={deviceId} value={deviceId}>
                         {label}
