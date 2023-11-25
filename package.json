@@ -1,8 +1,8 @@
 {
-  "name": "my-electron",
-  "productName": "my-electron",
+  "name": "listo",
+  "productName": "Listo Recorder",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Listo Live Playback Recorder",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -16,7 +16,7 @@
   "keywords": [],
   "author": {
     "name": "Rafi Khan",
-    "email": "rafikhan@gmail.com"
+    "email": "rafikhan@kraftyfx.com"
   },
   "license": "MIT",
   "devDependencies": {
