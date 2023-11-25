@@ -6,14 +6,15 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
+    "jsx": "react",
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "lib": ["ES2020", "dom"],
     "paths": {
-      "*": ["node_modules/*"]
+      "~/*": ["src/*"]
     }
   },
-  "include": ["src/**/*"]
 }
