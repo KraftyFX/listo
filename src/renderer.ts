@@ -27,7 +27,7 @@
  */
 
 import './index.css';
-import { initApplication } from './main';
+import { initListo } from './ListoApp';
 import { formatSeconds } from './media/dateutil';
 import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
@@ -105,7 +105,7 @@ window.onload = async () => {
     assign('mid', 'click', () => dvr.goToPlaybackTime(0.5));
     assign('live', 'click', () => dvr.switchToLiveStream());
 
-    initApplication();
+    initListo();
 };
 
 function showPause() {

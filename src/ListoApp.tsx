@@ -1,9 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { VideoPlayer } from './media/VideoPlayer';
 
-export function initApplication() {
+export function initListo() {
     const page = document.getElementById('page');
 
     const root = createRoot(page);
-    root.render(<div>Hello React</div>);
+    root.render(<VideoPlayer></VideoPlayer>);
 }
