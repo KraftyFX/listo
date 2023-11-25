@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CameraList } from './CameraList';
-import { VideoPlayer } from './VideoPlayer';
+import { DigitalVideoRecorder } from './DigitalVideoRecorder';
 import { Camera } from './interfaces';
 
 export function ListoApp() {
@@ -23,7 +23,7 @@ export function ListoApp() {
     return (
         <div>
             <CameraList cameras={cameras} cameraId={getSelectedVideoDeviceId()} onChangeCamera={handleCameraChange} />
-            <VideoPlayer />
+            <DigitalVideoRecorder />
         </div>
     );
 }
