@@ -35,6 +35,8 @@ import { DvrOptions } from './media/dvrconfig';
 window.onload = async () => {
     await initListo($('page'));
 
+    return;
+
     showLiveStreamMode();
 
     await initDeviceList();
