@@ -1,8 +1,9 @@
 import React from 'react';
-import * as ReactDom from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 export function initApplication() {
     const page = document.getElementById('page');
 
-    ReactDom.render(<div>Hello React</div>, page);
+    const root = createRoot(page);
+    root.render(<div>Hello React</div>);
 }
