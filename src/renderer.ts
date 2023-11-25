@@ -105,7 +105,7 @@ window.onload = async () => {
     assign('mid', 'click', () => dvr.goToPlaybackTime(0.5));
     assign('live', 'click', () => dvr.switchToLiveStream());
 
-    initListo();
+    initListo(document.getElementById('page'));
 };
 
 function showPause() {
