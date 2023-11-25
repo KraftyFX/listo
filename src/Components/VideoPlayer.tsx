@@ -1,17 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import { observer } from 'mobx-react';
+import React, { useEffect } from 'react';
 import 'react-dom';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface DvrProps {}
 
-export function VideoPlayer(_props: DvrProps) {
-    const videoRef = useRef<HTMLVideoElement>();
+export const VideoPlayer = observer(
+    React.forwardRef<null, DvrProps>(function VideoPlayer(_props: DvrProps, ref) {
+        useEffect(() => {}, []);
 
-    useEffect(() => {
-        console.log(videoRef);
-    }, []);
-
-    console.log('Rendering');
-
-    return <video width="640" height="480" />;
-}
+        return <video ref={ref} width="640" height="480" />;
+    })
+);
