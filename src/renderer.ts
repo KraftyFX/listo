@@ -27,20 +27,21 @@
  */
 
 import './index.css';
+import { initApplication } from './main';
 import { formatSeconds } from './media/dateutil';
 import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
 
-window.onload = (async () => {
+window.onload = async () => {
     showLiveStreamMode();
-    
+
     await initDeviceList();
 
     const video = document.getElementById('camera') as HTMLMediaElement;
-    const options = { 
-        recording : { 
-            source : getSelectedVideoDeviceId()
-        }
+    const options = {
+        recording: {
+            source: getSelectedVideoDeviceId(),
+        },
     } as DvrOptions;
     const dvr = new DigitalVideoRecorder(video, options);
 
@@ -59,7 +60,7 @@ window.onload = (async () => {
         }
 
         if (multiplier !== 0) {
-            parts.push('@ ' + multiplier + 'x')
+            parts.push('@ ' + multiplier + 'x');
         }
 
         $('elapsed').innerText = parts.join(' ');
@@ -76,7 +77,7 @@ window.onload = (async () => {
     dvr.on('play', () => showPause());
     dvr.on('pause', () => showPlay());
 
-    let oldSegElt:HTMLElement = null;
+    let oldSegElt: HTMLElement = null;
 
     dvr.on('segmentrendered', (seg) => {
         if (oldSegElt) {
@@ -101,9 +102,11 @@ window.onload = (async () => {
     assign('slowForward', 'click', () => dvr.slowForward());
     assign('nextFrame', 'click', () => dvr.nextFrame());
 
-    assign('mid', 'click', () => dvr.goToPlaybackTime(.5));
+    assign('mid', 'click', () => dvr.goToPlaybackTime(0.5));
     assign('live', 'click', () => dvr.switchToLiveStream());
-});
+
+    initApplication();
+};
 
 function showPause() {
     $('play').style.display = 'none';
@@ -130,13 +133,14 @@ function showPlaybackMode() {
 }
 
 function updateSegmentList() {
-    $('segments').innerHTML = window.dvr.segments.segments.map(s => {
-        return `<div id="seg${s.index}">` + [
-            s.index,
-            s.startTime.toFixed(3), '-', (s.startTime + s.duration).toFixed(3),
-            `(${s.duration.toFixed(3)})`
-        ].join(' ');
-    }).join('</div>\n');
+    $('segments').innerHTML = window.dvr.segments.segments
+        .map((s) => {
+            return (
+                `<div id="seg${s.index}">` +
+                [s.index, s.startTime.toFixed(3), '-', (s.startTime + s.duration).toFixed(3), `(${s.duration.toFixed(3)})`].join(' ')
+            );
+        })
+        .join('</div>\n');
 }
 
 function getSelectedVideoDeviceId() {
@@ -145,19 +149,19 @@ function getSelectedVideoDeviceId() {
 
 async function initDeviceList() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const menu = $("inputs") as HTMLSelectElement;
+    const menu = $('inputs') as HTMLSelectElement;
 
     menu.onchange = () => {
         console.log(menu.value);
         localStorage.setItem('videoinput', menu.value);
-    }
+    };
 
     const def = getSelectedVideoDeviceId();
 
     devices
-        .filter(d => d.kind === 'videoinput')
+        .filter((d) => d.kind === 'videoinput')
         .forEach((device) => {
-            const item = document.createElement("option") as HTMLOptionElement;
+            const item = document.createElement('option') as HTMLOptionElement;
             item.textContent = device.label;
             item.value = device.deviceId;
             item.selected = device.deviceId === def;
@@ -170,7 +174,7 @@ function $(id: string) {
     return document.getElementById(id);
 }
 
-function assign(id:string, type:string, callback:EventListenerOrEventListenerObject) {
+function assign(id: string, type: string, callback: EventListenerOrEventListenerObject) {
     const elt = $(id);
     elt.addEventListener(type, callback);
     return elt;
