@@ -47,6 +47,7 @@
     "fork-ts-checker-webpack-plugin": "^7.2.13",
     "jsdom": "^22.1.0",
     "jsdom-global": "^3.0.2",
+    "mobx": "^6.11.0",
     "mocha": "^10.2.0",
     "node-loader": "^2.0.0",
     "react": "^18.2.0",
