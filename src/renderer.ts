@@ -102,7 +102,7 @@ window.onload = async () => {
     assign('pause', 'click', () => dvr.pause());
 
     assign('rewind', 'click', () => dvr.rewind());
-    assign('fastForward', 'click', () => dvr.fastforward());
+    assign('fastForward', 'click', () => dvr.fastForward());
     assign('slowForward', 'click', () => dvr.slowForward());
     assign('nextFrame', 'click', () => dvr.nextFrame());
 

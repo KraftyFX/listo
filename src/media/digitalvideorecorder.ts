@@ -136,7 +136,7 @@ export class DigitalVideoRecorder extends EventEmitter {
         await this.playback.slowForward();
     }
 
-    async fastforward() {
+    async fastForward() {
         this.assertIsInPlayback();
 
         await this.playback.fastForward();
