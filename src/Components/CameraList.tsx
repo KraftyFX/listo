@@ -1,8 +1,8 @@
 import React from 'react';
-import { Camera } from './interfaces';
+import { Camera } from '~/media';
 
 export interface CameraListProps {
-    cameraId?: string;
+    defaultCamera?: Camera | null;
     cameras: Camera[];
     onChangeCamera?: (camera: Camera) => void;
     onError?: (err: Error) => void;
@@ -16,10 +16,12 @@ export function CameraList(props: CameraListProps) {
     };
 
     return (
-        <select onChange={(ev) => handleOnChange(ev.currentTarget.value)}>
+        <select
+            onChange={(ev) => handleOnChange(ev.currentTarget.value)}
+            defaultValue={props.defaultCamera?.deviceId}>
             {props.cameras.map(({ deviceId, label }) => {
                 return (
-                    <option value={deviceId} selected={props.cameraId === deviceId}>
+                    <option key={deviceId} value={deviceId}>
                         {label}
                     </option>
                 );

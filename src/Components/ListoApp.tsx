@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { Camera } from '~/media';
+import { getCameraList, getLastSelectedCamera, setLastSelectedCamera } from '~/media/cameras';
 import { CameraList } from './CameraList';
-import { DigitalVideoRecorder } from './DigitalVideoRecorder';
-import { Camera } from './interfaces';
+import { VideoPlayer } from './VideoPlayer';
 
 export function ListoApp() {
     const [cameras, setCameras] = useState<Camera[]>([]);
@@ -16,25 +17,14 @@ export function ListoApp() {
         initAsync().catch(console.error);
     }, []);
 
-    const handleCameraChange = (camera: Camera) => {
-        localStorage.setItem('videoinput', camera.deviceId);
-    };
-
     return (
         <div>
-            <CameraList cameras={cameras} cameraId={getSelectedVideoDeviceId()} onChangeCamera={handleCameraChange} />
-            <DigitalVideoRecorder />
+            <CameraList
+                cameras={cameras}
+                defaultCamera={getLastSelectedCamera()}
+                onChangeCamera={(camera) => setLastSelectedCamera(camera)}
+            />
+            <VideoPlayer />
         </div>
     );
-}
-
-function getSelectedVideoDeviceId() {
-    return localStorage.getItem('videoinput') || 'default';
-}
-
-async function getCameraList() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cameras = devices.filter((d) => d.kind === 'videoinput');
-
-    return cameras;
 }
