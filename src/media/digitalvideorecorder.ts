@@ -1,32 +1,36 @@
-import EventEmitter from "events";
-import { Segment } from "./chunkedrecorder";
-import { DEFAULT_DVR_OPTIONS } from "./constants";
-import { DvrOptions } from "./dvrconfig";
-import { LiveStreamRecorder } from "./livestreamrecorder";
-import { SegmentCollection } from "./segmentcollection";
-import { SegmentedPlayback } from "./segmentedplayback";
+import EventEmitter from 'events';
+import { Segment } from './chunkedrecorder';
+import { DEFAULT_DVR_OPTIONS } from './constants';
+import { DvrOptions } from './dvrconfig';
+import { LiveStreamRecorder } from './livestreamrecorder';
+import { SegmentCollection } from './segmentcollection';
+import { SegmentedPlayback } from './segmentedplayback';
 
-export class DigitalVideoRecorder extends EventEmitter
-{
-    private liveStreamRecorder:LiveStreamRecorder;
-    private playback:SegmentedPlayback;
+export class DigitalVideoRecorder extends EventEmitter {
+    private liveStreamRecorder!: LiveStreamRecorder;
+    private playback!: SegmentedPlayback;
     public readonly options: DvrOptions;
 
-    constructor(public readonly videoElt:HTMLMediaElement, opt?: Partial<DvrOptions>) {
+    constructor(public readonly videoElt: HTMLMediaElement, opt?: Partial<DvrOptions>) {
         super();
 
         this.options = Object.assign({}, DEFAULT_DVR_OPTIONS, opt);
     }
 
     async showLiveStreamAndStartRecording() {
-        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(this.videoElt, this.options.recording);
+        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
+            this.videoElt,
+            this.options.recording
+        );
         this.liveStreamRecorder.on('recordingerror', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
     }
 
-    public get isLive() { return this._isLive; }
+    public get isLive() {
+        return this._isLive;
+    }
     private _isLive = false;
 
     async switchToLiveStream() {
@@ -41,7 +45,9 @@ export class DigitalVideoRecorder extends EventEmitter
             this.playback.releaseAsVideoSource();
         }
 
-        this.liveStreamRecorder.on('timeupdate', (currentTime, duration) => this.emitTimeUpdate(currentTime, duration, 0));
+        this.liveStreamRecorder.on('timeupdate', (currentTime, duration) =>
+            this.emitTimeUpdate(currentTime, duration, 0)
+        );
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
         await this.liveStreamRecorder.setAsVideoSource();
@@ -51,13 +57,13 @@ export class DigitalVideoRecorder extends EventEmitter
         this.emitModeChange();
     }
 
-    get segments() { 
+    get segments() {
         this.assertIsInPlayback();
 
-        return this._segments; 
+        return this._segments;
     }
 
-    private _segments:SegmentCollection;
+    private _segments!: SegmentCollection;
 
     async switchToPlayback() {
         if (!this._isLive) {
@@ -70,11 +76,13 @@ export class DigitalVideoRecorder extends EventEmitter
 
         this.liveStreamRecorder.removeAllListeners();
         this.liveStreamRecorder.releaseAsVideoSource();
-        
+
         this._segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
 
         this.playback = new SegmentedPlayback(this.videoElt, this._segments);
-        this.playback.on('timeupdate', (currentTime, duration, speed) => this.emitTimeUpdate(currentTime, duration, speed));
+        this.playback.on('timeupdate', (currentTime, duration, speed) =>
+            this.emitTimeUpdate(currentTime, duration, speed)
+        );
         this.playback.on('play', () => this.emitPlay());
         this.playback.on('pause', () => this.emitPause());
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
@@ -84,7 +92,7 @@ export class DigitalVideoRecorder extends EventEmitter
         this.emitModeChange();
     }
 
-    get paused() { 
+    get paused() {
         return this.isLive ? this.liveStreamRecorder.paused : this.playback.paused;
     }
 
@@ -124,7 +132,7 @@ export class DigitalVideoRecorder extends EventEmitter
 
     async slowForward() {
         this.assertIsInPlayback();
-        
+
         await this.playback.slowForward();
     }
 
@@ -139,7 +147,7 @@ export class DigitalVideoRecorder extends EventEmitter
 
         this.playback.nextFrame();
     }
-    
+
     private assertIsInPlayback() {
         if (this.isLive) {
             throw new Error(`You can only do this in playback mode`);
