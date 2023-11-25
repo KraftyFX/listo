@@ -13,6 +13,9 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
+  "engines" : { 
+    "node" : ">=16.0.0"
+  },
   "keywords": [],
   "author": {
     "name": "Rafi Khan",
