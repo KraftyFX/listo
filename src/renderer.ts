@@ -27,7 +27,7 @@
  */
 
 import './index.css';
-import { initListo } from './ListoApp';
+import { initListo } from './main';
 import { formatSeconds } from './media/dateutil';
 import { DigitalVideoRecorder } from './media/digitalvideorecorder';
 import { DvrOptions } from './media/dvrconfig';
