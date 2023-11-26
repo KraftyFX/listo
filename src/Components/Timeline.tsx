@@ -5,9 +5,13 @@ export interface TimelineProps {
     currentTime: number;
     duration: number;
     multiplier: number;
+
+    onGoLive: () => void;
+    onSnapToTime: () => void;
 }
 
-export function Timeline({ currentTime, duration, multiplier }: TimelineProps) {
+export function Timeline(props: TimelineProps) {
+    const { currentTime, duration, multiplier } = props;
     const parts = [];
 
     if (currentTime === duration) {
@@ -22,7 +26,13 @@ export function Timeline({ currentTime, duration, multiplier }: TimelineProps) {
 
     return (
         <div className="section">
-            <span>{parts.join(' ')}</span>
+            <button id="mid" onClick={props.onSnapToTime}>
+                Goto middle
+            </button>
+            <span className="elapsed">{parts.join(' ')}</span>
+            <button id="live" onClick={props.onGoLive}>
+                Live
+            </button>
         </div>
     );
 }

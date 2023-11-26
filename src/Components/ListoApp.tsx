@@ -77,7 +77,13 @@ export const ListoApp = observer(function ListoApp() {
             ) : (
                 <PlaybackControls onCommand={onCommand} />
             )}
-            <Timeline currentTime={currentTime} duration={duration} multiplier={multiplier} />
+            <Timeline
+                onGoLive={() => dvr.switchToLiveStream()}
+                onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
+                currentTime={currentTime}
+                duration={duration}
+                multiplier={multiplier}
+            />
         </>
     );
 });
