@@ -24,14 +24,14 @@ export function PlaybackControls(props: PlaybackControlsProps) {
             <button id="pause" onClick={() => props.onCommand?.('pause')}>
                 Pause
             </button>
-            <button id="fastForward" onClick={() => props.onCommand?.('fastForward')}>
-                Fast Forward
+            <button id="nextFrame" onClick={() => props.onCommand?.('nextFrame')}>
+                Next Frame
             </button>
             <button id="slowForward" onClick={() => props.onCommand?.('slowForward')}>
                 Slow Forward
             </button>
-            <button id="nextFrame" onClick={() => props.onCommand?.('nextFrame')}>
-                Next Frame
+            <button id="fastForward" onClick={() => props.onCommand?.('fastForward')}>
+                Fast Forward
             </button>
         </div>
     );
