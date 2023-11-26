@@ -4,43 +4,24 @@
     <meta charset="UTF-8" />
     <title>Listo Player</title>
     <style type="text/css">
-      button { padding: 10px; }
+      button { padding: 10px; margin-right: 10px; }
       select { height: 30px; }
 
       .section {
         padding: 10px;
       }
 
-      #elapsed {
+      .elapsed {
         display: inline-block;
         padding: 10px;
 
         width: 200px;
         background-color: beige;
+        margin-right: 10px;
       }
     </style>
   </head>
   <body>
     <div id="page"></div>
-    <div class="section">
-      <select id="inputs"></select>
-    </div>
-    <video controls id="camera" width="640" height="480"></video>
-    <div class="section">
-      <button id="rewind">Rewind</button>
-      <button id="play">Play</button>
-      <button id="pause">Pause</button>
-      <button id="fastForward">Fast Forward</button>
-      <button id="slowForward">Slow Forward</button>
-      <button id="nextFrame">Next Frame</button>
-    </div>
-    <div class="section">
-      <button id="mid">Goto middle</button>
-      <span id="elapsed"></span>
-      <button id="live">Live</button>
-    </div>
-    <pre id="segments" class="segments">
-      Waiting for segments
-    </pre>
   </body>
 </html>
