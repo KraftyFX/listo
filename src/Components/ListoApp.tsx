@@ -6,13 +6,18 @@ import { DvrOptions } from '~/media/dvrconfig';
 import { CameraList } from './CameraList';
 import { LiveStreamCommands, LiveStreamControls } from './LiveStreamControls';
 import { PlaybackCommands, PlaybackControls } from './PlaybackContols';
+import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 
+let dvr: DigitalVideoRecorder;
+
 export const ListoApp = observer(function ListoApp() {
-    let dvr: DigitalVideoRecorder;
+    const videoRef = useRef<HTMLVideoElement>(null!);
 
     const [isLive, setIsLive] = useState(true);
-    const videoRef = useRef<HTMLVideoElement>(null!);
+    const [currentTime, setCurrentTime] = useState(-1);
+    const [duration, setDuration] = useState(-1);
+    const [multiplier, setMultiplier] = useState(0);
 
     useEffect(function mount() {
         const initAsync = async () => {
@@ -22,10 +27,13 @@ export const ListoApp = observer(function ListoApp() {
                 },
             } as DvrOptions;
 
-            console.log(videoRef.current);
-
             dvr = new DigitalVideoRecorder(videoRef.current, options);
             dvr.on('modechange', setIsLive);
+            dvr.on('timeupdate', (currentTime, duration, multiplier) => {
+                setCurrentTime((currentTime = Math.floor(currentTime)));
+                setDuration((duration = Math.floor(duration)));
+                setMultiplier(multiplier);
+            });
 
             await dvr.showLiveStreamAndStartRecording();
         };
@@ -69,6 +77,7 @@ export const ListoApp = observer(function ListoApp() {
             ) : (
                 <PlaybackControls onCommand={onCommand} />
             )}
+            <Timeline currentTime={currentTime} duration={duration} multiplier={multiplier} />
         </>
     );
 });
