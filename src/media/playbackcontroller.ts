@@ -1,11 +1,10 @@
-import EventEmitter from "events";
-import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from "./constants";
-import { PlaybackOptions } from "./dvrconfig";
-import { SegmentedPlayback } from "./segmentedplayback";
-import { pauseAndWait, playAndWait } from "./videoutil";
+import EventEmitter from 'events';
+import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from './constants';
+import { PlaybackOptions } from './dvrconfig';
+import { SegmentedPlayback } from './segmentedplayback';
+import { pauseAndWait, playAndWait } from './videoutil';
 
-export class PlaybackController extends EventEmitter
-{
+export class PlaybackController extends EventEmitter {
     private recorder: SegmentedPlayback;
 
     constructor(recorder: SegmentedPlayback, public readonly options: PlaybackOptions) {
@@ -20,17 +19,19 @@ export class PlaybackController extends EventEmitter
 
     private get direction() {
         switch (this.mode) {
-            case "normal":
-                return "normal";
-            case "fastForward":
-            case "slowForward":
-                return "forward";
-            case "rewind":
-                return "backward";
+            case 'normal':
+                return 'normal';
+            case 'fastForward':
+            case 'slowForward':
+                return 'forward';
+            case 'rewind':
+                return 'backward';
         }
     }
 
-    private get videoElt() { return this.recorder.videoElt; }
+    private get videoElt() {
+        return this.recorder.videoElt;
+    }
 
     public get paused() {
         if (this.mode === 'normal') {
@@ -40,7 +41,7 @@ export class PlaybackController extends EventEmitter
         }
     }
 
-    private mode:"normal" | "rewind" | "slowForward" | "fastForward" = "normal";
+    private mode: 'normal' | 'rewind' | 'slowForward' | 'fastForward' = 'normal';
 
     async play() {
         this.stopInterval();
@@ -57,7 +58,7 @@ export class PlaybackController extends EventEmitter
 
     async pause() {
         this.stopInterval();
-        
+
         await pauseAndWait(this.videoElt);
 
         this._speed = 0;
@@ -68,18 +69,26 @@ export class PlaybackController extends EventEmitter
         this.emitPause();
     }
 
-    public get speed() { return this._speed; }
+    public get speed() {
+        return this._speed;
+    }
     private _speed = 0;
-    private get deltaInSec() { return SECONDS_PER_FRAME * this._speed; }
+    private get deltaInSec() {
+        return SECONDS_PER_FRAME * this._speed;
+    }
+
+    get isAtMaxRewindSpeed() {
+        return this._speed <= -1 * this.options.maxPlaySpeedFactor;
+    }
 
     async rewind() {
-        if (this.isActive && this._speed <= (-1 * this.options.maxPlaySpeedFactor)) {
-            return;
-        }
-
         if (this.mode !== 'rewind') {
             this._speed = -1;
         } else {
+            if (this.isAtMaxRewindSpeed) {
+                return;
+            }
+
             this._speed *= 2;
         }
 
@@ -100,21 +109,25 @@ export class PlaybackController extends EventEmitter
             return;
         }
 
-        this.mode = "normal";
+        this.mode = 'normal';
 
         this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
         this.emitTimeUpdate(nextTimestamp);
         this.emitPause();
     }
 
-    async slowForward() {
-        if (this.isActive && 0 < this._speed && this._speed <= this.options.minPlaySpeedFactor) {
-            return;
-        }
+    get isAtMinSlowSpeed() {
+        return 0 < this._speed && this._speed <= this.options.minPlaySpeedFactor;
+    }
 
+    async slowForward() {
         if (this.mode !== 'slowForward') {
             this._speed = 0.5;
         } else {
+            if (this.isAtMinSlowSpeed) {
+                return;
+            }
+
             this._speed /= 2;
         }
 
@@ -127,13 +140,13 @@ export class PlaybackController extends EventEmitter
     }
 
     async fastForward() {
-        if (this.isActive && this._speed >= this.options.maxPlaySpeedFactor) {
-            return;
-        }
-
         if (this.mode !== 'fastForward') {
             this._speed = 2;
         } else {
+            if (this.isAtMaxFastForwardSpeed) {
+                return;
+            }
+
             this._speed *= 2;
         }
 
@@ -145,49 +158,53 @@ export class PlaybackController extends EventEmitter
         this.emitPlay();
     }
 
-    public get isActive() { return this._interval !== 0; }
-    private _interval:any = 0;
+    get isAtMaxFastForwardSpeed() {
+        return this._speed >= this.options.maxPlaySpeedFactor;
+    }
+
+    public get isActive() {
+        return this._interval !== 0;
+    }
+    private _interval: any = 0;
 
     private startInterval() {
         this.log('Starting playback timer');
 
-        this._interval = this._interval || setInterval(async () => {
-            const nextTimestamp = this.recorder.currentTime + this.deltaInSec;
+        this._interval =
+            this._interval ||
+            setInterval(async () => {
+                const nextTimestamp = this.recorder.currentTime + this.deltaInSec;
 
-            if (this.deltaInSec === 0)
-            {
-                this.info('Unexpected Stop');
+                if (this.deltaInSec === 0) {
+                    this.info('Unexpected Stop');
 
-                this.emitTimeUpdate(this.recorder.currentTime);
+                    this.emitTimeUpdate(this.recorder.currentTime);
 
-                this.stopInterval();
-                this.emitPause();
-            } 
-            else if (nextTimestamp <= 0 && this.direction === 'backward')
-            {
-                this.info('Reached the beginning');
+                    this.stopInterval();
+                    this.emitPause();
+                } else if (nextTimestamp <= 0 && this.direction === 'backward') {
+                    this.info('Reached the beginning');
 
-                this.stopInterval();
+                    this.stopInterval();
 
-                this.emitTimeUpdate(0);
-                this.emitPause();
-                this.emitEnded();
-            }
-            else if (nextTimestamp >= this.recorder.duration && this.direction === 'forward')
-            {
-                this.info('Reached the end');
+                    this.emitTimeUpdate(0);
+                    this.emitPause();
+                    this.emitEnded();
+                } else if (
+                    nextTimestamp >= this.recorder.duration &&
+                    this.direction === 'forward'
+                ) {
+                    this.info('Reached the end');
 
-                this.stopInterval();
+                    this.stopInterval();
 
-                this.emitTimeUpdate(this.recorder.duration);
-                this.emitPause();
-                this.emitEnded();
-            }
-            else
-            {
-                this.emitTimeUpdate(nextTimestamp);
-            }
-        }, REFRESH_RATE_IN_MS);
+                    this.emitTimeUpdate(this.recorder.duration);
+                    this.emitPause();
+                    this.emitEnded();
+                } else {
+                    this.emitTimeUpdate(nextTimestamp);
+                }
+            }, REFRESH_RATE_IN_MS);
     }
 
     private stopInterval() {
@@ -195,15 +212,19 @@ export class PlaybackController extends EventEmitter
             this.log('Stopping playback timer');
 
             clearInterval(this._interval);
-            this._interval = 0;        
-    
+            this._interval = 0;
+
             this._speed = 0;
-            this.mode = "normal";
+            this.mode = 'normal';
         }
     }
 
     private emitTimeUpdate(timestamp: number) {
-        this.log(`Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(3)}, max=${this.recorder.duration.toFixed(3)}`);
+        this.log(
+            `Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(
+                3
+            )}, max=${this.recorder.duration.toFixed(3)}`
+        );
         this.emit('timeupdate', timestamp);
     }
 
@@ -224,7 +245,7 @@ export class PlaybackController extends EventEmitter
             console.info(message);
         }
     }
-    
+
     private log(message: string) {
         if (this.options.logging === 'log') {
             console.log(message);
