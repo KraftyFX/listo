@@ -1,10 +1,9 @@
-import EventEmitter from "events";
-import { DEFAULT_RECORDING_OPTIONS } from "./constants";
-import { secondsSince, subtractSecondsFromNow } from "./dateutil";
-import { RecordingOptions } from "./dvrconfig";
-import { LiveStreamRecorder } from "./livestreamrecorder";
-import { SegmentCollection } from "./segmentcollection";
-
+import EventEmitter from 'events';
+import { DEFAULT_RECORDING_OPTIONS } from './constants';
+import { secondsSince, subtractSecondsFromNow } from './dateutil';
+import { RecordingOptions } from './dvrconfig';
+import { LiveStreamRecorder } from './livestreamrecorder';
+import { SegmentCollection } from './segmentcollection';
 
 export interface Segment {
     index: number;
@@ -14,25 +13,25 @@ export interface Segment {
     duration: number;
 }
 
-export function printSegment(segment:Segment) {
-    return `segment=${segment.index}, start=${segment.startTime.toFixed(2)}, duration=${segment.duration.toFixed(2)}`
+export function printSegment(segment: Segment) {
+    return `segment=${segment.index}, start=${segment.startTime.toFixed(
+        2
+    )}, duration=${segment.duration.toFixed(2)}`;
 }
 
-export class ChunkedRecorder extends EventEmitter
-{
-    private readonly recorder:  MediaRecorder;
+export class ChunkedRecorder extends EventEmitter {
+    private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
 
-    constructor(
-        private readonly liveStream: LiveStreamRecorder,
-        opt?: Partial<RecordingOptions>
-    ) {
+    constructor(private readonly liveStream: LiveStreamRecorder, opt?: Partial<RecordingOptions>) {
         super();
 
         this.liveStream = liveStream;
         this.options = Object.assign({}, DEFAULT_RECORDING_OPTIONS, opt);
 
-        this.recorder = new MediaRecorder(this.liveStream.stream, { mimeType: this.options.mimeType });
+        this.recorder = new MediaRecorder(this.liveStream.stream, {
+            mimeType: this.options.mimeType,
+        });
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
@@ -40,12 +39,12 @@ export class ChunkedRecorder extends EventEmitter
     private interval: any;
 
     start() {
-        const segment:Segment = {
+        const segment: Segment = {
             index: this.segments.length,
-            url: "",
+            url: '',
             startTime: this.segments.length == 0 ? 0 : this.currentTime,
             duration: 0,
-            chunks: []
+            chunks: [],
         };
 
         this.segments.push(segment);
@@ -57,7 +56,7 @@ export class ChunkedRecorder extends EventEmitter
                     this.recorder.stop();
                 }, this.options.minSegmentSizeInSec * 1000);
             }
-        } catch  (err) {
+        } catch (err) {
             this.emit('recordingerror', err);
         }
     }
@@ -78,7 +77,7 @@ export class ChunkedRecorder extends EventEmitter
         this.start();
 
         this.resolveForceRenderDonePromise();
-    }
+    };
 
     private acquireAccurateRecordingStartTime() {
         if (!this._recordingStartTime) {
@@ -87,7 +86,7 @@ export class ChunkedRecorder extends EventEmitter
     }
 
     private saveDataBlob(blob: Blob) {
-        if (typeof blob === "undefined" || blob.size === 0) {
+        if (typeof blob === 'undefined' || blob.size === 0) {
             return;
         }
 
@@ -104,13 +103,13 @@ export class ChunkedRecorder extends EventEmitter
 
         this.info(`Finalizing segment ${printSegment(segment)}`);
 
-        this.emitSegmentAvailable(segment)
+        this.emitSegmentAvailable(segment);
     }
 
     async getRecordedSegments() {
         await this.ensureHasSegmentToRender();
 
-        const segments = this.segments.filter(s => s.duration > 0);
+        const segments = this.segments.filter((s) => s.duration > 0);
 
         return new SegmentCollection(this, segments);
     }
@@ -123,29 +122,29 @@ export class ChunkedRecorder extends EventEmitter
         return this.currentTime - this.activeSegmentBeingRecorded.startTime;
     }
 
-    private _recordingStartTime:Date = null;
+    private _recordingStartTime: Date | null = null;
 
     private get currentTime() {
         if (!this._recordingStartTime) {
             throw new Error(
-                `The current time is only available after onDataAvailable is called ` + 
-                `at least once and an acurate start time is acquired. Make sure you're ` +
-                `accessing this property after that point.`
+                `The current time is only available after onDataAvailable is called ` +
+                    `at least once and an acurate start time is acquired. Make sure you're ` +
+                    `accessing this property after that point.`
             );
         }
 
         return secondsSince(this._recordingStartTime);
     }
 
-    private forcedRenderDone: (hadToRender: boolean) => void;
+    private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
 
     ensureHasSegmentToRender() {
         if (this.segments.length === 1) {
-            return new Promise<boolean>(resolve => {
+            return new Promise<boolean>((resolve) => {
                 this.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
                 this.stop();
-            })
+            });
         } else {
             return Promise.resolve(false);
         }
@@ -162,21 +161,27 @@ export class ChunkedRecorder extends EventEmitter
 
     private assertHasSegmentToRender() {
         if (this.segments.length <= 1) {
-            throw new Error(`The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`);
+            throw new Error(
+                `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
+            );
         }
     }
 
-    resetSegmentDuration(segment:Segment, duration:number) {
+    resetSegmentDuration(segment: Segment, duration: number) {
         if (segment.duration === duration) {
             return false;
         }
 
-        this.info(`Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(3)} to ${duration.toFixed(3)}`);
+        this.info(
+            `Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(
+                3
+            )} to ${duration.toFixed(3)}`
+        );
         segment.duration = duration;
 
         let prev = this.segments[0];
 
-        this.segments.forEach(curr => {
+        this.segments.forEach((curr) => {
             if (curr.index == 0) {
                 return;
             }
@@ -198,10 +203,10 @@ export class ChunkedRecorder extends EventEmitter
             console.info(message);
         }
     }
-    
-    private log(message: string) {
-        if (this.options.logging === 'log') {
-            console.log(message);
-        }
-    }
+
+    // private log(message: string) {
+    //     if (this.options.logging === 'log') {
+    //         console.log(message);
+    //     }
+    // }
 }
