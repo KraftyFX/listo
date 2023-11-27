@@ -188,7 +188,7 @@ export class PlaybackController extends EventEmitter {
 
                     this.emitTimeUpdate(0);
                     this.emitPause();
-                    this.emitEnded();
+                    this.emitEnded('start');
                 } else if (
                     nextTimestamp >= this.recorder.duration &&
                     this.direction === 'forward'
@@ -199,7 +199,7 @@ export class PlaybackController extends EventEmitter {
 
                     this.emitTimeUpdate(this.recorder.duration);
                     this.emitPause();
-                    this.emitEnded();
+                    this.emitEnded('end');
                 } else {
                     this.emitTimeUpdate(nextTimestamp);
                 }
@@ -227,8 +227,8 @@ export class PlaybackController extends EventEmitter {
         this.emit('timeupdate', timestamp);
     }
 
-    private emitEnded() {
-        this.emit('ended');
+    private emitEnded(where: 'start' | 'end') {
+        this.emit('ended', where);
     }
 
     private emitPlay() {
