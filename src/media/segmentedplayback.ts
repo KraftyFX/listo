@@ -1,34 +1,39 @@
-import EventEmitter from "events";
-import { Segment, printSegment } from "./chunkedrecorder";
-import { DEFAULT_PLAYBACK_OPTIONS } from "./constants";
-import { PlaybackOptions } from "./dvrconfig";
-import { PlaybackController } from "./playbackcontroller";
-import { SegmentCollection } from "./segmentcollection";
+import EventEmitter from 'events';
+import { Segment, printSegment } from './chunkedrecorder';
+import { DEFAULT_PLAYBACK_OPTIONS } from './constants';
+import { PlaybackOptions } from './dvrconfig';
+import { PlaybackController } from './playbackcontroller';
+import { SegmentCollection } from './segmentcollection';
 
-export class SegmentedPlayback extends EventEmitter
-{
-    private controller:PlaybackController;
+export class SegmentedPlayback extends EventEmitter {
+    private controller: PlaybackController;
     public readonly options: PlaybackOptions;
 
-    constructor(public readonly videoElt: HTMLMediaElement, public readonly segments: SegmentCollection, opt?: PlaybackOptions) {
+    constructor(
+        public readonly videoElt: HTMLMediaElement,
+        public readonly segments: SegmentCollection,
+        opt?: PlaybackOptions
+    ) {
         super();
         this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
 
         this.controller = new PlaybackController(this, this.options);
     }
 
-    get currentTime() { 
-        return this.currentSegment.startTime + this.videoElt.currentTime;
+    get currentTime() {
+        return this.currentSegment!.startTime + this.videoElt.currentTime;
     }
 
-    get duration() { return this.segments.duration; }
+    get duration() {
+        return this.segments.duration;
+    }
 
-    async setAsVideoSource(timestamp:number) {
+    async setAsVideoSource(timestamp: number) {
         await this.renderSegmentAtTime(timestamp);
 
         this.videoElt.onended = () => this.playNextSegment();
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
-        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
+        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
 
         this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
         this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
@@ -54,9 +59,9 @@ export class SegmentedPlayback extends EventEmitter
         this.controller.stop();
     }
 
-    private currentSegment:Segment;
-    
-    private async renderSegmentAtTime(timestamp:number) {
+    private currentSegment: Segment | null = null;
+
+    private async renderSegmentAtTime(timestamp: number) {
         const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
 
         this.info(`Requesting segment at ${timestamp.toFixed(2)}`);
@@ -64,7 +69,7 @@ export class SegmentedPlayback extends EventEmitter
         this.renderSegment(segment, offset);
     }
 
-    private renderSegment(segment:Segment, offset:number) {
+    private renderSegment(segment: Segment, offset: number) {
         let segmentChanged = false;
 
         if (this.currentSegment !== segment) {
@@ -98,7 +103,7 @@ export class SegmentedPlayback extends EventEmitter
     tryGetActiveVideoDuration() {
         const duration = this.videoElt.duration;
 
-        return (isNaN(duration) || duration == Number.POSITIVE_INFINITY) ? -1 : duration;
+        return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
     }
 
     private playNextSegment() {
@@ -106,7 +111,7 @@ export class SegmentedPlayback extends EventEmitter
             return;
         }
 
-        const nextSegment = this.segments.getNextSegment(this.currentSegment);
+        const nextSegment = this.segments.getNextSegment(this.currentSegment!);
 
         if (nextSegment) {
             this.log(`Playing next segment ${printSegment(nextSegment)}`);
@@ -118,11 +123,13 @@ export class SegmentedPlayback extends EventEmitter
         }
     }
 
-    async goToTimecode(timecode:number) {
+    async goToTimecode(timecode: number) {
         await this.renderSegmentAtTime(timecode);
     }
 
-    get paused() { return this.controller.paused; }
+    get paused() {
+        return this.controller.paused;
+    }
 
     async play() {
         await this.controller.play();
@@ -173,7 +180,10 @@ export class SegmentedPlayback extends EventEmitter
     }
 
     private isAtEnd() {
-        return this.segments.isLastSegment(this.currentSegment) && this.videoElt.currentTime === this.videoElt.duration;
+        return (
+            this.segments.isLastSegment(this.currentSegment) &&
+            this.videoElt.currentTime === this.videoElt.duration
+        );
     }
 
     private emitSegmentRendered(segment: Segment) {
@@ -195,7 +205,7 @@ export class SegmentedPlayback extends EventEmitter
     private emitPause() {
         this.emit('pause');
     }
-    
+
     private emitEnded() {
         this.emit('ended');
     }
@@ -205,7 +215,7 @@ export class SegmentedPlayback extends EventEmitter
             console.info(message);
         }
     }
-    
+
     private log(message: string) {
         if (this.options.logging === 'log') {
             console.log(message);
