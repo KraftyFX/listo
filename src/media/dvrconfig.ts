@@ -7,11 +7,11 @@ export interface RecordingOptions {
     source: 'default' | string;
     mimeType: string;
     minSegmentSizeInSec: number;
-    logging: 'info' | 'log';
+    logging: 'info' | 'log' | null;
 }
 
 export interface PlaybackOptions {
     maxPlaySpeedFactor: number;
     minPlaySpeedFactor: number;
-    logging: 'info' | 'log';
+    logging: 'info' | 'log' | null;
 }
