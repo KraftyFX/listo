@@ -1,23 +1,22 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { CameraStore } from '~/media/cameraStore';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
+import { DvrStore } from '~/media/dvrStore';
 import { DvrOptions } from '~/media/dvrconfig';
 import { CameraList } from './CameraList';
-import { LiveStreamCommands, LiveStreamControls } from './LiveStreamControls';
 import { PlaybackCommands, PlaybackControls } from './PlaybackContols';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 
 let dvr: DigitalVideoRecorder;
+const dvrStore = new DvrStore();
 
 export const ListoApp = observer(function ListoApp() {
     const videoRef = useRef<HTMLVideoElement>(null!);
 
-    const [isLive, setIsLive] = useState(true);
-    const [currentTime, setCurrentTime] = useState(-1);
-    const [duration, setDuration] = useState(-1);
-    const [multiplier, setMultiplier] = useState(0);
+    const [isDvrReady, setIsDvrReady] = useState(false);
 
     useEffect(function mount() {
         const initAsync = async () => {
@@ -28,14 +27,11 @@ export const ListoApp = observer(function ListoApp() {
             } as DvrOptions;
 
             dvr = new DigitalVideoRecorder(videoRef.current, options);
-            dvr.on('modechange', setIsLive);
-            dvr.on('timeupdate', (currentTime, duration, multiplier) => {
-                setCurrentTime((currentTime = Math.floor(currentTime)));
-                setDuration((duration = Math.floor(duration)));
-                setMultiplier(multiplier);
-            });
 
             await dvr.showLiveStreamAndStartRecording();
+            dvrStore.init(dvr);
+
+            setIsDvrReady(true);
         };
 
         initAsync().catch(console.error);
@@ -45,7 +41,7 @@ export const ListoApp = observer(function ListoApp() {
         };
     }, []);
 
-    const onCommand = (command: LiveStreamCommands | PlaybackCommands) => {
+    const onCommand = action((command: PlaybackCommands) => {
         switch (command) {
             case 'rewind':
                 dvr.rewind();
@@ -66,24 +62,24 @@ export const ListoApp = observer(function ListoApp() {
                 dvr.nextFrame();
                 break;
         }
-    };
+    });
 
     return (
         <>
             <CameraList onChangeCamera={() => location.reload()} />
             <VideoPlayer ref={videoRef} />
-            {isLive ? (
-                <LiveStreamControls onCommand={onCommand} />
-            ) : (
-                <PlaybackControls onCommand={onCommand} />
+            {!isDvrReady ? null : (
+                <>
+                    <PlaybackControls dvrStore={dvrStore} onCommand={onCommand} />
+                    <Timeline
+                        onGoLive={() => dvr.switchToLiveStream()}
+                        onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
+                        currentTime={dvrStore.currentTime}
+                        duration={dvrStore.duration}
+                        speed={dvrStore.speed}
+                    />
+                </>
             )}
-            <Timeline
-                onGoLive={() => dvr.switchToLiveStream()}
-                onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
-                currentTime={currentTime}
-                duration={duration}
-                multiplier={multiplier}
-            />
         </>
     );
 });

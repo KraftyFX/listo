@@ -1,4 +1,6 @@
+import { observer } from 'mobx-react';
 import React from 'react';
+import { DvrStore } from '~/media/dvrStore';
 
 export type PlaybackCommands =
     | 'rewind'
@@ -9,30 +11,43 @@ export type PlaybackCommands =
     | 'nextFrame';
 
 export interface PlaybackControlsProps {
+    dvrStore: DvrStore;
     onCommand?: (command: PlaybackCommands) => void;
 }
 
-export function PlaybackControls(props: PlaybackControlsProps) {
+export const PlaybackControls = observer(function PlaybackControls(props: PlaybackControlsProps) {
+    const { dvrStore, onCommand } = props;
+
     return (
         <div className="section">
-            <button id="rewind" onClick={() => props.onCommand?.('rewind')}>
+            <button id="rewind" onClick={() => onCommand?.('rewind')}>
                 Rewind
             </button>
-            <button id="play" onClick={() => props.onCommand?.('play')}>
-                Play
-            </button>
-            <button id="pause" onClick={() => props.onCommand?.('pause')}>
-                Pause
-            </button>
-            <button id="nextFrame" onClick={() => props.onCommand?.('nextFrame')}>
-                Next Frame
-            </button>
-            <button id="slowForward" onClick={() => props.onCommand?.('slowForward')}>
-                Slow Forward
-            </button>
-            <button id="fastForward" onClick={() => props.onCommand?.('fastForward')}>
-                Fast Forward
-            </button>
+            {dvrStore.isPaused ? (
+                <button id="play" onClick={() => onCommand?.('play')}>
+                    Play
+                </button>
+            ) : null}
+            {!dvrStore.isPaused ? (
+                <button id="pause" onClick={() => onCommand?.('pause')}>
+                    Pause
+                </button>
+            ) : null}
+            {!dvrStore.isLive ? (
+                <button id="nextFrame" onClick={() => onCommand?.('nextFrame')}>
+                    Next Frame
+                </button>
+            ) : null}
+            {!dvrStore.isLive ? (
+                <button id="slowForward" onClick={() => onCommand?.('slowForward')}>
+                    Slow Forward
+                </button>
+            ) : null}
+            {!dvrStore.isLive ? (
+                <button id="fastForward" onClick={() => onCommand?.('fastForward')}>
+                    Fast Forward
+                </button>
+            ) : null}
         </div>
     );
-}
+});
