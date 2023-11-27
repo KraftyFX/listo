@@ -40,18 +40,29 @@ export class LiveStreamRecorder extends EventEmitter {
     get currentTime() {
         return this.videoElt.currentTime;
     }
-    private _recordStartTime: Date;
+
+    private _recordingStartTime: Date | null = null;
+
+    private get recordingStartTime() {
+        if (!this._recordingStartTime) {
+            throw new Error(
+                `The recording start time is only available after startRecording() is called.`
+            );
+        }
+
+        return this._recordingStartTime;
+    }
 
     get duration() {
         if (!this.videoElt.paused) {
-            this._recordStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
+            this._recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
             const actualDuration = this.videoElt.currentTime;
 
             return actualDuration;
         } else {
             this.info('Using estimated duration of live feed.');
 
-            const estimatedDuration = secondsSince(this._recordStartTime);
+            const estimatedDuration = secondsSince(this.recordingStartTime);
 
             return estimatedDuration;
         }
@@ -72,7 +83,7 @@ export class LiveStreamRecorder extends EventEmitter {
     }
 
     async startRecording() {
-        this._recordStartTime = new Date();
+        this._recordingStartTime = new Date();
         await this.chunkedRecorder.start();
     }
 
