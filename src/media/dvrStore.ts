@@ -4,8 +4,8 @@ import { DigitalVideoRecorder } from './digitalvideorecorder';
 export class DvrStore {
     isLive = true;
     isPaused = false;
-    currentTime = -1;
-    duration = -1;
+    currentTime = 0;
+    duration = 0;
     speed = 1;
 
     constructor() {

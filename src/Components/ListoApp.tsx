@@ -50,9 +50,6 @@ export const ListoApp = observer(function ListoApp() {
                     <Timeline
                         onGoLive={() => dvr.switchToLiveStream()}
                         onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
-                        currentTime={dvrStore.currentTime}
-                        duration={dvrStore.duration}
-                        speed={dvrStore.speed}
                     />
                 </>
             )}
