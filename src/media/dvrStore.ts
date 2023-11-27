@@ -12,10 +12,13 @@ export class DvrStore {
         makeAutoObservable(this);
     }
 
-    private dvr!: DigitalVideoRecorder;
+    public get dvr() {
+        return this._dvr;
+    }
+    private _dvr!: DigitalVideoRecorder;
 
     init(dvr: DigitalVideoRecorder) {
-        this.dvr = dvr;
+        this._dvr = dvr;
 
         this.listenForModeChange();
         this.listenForPlayPauseChange();
@@ -23,29 +26,29 @@ export class DvrStore {
     }
 
     private listenForModeChange() {
-        this.isLive = this.dvr.isLive;
+        this.isLive = this._dvr.isLive;
 
-        this.dvr.on(
+        this._dvr.on(
             'modechange',
-            action(() => (this.isLive = this.dvr.isLive))
+            action(() => (this.isLive = this._dvr.isLive))
         );
     }
 
     private listenForPlayPauseChange() {
-        this.isPaused = this.dvr.paused;
+        this.isPaused = this._dvr.paused;
 
-        this.dvr.on(
+        this._dvr.on(
             'play',
-            action(() => (this.isPaused = this.dvr.paused))
+            action(() => (this.isPaused = this._dvr.paused))
         );
-        this.dvr.on(
+        this._dvr.on(
             'pause',
-            action(() => (this.isPaused = this.dvr.paused))
+            action(() => (this.isPaused = this._dvr.paused))
         );
     }
 
     private listenForTimeUpdate() {
-        this.dvr.on(
+        this._dvr.on(
             'timeupdate',
             action((currentTime, duration, speed) => {
                 this.currentTime = currentTime = Math.floor(currentTime);

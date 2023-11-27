@@ -1,3 +1,4 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { DvrStore } from '~/media/dvrStore';
@@ -12,11 +13,33 @@ export type PlaybackCommands =
 
 export interface PlaybackControlsProps {
     dvrStore: DvrStore;
-    onCommand?: (command: PlaybackCommands) => void;
 }
 
 export const PlaybackControls = observer(function PlaybackControls(props: PlaybackControlsProps) {
-    const { dvrStore, onCommand } = props;
+    const { dvrStore } = props;
+
+    const onCommand = action((command: PlaybackCommands) => {
+        switch (command) {
+            case 'rewind':
+                dvrStore.dvr.rewind();
+                break;
+            case 'play':
+                dvrStore.dvr.play();
+                break;
+            case 'pause':
+                dvrStore.dvr.pause();
+                break;
+            case 'fastForward':
+                dvrStore.dvr.fastForward();
+                break;
+            case 'slowForward':
+                dvrStore.dvr.slowForward();
+                break;
+            case 'nextFrame':
+                dvrStore.dvr.nextFrame();
+                break;
+        }
+    });
 
     return (
         <div className="section">
