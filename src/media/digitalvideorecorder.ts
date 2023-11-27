@@ -102,13 +102,16 @@ export class DigitalVideoRecorder extends EventEmitter {
             await this.switchToLiveStream();
         } else {
             this.info('Playback finished but far away from live. Getting more recorded video.');
-
-            const endTime = this.playback.duration;
-            const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
-
-            await this.playback.replaceActiveSegments(segments, endTime);
-            await this.play();
+            await this.getLatestLiveRecordingAndResumePlayingAtSameSpot();
         }
+    }
+
+    private async getLatestLiveRecordingAndResumePlayingAtSameSpot() {
+        const endTime = this.playback.duration;
+        const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
+
+        await this.playback.replaceActiveSegments(segments, endTime);
+        await this.play();
     }
 
     get paused() {
