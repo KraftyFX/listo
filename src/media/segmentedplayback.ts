@@ -119,7 +119,7 @@ export class SegmentedPlayback extends EventEmitter {
             this.play();
         } else {
             this.info('No next segment available to play');
-            this.emitEnded();
+            this.pause().then(() => this.emitEnded());
         }
     }
 
@@ -132,6 +132,11 @@ export class SegmentedPlayback extends EventEmitter {
     }
 
     async play() {
+        if (this.isAtEnd) {
+            this.info(`Can't play. At playback end`);
+            return;
+        }
+
         await this.controller.play();
     }
 
@@ -139,27 +144,39 @@ export class SegmentedPlayback extends EventEmitter {
         await this.controller.pause();
     }
 
+    get isAtMaxRewindSpeed() {
+        return this.controller.isAtMaxRewindSpeed;
+    }
+
     async rewind() {
-        if (this.isAtBeginning()) {
-            this.info('At playback start');
+        if (this.isAtBeginning) {
+            this.info(`Can't rewind. At playback start`);
             return;
         }
 
         await this.controller.rewind();
     }
 
+    get isAtMinSlowSpeed() {
+        return this.controller.isAtMinSlowSpeed;
+    }
+
     async slowForward() {
-        if (this.isAtEnd()) {
-            this.info('At playback end');
+        if (this.isAtEnd) {
+            this.info(`Cant slow forward. At playback end`);
             return;
         }
 
         await this.controller.slowForward();
     }
 
+    get isAtMaxFastForwardSpeed() {
+        return this.controller.isAtMaxFastForwardSpeed;
+    }
+
     async fastForward() {
-        if (this.isAtEnd()) {
-            this.info('At playback end');
+        if (this.isAtEnd) {
+            this.info(`Can't fast fowrardAt playback end`);
             return;
         }
 
@@ -167,7 +184,7 @@ export class SegmentedPlayback extends EventEmitter {
     }
 
     async nextFrame() {
-        if (this.isAtEnd()) {
+        if (this.isAtEnd) {
             this.info('At playback end');
             return;
         }
@@ -175,14 +192,16 @@ export class SegmentedPlayback extends EventEmitter {
         await this.controller.nextFrame();
     }
 
-    private isAtBeginning() {
-        return this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0;
+    public get isAtBeginning() {
+        return Boolean(
+            this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
+        );
     }
 
-    private isAtEnd() {
-        return (
+    public get isAtEnd() {
+        return Boolean(
             this.segments.isLastSegment(this.currentSegment) &&
-            this.videoElt.currentTime === this.videoElt.duration
+                this.videoElt.currentTime === this.videoElt.duration
         );
     }
 

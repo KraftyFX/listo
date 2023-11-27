@@ -103,11 +103,10 @@ export class PlaybackController extends EventEmitter {
     async nextFrame() {
         this.stopInterval();
 
-        const nextTimestamp = this.recorder.currentTime + SECONDS_PER_FRAME;
-
-        if (nextTimestamp > this.recorder.duration) {
-            return;
-        }
+        const nextTimestamp = Math.min(
+            this.recorder.currentTime + SECONDS_PER_FRAME,
+            this.recorder.duration
+        );
 
         this.mode = 'normal';
 

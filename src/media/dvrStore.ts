@@ -8,6 +8,12 @@ export class DvrStore {
     duration = 0;
     speed = 1;
 
+    isPlayDisabled = false;
+    isNextFrameDisabled = false;
+    isRewindDisabled = false;
+    isSlowForwardDisabled = false;
+    isFastForwardDisabled = false;
+
     constructor() {
         makeAutoObservable(this);
     }
@@ -30,8 +36,24 @@ export class DvrStore {
 
         this._dvr.on(
             'modechange',
-            action(() => (this.isLive = this._dvr.isLive))
+            action(() => {
+                this.isLive = this._dvr.isLive;
+                this.refreshControlAbilities();
+            })
         );
+    }
+
+    private refreshControlAbilities() {
+        const isPlayback = !this._dvr.isLive;
+
+        this.isPlayDisabled = this.isNextFrameDisabled = isPlayback && this._dvr.isAtEnd;
+
+        this.isRewindDisabled =
+            isPlayback && (this._dvr.isAtMaxRewindSpeed || this._dvr.isAtBeginning);
+        this.isSlowForwardDisabled =
+            isPlayback && (this._dvr.isAtMinSlowSpeed || this._dvr.isAtEnd);
+        this.isFastForwardDisabled =
+            isPlayback && (this._dvr.isAtMaxFastForwardSpeed || this._dvr.isAtEnd);
     }
 
     private listenForPlayPauseChange() {
@@ -54,6 +76,8 @@ export class DvrStore {
                 this.currentTime = currentTime = Math.floor(currentTime);
                 this.duration = duration = Math.floor(duration);
                 this.speed = speed;
+
+                this.refreshControlAbilities();
             })
         );
     }

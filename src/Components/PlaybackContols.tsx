@@ -56,11 +56,17 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
 
     return (
         <div className="section">
-            <button id="rewind" onClick={() => onCommand?.('rewind')}>
+            <button
+                id="rewind"
+                disabled={dvrStore.isRewindDisabled}
+                onClick={() => onCommand?.('rewind')}>
                 Rewind
             </button>
             {dvrStore.isPaused ? (
-                <button id="play" onClick={() => onCommand?.('play')}>
+                <button
+                    id="play"
+                    disabled={dvrStore.isPlayDisabled}
+                    onClick={() => onCommand?.('play')}>
                     Play
                 </button>
             ) : null}
@@ -70,17 +76,26 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
                 </button>
             ) : null}
             {!dvrStore.isLive ? (
-                <button id="nextFrame" onClick={() => onCommand?.('nextFrame')}>
+                <button
+                    id="nextFrame"
+                    disabled={dvrStore.isNextFrameDisabled}
+                    onClick={() => onCommand?.('nextFrame')}>
                     Next Frame
                 </button>
             ) : null}
             {!dvrStore.isLive ? (
-                <button id="slowForward" onClick={() => onCommand?.('slowForward')}>
+                <button
+                    id="slowForward"
+                    disabled={dvrStore.isSlowForwardDisabled}
+                    onClick={() => onCommand?.('slowForward')}>
                     Slow Forward
                 </button>
             ) : null}
             {!dvrStore.isLive ? (
-                <button id="fastForward" onClick={() => onCommand?.('fastForward')}>
+                <button
+                    id="fastForward"
+                    disabled={dvrStore.isFastForwardDisabled}
+                    onClick={() => onCommand?.('fastForward')}>
                     Fast Forward
                 </button>
             ) : null}

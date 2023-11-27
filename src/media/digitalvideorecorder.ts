@@ -113,6 +113,14 @@ export class DigitalVideoRecorder extends EventEmitter {
         }
     }
 
+    public get isAtBeginning() {
+        return this.playback.isAtBeginning;
+    }
+
+    public get isAtEnd() {
+        return this.playback.isAtEnd;
+    }
+
     async goToPlaybackTime(percent: number) {
         const wasPlaying = !this.paused;
 
@@ -124,16 +132,34 @@ export class DigitalVideoRecorder extends EventEmitter {
         }
     }
 
+    get isAtMaxRewindSpeed() {
+        this.assertIsInPlayback();
+
+        return this.playback.isAtMaxRewindSpeed;
+    }
+
     async rewind() {
         await this.switchToPlayback();
 
         await this.playback.rewind();
     }
 
+    get isAtMinSlowSpeed() {
+        this.assertIsInPlayback();
+
+        return this.playback.isAtMinSlowSpeed;
+    }
+
     async slowForward() {
         this.assertIsInPlayback();
 
         await this.playback.slowForward();
+    }
+
+    get isAtMaxFastForwardSpeed() {
+        this.assertIsInPlayback();
+
+        return this.playback.isAtMaxFastForwardSpeed;
     }
 
     async fastForward() {
