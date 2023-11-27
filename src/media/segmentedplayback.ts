@@ -8,16 +8,24 @@ import { SegmentCollection } from './segmentcollection';
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
+    private _segments: SegmentCollection | null;
 
-    constructor(
-        public readonly videoElt: HTMLMediaElement,
-        public readonly segments: SegmentCollection,
-        opt?: PlaybackOptions
-    ) {
+    constructor(public readonly videoElt: HTMLMediaElement, opt?: PlaybackOptions) {
         super();
         this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
 
         this.controller = new PlaybackController(this, this.options);
+        this._segments = null;
+    }
+
+    get segments() {
+        if (!this._segments) {
+            throw new Error(
+                `The segments array for the playback has not been set. This happens during setAsVideoSource.`
+            );
+        }
+
+        return this._segments!;
     }
 
     get currentTime() {
@@ -28,8 +36,8 @@ export class SegmentedPlayback extends EventEmitter {
         return this.segments.duration;
     }
 
-    async setAsVideoSource(timestamp: number) {
-        await this.renderSegmentAtTime(timestamp);
+    async setAsVideoSource(segments: SegmentCollection, timestamp: number) {
+        this.replaceActiveSegments(segments, timestamp);
 
         this.videoElt.onended = () => this.playNextSegment();
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
@@ -37,7 +45,7 @@ export class SegmentedPlayback extends EventEmitter {
 
         this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
         this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
-        this.controller.on('ended', () => this.emitEnded());
+        this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
         this.controller.on('play', () => this.emitPlay());
         this.controller.on('pause', () => this.emitPause());
 
@@ -48,7 +56,14 @@ export class SegmentedPlayback extends EventEmitter {
         }
     }
 
+    async replaceActiveSegments(segments: SegmentCollection, timestamp: number) {
+        this._segments = segments;
+
+        await this.renderSegmentAtTime(timestamp);
+    }
+
     async releaseAsVideoSource() {
+        this._segments = null;
         this.currentSegment = null;
 
         this.videoElt.onended = null;
@@ -119,7 +134,7 @@ export class SegmentedPlayback extends EventEmitter {
             this.play();
         } else {
             this.info('No next segment available to play');
-            this.pause().then(() => this.emitEnded());
+            this.pause().then(() => this.emitEnded('end'));
         }
     }
 
@@ -225,8 +240,8 @@ export class SegmentedPlayback extends EventEmitter {
         this.emit('pause');
     }
 
-    private emitEnded() {
-        this.emit('ended');
+    private emitEnded(where: 'start' | 'end') {
+        this.emit('ended', where);
     }
 
     private info(message: string) {

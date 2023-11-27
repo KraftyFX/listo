@@ -15,14 +15,6 @@ export class SegmentCollection {
     }
 
     async getSegmentAtTime(timestamp: number) {
-        const assertCorrectSegmentWasFound = (segment: Segment | undefined) => {
-            if (!segment) {
-                throw new Error(
-                    `The timestamp ${timestamp} is in the bounds of this chunked recording ${this.duration} but a segment was not found. This likely means the segments array is corrupt.`
-                );
-            }
-        };
-
         const segments = this.segments;
 
         if (timestamp <= 0) {
@@ -34,13 +26,7 @@ export class SegmentCollection {
             this.log(printSegmentRange('Max', segment));
             return { segment, offset: segment.startTime + segment.duration };
         } else {
-            const segment = segments.find(
-                (segment) =>
-                    segment.startTime <= timestamp &&
-                    timestamp < segment.startTime + segment.duration
-            )!;
-
-            assertCorrectSegmentWasFound(segment);
+            let segment = this.findClosestSegmentForTimestamp(timestamp, segments);
 
             this.log(printSegmentRange('Mid', segment));
 
@@ -53,6 +39,34 @@ export class SegmentCollection {
             return `${prefix} ${segment.index} = ${segment.startTime} <= ${timestamp} < ${
                 segment.startTime + segment.duration
             }`;
+        }
+    }
+
+    private findClosestSegmentForTimestamp(timestamp: number, segments: Segment[]) {
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+
+            if (isInTheSegment(segment)) {
+                return segment;
+            } else if (isAtTheEndBoundary(segment)) {
+                if (i < segments.length - 2) {
+                    return segments[i + 1];
+                } else {
+                    return segments[segments.length - 1];
+                }
+            }
+        }
+
+        throw new Error(
+            `The timestamp ${timestamp} is in the bounds of this chunked recording ${this.duration} but a segment was not found. This likely means the segments array is corrupt.`
+        );
+
+        function isInTheSegment(s: Segment) {
+            return s.startTime <= timestamp && timestamp < s.startTime + s.duration;
+        }
+
+        function isAtTheEndBoundary(s: Segment) {
+            return timestamp === s.startTime + s.duration;
         }
     }
 

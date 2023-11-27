@@ -3,7 +3,6 @@ import { Segment } from './chunkedrecorder';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import { DvrOptions } from './dvrconfig';
 import { LiveStreamRecorder } from './livestreamrecorder';
-import { SegmentCollection } from './segmentcollection';
 import { SegmentedPlayback } from './segmentedplayback';
 
 export class DigitalVideoRecorder extends EventEmitter {
@@ -26,6 +25,8 @@ export class DigitalVideoRecorder extends EventEmitter {
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
+
+        this.playback = new SegmentedPlayback(this.videoElt);
     }
 
     public get isLive() {
@@ -41,12 +42,13 @@ export class DigitalVideoRecorder extends EventEmitter {
         this._isLive = true;
 
         if (this.playback) {
+            await this.playback.pause();
             this.playback.removeAllListeners();
-            this.playback.releaseAsVideoSource();
+            await this.playback.releaseAsVideoSource();
         }
 
         this.liveStreamRecorder.on('timeupdate', (currentTime, duration) =>
-            this.emitTimeUpdate(currentTime, duration, 0)
+            this.emitTimeUpdate(currentTime, duration, 1)
         );
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
@@ -60,10 +62,8 @@ export class DigitalVideoRecorder extends EventEmitter {
     get segments() {
         this.assertIsInPlayback();
 
-        return this._segments;
+        return this.playback.segments;
     }
-
-    private _segments!: SegmentCollection;
 
     async switchToPlayback() {
         if (!this._isLive) {
@@ -77,19 +77,38 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.liveStreamRecorder.removeAllListeners();
         this.liveStreamRecorder.releaseAsVideoSource();
 
-        this._segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
-
-        this.playback = new SegmentedPlayback(this.videoElt, this._segments);
         this.playback.on('timeupdate', (currentTime, duration, speed) =>
             this.emitTimeUpdate(currentTime, duration, speed)
         );
         this.playback.on('play', () => this.emitPlay());
         this.playback.on('pause', () => this.emitPause());
+        this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
 
-        await this.playback.setAsVideoSource(currentTime);
+        const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
+
+        await this.playback.setAsVideoSource(segments, currentTime);
 
         this.emitModeChange();
+    }
+
+    private async onPlaybackEnded(where: 'start' | 'end') {
+        if (where !== 'end') {
+            return;
+        }
+
+        if (this.isNearEnd) {
+            this.info('Playback is super close to the end.  Switching to Live.');
+            await this.switchToLiveStream();
+        } else {
+            this.info('Playback finished but far away from live. Getting more recorded video.');
+
+            const endTime = this.playback.duration;
+            const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
+
+            await this.playback.replaceActiveSegments(segments, endTime);
+            await this.play();
+        }
     }
 
     get paused() {
@@ -114,11 +133,19 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
 
     public get isAtBeginning() {
+        this.assertIsInPlayback();
         return this.playback.isAtBeginning;
     }
 
     public get isAtEnd() {
+        this.assertIsInPlayback();
         return this.playback.isAtEnd;
+    }
+
+    public get isNearEnd() {
+        this.assertIsInPlayback();
+
+        return this.liveStreamRecorder.duration - this.playback.duration < 5;
     }
 
     async goToPlaybackTime(percent: number) {
@@ -198,5 +225,11 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     private emitSegmentRendered(segment: Segment) {
         this.emit('segmentrendered', segment);
+    }
+
+    private info(message: string) {
+        if (this.options.playback.logging === 'info' || this.options.playback.logging === 'log') {
+            console.info(message);
+        }
     }
 }
