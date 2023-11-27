@@ -13,7 +13,7 @@ export class DigitalVideoRecorder extends EventEmitter {
     constructor(public readonly videoElt: HTMLMediaElement, opt?: Partial<DvrOptions>) {
         super();
 
-        this.options = Object.assign({}, DEFAULT_DVR_OPTIONS, opt);
+        this.options = Object.assign(DEFAULT_DVR_OPTIONS, opt);
     }
 
     async showLiveStreamAndStartRecording() {
