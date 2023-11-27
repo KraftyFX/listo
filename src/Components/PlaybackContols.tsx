@@ -54,6 +54,10 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
         }
     });
 
+    const handleGoLive = action(() => {
+        dvrStore.dvr.switchToLiveStream();
+    });
+
     return (
         <div className="section">
             <button
@@ -75,31 +79,30 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
                     Pause
                 </button>
             ) : null}
-            {!dvrStore.isLive ? (
-                <button
-                    id="nextFrame"
-                    disabled={dvrStore.isNextFrameDisabled}
-                    onClick={() => onCommand?.('nextFrame')}>
-                    Next Frame
-                </button>
-            ) : null}
-            {!dvrStore.isLive ? (
-                <button
-                    id="slowForward"
-                    disabled={dvrStore.isSlowForwardDisabled}
-                    onClick={() => onCommand?.('slowForward')}>
-                    Slow Forward
-                </button>
-            ) : null}
-            {!dvrStore.isLive ? (
-                <button
-                    id="fastForward"
-                    disabled={dvrStore.isFastForwardDisabled}
-                    onClick={() => onCommand?.('fastForward')}>
-                    Fast Forward
-                </button>
-            ) : null}
-            <span className="elapsed">{parts.join(' ')}</span>
+            <button
+                id="nextFrame"
+                disabled={dvrStore.isLive || dvrStore.isNextFrameDisabled}
+                onClick={() => onCommand?.('nextFrame')}>
+                Next Frame
+            </button>
+            <button
+                id="slowForward"
+                disabled={dvrStore.isLive || dvrStore.isSlowForwardDisabled}
+                onClick={() => onCommand?.('slowForward')}>
+                Slow Forward
+            </button>
+            <button
+                id="fastForward"
+                disabled={dvrStore.isLive || dvrStore.isFastForwardDisabled}
+                onClick={() => onCommand?.('fastForward')}>
+                Fast Forward
+            </button>
+            <button id="live" disabled={dvrStore.isLive} onClick={handleGoLive}>
+                Live
+            </button>
+            <div>
+                <span className="elapsed">{parts.join(' ')}</span>
+            </div>
         </div>
     );
 });
