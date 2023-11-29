@@ -39,7 +39,6 @@ export class SegmentedPlayback extends EventEmitter {
     async setAsVideoSource(segments: SegmentCollection, timestamp: number) {
         this.replaceActiveSegments(segments, timestamp);
 
-        this.videoElt.onended = () => this.playNextSegment();
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
 
@@ -49,7 +48,7 @@ export class SegmentedPlayback extends EventEmitter {
         this.controller.on('play', () => this.emitPlay());
         this.controller.on('pause', () => this.emitPause());
 
-        if (this.videoElt.paused) {
+        if (this.paused) {
             this.emitPause();
         } else {
             this.emitPlay();
@@ -66,7 +65,7 @@ export class SegmentedPlayback extends EventEmitter {
         this._segments = null;
         this.currentSegment = null;
 
-        this.videoElt.onended = null;
+        this.disableAutoPlayback();
         this.videoElt.ontimeupdate = null;
         this.videoElt.ondurationchange = null;
 
@@ -122,9 +121,7 @@ export class SegmentedPlayback extends EventEmitter {
     }
 
     private playNextSegment() {
-        if (this.controller.isActive) {
-            return;
-        }
+        this.assertAutoPlaybackIsEnabled();
 
         const nextSegment = this.segments.getNextSegment(this.currentSegment!);
 
@@ -133,9 +130,26 @@ export class SegmentedPlayback extends EventEmitter {
             this.renderSegment(nextSegment, 0);
             this.play();
         } else {
-            this.info('No next segment available to play');
+            this.info('No next segment available to play paused=' + this.controller.paused);
             this.pause().then(() => this.emitEnded('end'));
         }
+    }
+
+    private assertAutoPlaybackIsEnabled() {
+        if (!this.videoElt.onended) {
+            throw new Error(`This function is meant to be used as part of auto playback.`);
+        }
+    }
+
+    private enableAutoPlayNextSegmet() {
+        this.videoElt.onended = () => {
+            this.info('Reached the end of current segment');
+            this.playNextSegment();
+        };
+    }
+
+    private disableAutoPlayback() {
+        this.videoElt.onended = null;
     }
 
     async goToTimecode(timecode: number) {
@@ -152,10 +166,12 @@ export class SegmentedPlayback extends EventEmitter {
             return;
         }
 
+        this.enableAutoPlayNextSegmet();
         await this.controller.play();
     }
 
     async pause() {
+        this.disableAutoPlayback();
         await this.controller.pause();
     }
 
@@ -169,6 +185,7 @@ export class SegmentedPlayback extends EventEmitter {
             return;
         }
 
+        this.disableAutoPlayback();
         await this.controller.rewind();
     }
 
@@ -182,6 +199,7 @@ export class SegmentedPlayback extends EventEmitter {
             return;
         }
 
+        this.disableAutoPlayback();
         await this.controller.slowForward();
     }
 
@@ -195,6 +213,7 @@ export class SegmentedPlayback extends EventEmitter {
             return;
         }
 
+        this.disableAutoPlayback();
         await this.controller.fastForward();
     }
 
@@ -204,6 +223,7 @@ export class SegmentedPlayback extends EventEmitter {
             return;
         }
 
+        this.disableAutoPlayback();
         await this.controller.nextFrame();
     }
 
