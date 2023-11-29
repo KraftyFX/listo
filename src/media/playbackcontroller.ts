@@ -51,8 +51,6 @@ export class PlaybackController extends EventEmitter {
         this._speed = 1;
         this.mode = 'normal';
 
-        this.info(`Play`);
-
         this.emitPlay();
     }
 
@@ -63,8 +61,6 @@ export class PlaybackController extends EventEmitter {
 
         this._speed = 0;
         this.mode = 'normal';
-
-        this.info(`Pause`);
 
         this.emitPause();
     }
