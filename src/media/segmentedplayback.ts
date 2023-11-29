@@ -78,7 +78,7 @@ export class SegmentedPlayback extends EventEmitter {
     private async renderSegmentAtTime(timestamp: number) {
         const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
 
-        this.info(`Requesting segment at ${timestamp.toFixed(2)}`);
+        this.log(`Requesting segment at ${timestamp.toFixed(2)}`);
 
         this.renderSegment(segment, offset);
     }
