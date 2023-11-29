@@ -27,6 +27,8 @@ export const ListoApp = observer(function ListoApp() {
 
             dvr = new DigitalVideoRecorder(videoRef.current, options);
 
+            window.dvr = dvr;
+
             await dvr.showLiveStreamAndStartRecording();
             dvrStore.init(dvr);
 
