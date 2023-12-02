@@ -53,9 +53,9 @@ class TimelineHelper {
         const timeToPrevSliceInMin =
             this.sliceSizeInMin * Math.floor(startTime.minute() / this.sliceSizeInMin);
 
-        const startOfTimeline = startTime.startOf('hour').add(timeToPrevSliceInMin, 'minutes');
+        const prevSliceStartTime = startTime.startOf('hour').add(timeToPrevSliceInMin, 'minutes');
 
-        return startOfTimeline;
+        return prevSliceStartTime;
     }
 
     get endOfTimeline() {
@@ -67,9 +67,10 @@ class TimelineHelper {
 
         const timeToNextSliceInMin =
             this.sliceSizeInMin - (endOfRecording.minute() % this.sliceSizeInMin);
-        const endOfTimeline = endOfRecording.add(timeToNextSliceInMin, 'minutes');
 
-        return endOfTimeline;
+        const nextSliceStartTime = endOfRecording.add(timeToNextSliceInMin, 'minutes');
+
+        return nextSliceStartTime;
     }
 
     getTimelineMinutes(time: dayjs.Dayjs) {
