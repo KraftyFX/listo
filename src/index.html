@@ -4,11 +4,40 @@
     <meta charset="UTF-8" />
     <title>Listo Player</title>
     <style type="text/css">
+      * { margin: 0; padding: 0; }
       button { padding: 10px; margin-right: 5px; }
       select { height: 30px; }
 
       .section {
         padding: 10px;
+      }
+
+      .timeline {
+        position: relative;
+        height: 50px;
+        width: 640px;
+        overflow-x: scroll;
+        white-space: nowrap;
+        background-color: beige;
+      }
+
+      .bar {
+        position: absolute;
+        top: 60%;
+        height: 30%;
+        background-color: lightblue;
+        
+      }
+
+      .slice {
+        display: inline-block;
+        height: 100%;
+        width: 99px;
+        border-left: solid 1px black;
+      }
+
+      .slice span {
+        padding-left: 5px;
       }
 
       .elapsed {

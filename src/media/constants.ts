@@ -12,7 +12,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     source: LOGITECH_BRIO_CAMERA_ID,
     mimeType: 'video/webm',
     minSegmentSizeInSec: 5,
-    logging: null,
+    logging: 'info',
 };
 
 export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
