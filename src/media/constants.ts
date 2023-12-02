@@ -16,7 +16,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
 };
 
 export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
-    maxPlaySpeedFactor: 16,
+    maxPlaySpeedFactor: 32,
     minPlaySpeedFactor: 1 / 8,
     logging: 'info',
 };
