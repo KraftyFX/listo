@@ -101,7 +101,7 @@ export class ChunkedRecorder extends EventEmitter {
         segment.url = URL.createObjectURL(blob);
         segment.duration = this.estimatedDurationOfActiveSegment;
 
-        this.info(`Finalizing segment ${printSegment(segment)}`);
+        this.log(`Finalizing segment ${printSegment(segment)}`);
 
         this.emitSegmentAvailable(segment);
     }
@@ -204,9 +204,9 @@ export class ChunkedRecorder extends EventEmitter {
         }
     }
 
-    // private log(message: string) {
-    //     if (this.options.logging === 'log') {
-    //         console.log(message);
-    //     }
-    // }
+    private log(message: string) {
+        if (this.options.logging === 'log') {
+            console.log(message);
+        }
+    }
 }
