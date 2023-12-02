@@ -18,7 +18,7 @@ interface Bar {
 
 class TimelineHelper {
     private readonly multiplierToMakeTestingEasier = 60;
-    public readonly sliceSizeInMin = 15;
+    public readonly markerSizeInMin = 15;
     private readonly minuteSizeInPx = 10;
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {}
@@ -50,7 +50,7 @@ class TimelineHelper {
     get startOfTimeline() {
         const { startTime } = this.firstRecording;
 
-        return this.getPrevSliceStartTime(startTime);
+        return this.getPrevMarkerStartTime(startTime);
     }
 
     get endOfTimeline() {
@@ -60,14 +60,14 @@ class TimelineHelper {
 
         const endOfRecording = startTime.add(durationInMin, 'minutes');
 
-        return this.getPrevSliceStartTime(endOfRecording).add(this.sliceSizeInMin, 'minutes');
+        return this.getPrevMarkerStartTime(endOfRecording).add(this.markerSizeInMin, 'minutes');
     }
 
-    private getPrevSliceStartTime(time: dayjs.Dayjs) {
-        const minutesFromPrevSliceStart =
-            this.sliceSizeInMin * Math.floor(time.minute() / this.sliceSizeInMin);
+    private getPrevMarkerStartTime(time: dayjs.Dayjs) {
+        const minFromPrevMarkerStart =
+            this.markerSizeInMin * Math.floor(time.minute() / this.markerSizeInMin);
 
-        return time.startOf('hour').add(minutesFromPrevSliceStart, 'minutes');
+        return time.startOf('hour').add(minFromPrevMarkerStart, 'minutes');
     }
 
     getTimelineMinutesFromTime(time: dayjs.Dayjs) {
@@ -147,24 +147,24 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         });
     }
 
-    function getSlices() {
+    function getTimeMarkers() {
         const elts: React.JSX.Element[] = [];
 
         let currTime = timeline.startOfTimeline;
         const endTime = timeline.endOfTimeline;
 
         const style: React.CSSProperties = {
-            width: `${timeline.getAsPixels(timeline.sliceSizeInMin)}px`,
+            width: `${timeline.getAsPixels(timeline.markerSizeInMin)}px`,
         };
 
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
-                <div key={elts.length} className="slice" style={style}>
+                <div key={elts.length} className="marker" style={style}>
                     <span>{currTime.format('h:mma')}</span>
                 </div>
             );
 
-            currTime = currTime.add(timeline.sliceSizeInMin, 'minutes');
+            currTime = currTime.add(timeline.markerSizeInMin, 'minutes');
         }
 
         return elts;
@@ -173,7 +173,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     return (
         <div className="timeline">
             {getBars()}
-            {getSlices()}
+            {getTimeMarkers()}
             {getThumb()}
         </div>
     );
