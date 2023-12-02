@@ -39,6 +39,7 @@
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
     "chai": "^4.3.10",
     "css-loader": "^6.0.0",
+    "dayjs": "^1.11.10",
     "electron": "27.0.3",
     "electron-devtools-installer": "^3.2.0",
     "eslint": "^8.0.1",
