@@ -1,3 +1,4 @@
+import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable } from 'mobx';
 import { DigitalVideoRecorder } from './digitalvideorecorder';
 
@@ -7,6 +8,9 @@ export class DvrStore {
     currentTime = 0;
     duration = 0;
     speed = 1;
+    recordingStartTime: Dayjs = dayjs();
+
+    estimatedRecordingStartTime: Dayjs = null!;
 
     isPlayDisabled = false;
     isNextFrameDisabled = false;
@@ -29,6 +33,7 @@ export class DvrStore {
         this.listenForModeChange();
         this.listenForPlayPauseChange();
         this.listenForTimeUpdate();
+        this.listenForStartTimeUpdate();
     }
 
     private listenForModeChange() {
@@ -40,6 +45,15 @@ export class DvrStore {
                 this.isLive = this._dvr.isLive;
                 this.refreshControlAbilities();
             })
+        );
+    }
+
+    private listenForStartTimeUpdate() {
+        this.isLive = this._dvr.isLive;
+
+        this._dvr.on(
+            'starttimeupdate',
+            action(() => (this.recordingStartTime = dayjs(this._dvr.recordingStartTime)))
         );
     }
 

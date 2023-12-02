@@ -22,6 +22,7 @@ export class DigitalVideoRecorder extends EventEmitter {
             this.options.recording
         );
         this.liveStreamRecorder.on('recordingerror', console.error);
+        this.liveStreamRecorder.on('starttimeupdated', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
@@ -47,6 +48,7 @@ export class DigitalVideoRecorder extends EventEmitter {
             await this.playback.releaseAsVideoSource();
         }
 
+        this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
         this.liveStreamRecorder.on('timeupdate', (currentTime, duration) =>
             this.emitTimeUpdate(currentTime, duration, 1)
         );
@@ -112,6 +114,10 @@ export class DigitalVideoRecorder extends EventEmitter {
 
         await this.playback.replaceActiveSegments(segments, endTime);
         await this.play();
+    }
+
+    get recordingStartTime() {
+        return this.liveStreamRecorder.recordingStartTime;
     }
 
     get paused() {
@@ -228,6 +234,10 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     private emitSegmentRendered(segment: Segment) {
         this.emit('segmentrendered', segment);
+    }
+
+    private emitStartTimeUpdate() {
+        this.emit('starttimeupdated');
     }
 
     private info(message: string) {

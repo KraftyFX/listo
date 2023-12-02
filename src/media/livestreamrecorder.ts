@@ -43,7 +43,7 @@ export class LiveStreamRecorder extends EventEmitter {
 
     private _recordingStartTime: Date | null = null;
 
-    private get recordingStartTime() {
+    public get recordingStartTime() {
         if (!this._recordingStartTime) {
             throw new Error(
                 `The recording start time is only available after startRecording() is called.`
@@ -55,7 +55,7 @@ export class LiveStreamRecorder extends EventEmitter {
 
     get duration() {
         if (!this.videoElt.paused) {
-            this._recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
+            this.updateEstimatedRecordingStartTime();
             const actualDuration = this.videoElt.currentTime;
 
             return actualDuration;
@@ -65,6 +65,16 @@ export class LiveStreamRecorder extends EventEmitter {
             const estimatedDuration = secondsSince(this.recordingStartTime);
 
             return estimatedDuration;
+        }
+    }
+
+    private updateEstimatedRecordingStartTime() {
+        const recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
+
+        if (recordingStartTime.getMilliseconds() < this._recordingStartTime!.getMilliseconds()) {
+            this.log(`Updating recording start time ${recordingStartTime}`);
+            this._recordingStartTime = recordingStartTime;
+            this.emitStartTimeUpdate();
         }
     }
 
@@ -115,6 +125,10 @@ export class LiveStreamRecorder extends EventEmitter {
 
     private emitPause() {
         this.emit('pause');
+    }
+
+    private emitStartTimeUpdate() {
+        this.emit('starttimeupdate');
     }
 
     private info(message: string) {
