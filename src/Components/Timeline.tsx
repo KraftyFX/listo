@@ -17,8 +17,8 @@ interface Bar {
 }
 
 const multiplierToMakeTestingEasier = 30;
-const sliceTimeInMin = 15;
-const sliceWidthInPx = 300;
+const sliceSizeInMin = 15;
+const minuteSizeInPx = 10;
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore } = props;
@@ -43,8 +43,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const lastRecording = recordings[recordings.length - 1];
 
     const startOfDay = firstRecording.startTime.startOf('day');
-    const startOfFirstSlice = getSliceStartTimeBefore(firstRecording.startTime);
-    const firstSliceOffsetInSec = startOfFirstSlice.diff(startOfDay, 'seconds');
+    const startOfTimeline = getSliceStartTimeBefore(firstRecording.startTime);
 
     const slices = getSlices();
     const bars = getBars();
@@ -69,15 +68,14 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     function getSliceStartTimeBefore(time: Dayjs) {
         return time
             .startOf('hour')
-            .add(sliceTimeInMin * Math.floor(time.minute() / sliceTimeInMin), 'minutes');
+            .add(sliceSizeInMin * Math.floor(time.minute() / sliceSizeInMin), 'minutes');
     }
 
     function getThumb(thumbTime: Dayjs) {
-        const thumbTimeInSec = thumbTime.diff(startOfDay, 'seconds') - firstSliceOffsetInSec;
-        const thumbTimeInMin = thumbTimeInSec / 60;
+        const thumbTimeInMin = getTimelineMinutes(thumbTime);
 
         const style: React.CSSProperties = {
-            left: `${(thumbTimeInMin / sliceTimeInMin) * sliceWidthInPx}px`,
+            left: `${getTimelineMinutesAsPixels(thumbTimeInMin)}px`,
         };
 
         return (
@@ -87,14 +85,25 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         );
     }
 
+    function getTimelineMinutes(time: dayjs.Dayjs) {
+        const timelineStartInSec = startOfTimeline.diff(startOfDay, 'seconds');
+        const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
+        const minutes = seconds / 60;
+
+        return minutes;
+    }
+
+    function getTimelineMinutesAsPixels(timelineMinutes: number) {
+        return timelineMinutes * minuteSizeInPx;
+    }
+
     function getBars() {
         return recordings.map(({ startTime, durationInMin }, i) => {
-            const startTimeInSec = startTime.diff(startOfDay, 'seconds') - firstSliceOffsetInSec;
-            const startTimeInMin = startTimeInSec / 60;
+            const startTimeInMin = getTimelineMinutes(startTime);
 
             const style: React.CSSProperties = {
-                left: `${(startTimeInMin / sliceTimeInMin) * sliceWidthInPx}px`,
-                width: `${(durationInMin / sliceTimeInMin) * sliceWidthInPx}px`,
+                left: `${getTimelineMinutesAsPixels(startTimeInMin)}px`,
+                width: `${getTimelineMinutesAsPixels(durationInMin)}px`,
             };
 
             const classNames = ['bar'];
@@ -118,10 +127,10 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     function getSlices() {
         const elts: React.JSX.Element[] = [];
 
-        let currTime = startOfFirstSlice;
+        let currTime = startOfTimeline;
         const endTime = lastRecording.startTime.add(lastRecording.durationInMin, 'minutes');
 
-        const style: React.CSSProperties = { width: `${sliceWidthInPx}px` };
+        const style: React.CSSProperties = { width: `${sliceSizeInMin * minuteSizeInPx}px` };
 
         while (currTime.isBefore(endTime)) {
             elts.push(
@@ -130,7 +139,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 </div>
             );
 
-            currTime = currTime.add(sliceTimeInMin, 'minutes');
+            currTime = currTime.add(sliceSizeInMin, 'minutes');
         }
 
         return elts;
