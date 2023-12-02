@@ -11,12 +11,12 @@ export function playAndWait(videoElt: HTMLMediaElement) {
     });
 }
 
-export function pauseAndWait(elt: HTMLMediaElement) {
+export function pauseAndWait(videoElt: HTMLMediaElement) {
     return new Promise<void>((resolve) => {
-        if (!elt.paused) {
+        if (!videoElt.paused) {
             console.info('Pause');
-            elt.addEventListener('pause', () => resolve(), { once: true });
-            elt.pause();
+            videoElt.addEventListener('pause', () => resolve(), { once: true });
+            videoElt.pause();
         } else {
             console.info('Pause (no-op)');
             resolve();
