@@ -16,6 +16,7 @@ interface Bar {
     durationInMin: number;
 }
 
+const multiplierToMakeTestingEasier = 30;
 const sliceTimeInMin = 15;
 const sliceWidthInPx = 300;
 
@@ -42,29 +43,55 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const lastRecording = recordings[recordings.length - 1];
 
     const startOfDay = firstRecording.startTime.startOf('day');
-    const startSliceTime = getTimeForSlice(firstRecording);
+    const startOfFirstSlice = getSliceStartTimeBefore(firstRecording.startTime);
+    const firstSliceOffsetInSec = startOfFirstSlice.diff(startOfDay, 'seconds');
 
     const slices = getSlices();
     const bars = getBars();
+    const thumb = getThumb(getThumbTime());
 
     function getLiveRecordingBar(): Bar {
         return {
             startTime: dvrStore.recordingStartTime,
-            durationInMin: dayjs.duration({ seconds: dvrStore.duration * 30 }).asMinutes(),
+            durationInMin: dayjs
+                .duration({ seconds: dvrStore.duration * multiplierToMakeTestingEasier })
+                .asMinutes(),
         };
     }
 
-    function getTimeForSlice(bar: Bar) {
-        return bar.startTime
+    function getThumbTime(): dayjs.Dayjs {
+        return dvrStore.recordingStartTime.add(
+            dvrStore.currentTime * multiplierToMakeTestingEasier,
+            'seconds'
+        );
+    }
+
+    function getSliceStartTimeBefore(time: Dayjs) {
+        return time
             .startOf('hour')
-            .add(sliceTimeInMin * Math.floor(bar.startTime.minute() / sliceTimeInMin), 'minutes');
+            .add(sliceTimeInMin * Math.floor(time.minute() / sliceTimeInMin), 'minutes');
+    }
+
+    function getThumb(thumbTime: Dayjs) {
+        const thumbTimeInSec = thumbTime.diff(startOfDay, 'seconds') - firstSliceOffsetInSec;
+        const thumbTimeInMin = thumbTimeInSec / 60;
+
+        const style: React.CSSProperties = {
+            left: `${(thumbTimeInMin / sliceTimeInMin) * sliceWidthInPx}px`,
+        };
+
+        return (
+            <div className="thumb" style={style}>
+                <div></div>
+            </div>
+        );
     }
 
     function getBars() {
-        const startOffset = startSliceTime.diff(startOfDay, 'minutes');
-
         return recordings.map(({ startTime, durationInMin }, i) => {
-            const startTimeInMin = startTime.diff(startOfDay, 'minutes') - startOffset;
+            const startTimeInSec = startTime.diff(startOfDay, 'seconds') - firstSliceOffsetInSec;
+            const startTimeInMin = startTimeInSec / 60;
+
             const style: React.CSSProperties = {
                 left: `${(startTimeInMin / sliceTimeInMin) * sliceWidthInPx}px`,
                 width: `${(durationInMin / sliceTimeInMin) * sliceWidthInPx}px`,
@@ -91,7 +118,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     function getSlices() {
         const elts: React.JSX.Element[] = [];
 
-        let currTime = startSliceTime;
+        let currTime = startOfFirstSlice;
         const endTime = lastRecording.startTime.add(lastRecording.durationInMin, 'minutes');
 
         const style: React.CSSProperties = { width: `${sliceWidthInPx}px` };
@@ -113,6 +140,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         <div className="timeline">
             {bars}
             {slices}
+            {thumb}
         </div>
     );
 });
