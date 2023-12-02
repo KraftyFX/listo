@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef } from 'react';
-import { DvrStore } from '~/media/dvrStore';
+import { DvrStore } from '~/Components/stores/dvrStore';
 
 dayjs.extend(duration);
 
@@ -18,7 +18,7 @@ interface Bar {
 
 class TimelineHelper {
     private readonly multiplierToMakeTestingEasier = 60;
-    public readonly markerSizeInMin = 15;
+    public readonly markerSizeInMin = 10;
     private readonly minuteSizeInPx = 10;
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {}
@@ -90,17 +90,17 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const liveBarRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // recordings.push({
+        //     startTime: recordings[0].startTime.subtract(15, 'minutes'),
+        //     durationInMin: dayjs.duration({ minutes: 10 }).asMinutes(),
+        // });
+
         liveBarRef.current?.scrollIntoView({ block: 'end', inline: 'end' });
     }, []);
 
     const recordings: Bar[] = [];
 
     const timeline = new TimelineHelper(dvrStore, recordings);
-
-    // recordings.push({
-    //     startTime: recordings[0].startTime.subtract(15, 'minutes'),
-    //     durationInMin: dayjs.duration({ minutes: 10 }).asMinutes(),
-    // });
 
     if (dvrStore.isLive) {
         recordings.push(timeline.liveRecording);
@@ -160,7 +160,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
                 <div key={elts.length} className="marker" style={style}>
-                    <span>{currTime.format('h:mma')}</span>
+                    <span>{currTime.format('h:mm')}</span>
                 </div>
             );
 
