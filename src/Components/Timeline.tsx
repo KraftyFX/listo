@@ -17,7 +17,7 @@ interface Bar {
 }
 
 class TimelineHelper {
-    private readonly multiplierToMakeTestingEasier = 30;
+    private readonly multiplierToMakeTestingEasier = 60;
     public readonly sliceSizeInMin = 15;
     private readonly minuteSizeInPx = 10;
 
@@ -48,25 +48,28 @@ class TimelineHelper {
     }
 
     get startOfTimeline() {
-        const startOfTimeline = this.getSliceBefore(this.firstRecording.startTime);
+        const { startTime } = this.firstRecording;
+
+        const timeToPrevSliceInMin =
+            this.sliceSizeInMin * Math.floor(startTime.minute() / this.sliceSizeInMin);
+
+        const startOfTimeline = startTime.startOf('hour').add(timeToPrevSliceInMin, 'minutes');
 
         return startOfTimeline;
     }
 
     get endOfTimeline() {
-        const { startTime, durationInMin } = this.lastRecording;
-        const endOfTimeline = startTime.add(
-            this.sliceSizeInMin - (durationInMin % this.sliceSizeInMin),
-            'minutes'
-        );
+        const { startTime, durationInMin } = this.dvrStore.isLive
+            ? this.liveRecording
+            : this.lastRecording;
+
+        const endOfRecording = startTime.add(durationInMin, 'minutes');
+
+        const timeToNextSliceInMin =
+            this.sliceSizeInMin - (endOfRecording.minute() % this.sliceSizeInMin);
+        const endOfTimeline = endOfRecording.add(timeToNextSliceInMin, 'minutes');
 
         return endOfTimeline;
-    }
-
-    private getSliceBefore(time: Dayjs) {
-        return time
-            .startOf('hour')
-            .add(this.sliceSizeInMin * Math.floor(time.minute() / this.sliceSizeInMin), 'minutes');
     }
 
     getTimelineMinutes(time: dayjs.Dayjs) {
