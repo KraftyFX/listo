@@ -1,8 +1,8 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
+import { DvrStore } from '~/Components/stores/dvrStore';
 import { formatSeconds } from '~/media/dateutil';
-import { DvrStore } from '~/media/dvrStore';
 
 export type PlaybackCommands =
     | 'rewind'

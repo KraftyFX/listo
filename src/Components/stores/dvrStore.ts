@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable } from 'mobx';
-import { DigitalVideoRecorder } from './digitalvideorecorder';
+import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
 
 export class DvrStore {
     isLive = true;
