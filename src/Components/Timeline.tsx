@@ -73,7 +73,7 @@ class TimelineHelper {
         return nextSliceStartTime;
     }
 
-    getTimelineMinutes(time: dayjs.Dayjs) {
+    getTimelineMinutesFromTime(time: dayjs.Dayjs) {
         const startOfDay = this.firstRecording.startTime.startOf('day');
         const timelineStartInSec = this.startOfTimeline.diff(startOfDay, 'seconds');
         const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
@@ -109,7 +109,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getThumb() {
-        const thumbTimeInMin = timeline.getTimelineMinutes(timeline.currentTime);
+        const thumbTimeInMin = timeline.getTimelineMinutesFromTime(timeline.currentTime);
 
         const style: React.CSSProperties = {
             left: `${timeline.getAsPixels(thumbTimeInMin)}px`,
@@ -124,7 +124,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getBars() {
         return recordings.map(({ startTime, durationInMin }, i) => {
-            const startTimeInMin = timeline.getTimelineMinutes(startTime);
+            const startTimeInMin = timeline.getTimelineMinutesFromTime(startTime);
 
             const style: React.CSSProperties = {
                 left: `${timeline.getAsPixels(startTimeInMin)}px`,
