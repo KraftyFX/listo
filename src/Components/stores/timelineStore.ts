@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
+import { makeObservable, observable } from 'mobx';
 import { DvrStore } from './dvrStore';
 
 export interface Bar {
@@ -7,12 +8,16 @@ export interface Bar {
 }
 
 export class TimelineStore {
-    private readonly multiplierToMakeTestingEasier = 60;
-    public readonly markerSizeInMin = 10;
-    private readonly minuteSizeInPx = 10;
+    private readonly multiplierToMakeTestingEasier = 1;
+    public markerSizeInMin = 10;
+    public minuteSizeInPx = 10;
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {
-        // makeAutoObservable(this);
+        makeObservable(this, {
+            minuteSizeInPx: observable,
+            markerSizeInMin: observable,
+        });
+
         if (dvrStore.isLive) {
             recordings.push(this.liveRecording);
         }

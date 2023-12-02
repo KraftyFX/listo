@@ -8,9 +8,11 @@ import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackContols';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
+import { TimelineStore } from './stores/timelineStore';
 
 let dvr: DigitalVideoRecorder;
 const dvrStore = new DvrStore();
+const timeline = new TimelineStore(dvrStore, []);
 
 export const ListoApp = observer(function ListoApp() {
     const videoRef = useRef<HTMLVideoElement>(null!);
@@ -49,7 +51,11 @@ export const ListoApp = observer(function ListoApp() {
             {!isDvrReady ? null : (
                 <>
                     <PlaybackControls dvrStore={dvrStore} />
-                    <Timeline dvrStore={dvrStore} onSnapToTime={() => dvr.goToPlaybackTime(0.5)} />
+                    <Timeline
+                        dvrStore={dvrStore}
+                        timeline={timeline}
+                        onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
+                    />
                 </>
             )}
         </>

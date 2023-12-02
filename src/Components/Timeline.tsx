@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
@@ -8,21 +9,30 @@ import { Bar, TimelineStore } from './stores/timelineStore';
 dayjs.extend(duration);
 
 export interface TimelineProps {
+    timeline: TimelineStore;
     dvrStore: DvrStore;
     onSnapToTime: () => void;
 }
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
-    const { dvrStore } = props;
+    const { dvrStore, timeline } = props;
+    const timelineRef = useRef<HTMLDivElement>(null!);
     const liveBarRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        liveBarRef.current?.scrollIntoView({ block: 'end', inline: 'end' });
-    }, []);
 
     const recordings: Bar[] = [];
 
-    const timeline = new TimelineStore(dvrStore, recordings);
+    useEffect(
+        action(() => {
+            const width = timelineRef.current.offsetWidth;
+            const minutesToShowInViewport = 10;
+
+            timeline.markerSizeInMin = 1;
+            timeline.minuteSizeInPx = width / minutesToShowInViewport;
+
+            liveBarRef.current?.scrollIntoView({ block: 'end', inline: 'end' });
+        }),
+        []
+    );
 
     function getThumb() {
         const thumbTimeInMin = timeline.getTimelineMinutesFromTime(timeline.currentTime);
@@ -89,7 +99,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     return (
-        <div className="timeline">
+        <div className="timeline" ref={timelineRef}>
             {getBars()}
             {getTimeMarkers()}
             {getThumb()}
