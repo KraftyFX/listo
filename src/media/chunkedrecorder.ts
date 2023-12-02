@@ -172,7 +172,7 @@ export class ChunkedRecorder extends EventEmitter {
             return false;
         }
 
-        this.info(
+        this.log(
             `Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(
                 3
             )} to ${duration.toFixed(3)}`
