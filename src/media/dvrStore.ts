@@ -32,8 +32,21 @@ export class DvrStore {
 
         this.listenForModeChange();
         this.listenForPlayPauseChange();
-        this.listenForTimeUpdate();
         this.listenForStartTimeUpdate();
+        this.listenForTimeUpdate();
+    }
+
+    private refreshControlAbilities() {
+        const dvr = this._dvr;
+
+        const isPlayback = !dvr.isLive;
+
+        this.isPlayDisabled = isPlayback && dvr.isAtEnd;
+        this.isNextFrameDisabled = isPlayback && dvr.isAtEnd;
+
+        this.isRewindDisabled = isPlayback && (dvr.isAtMaxRewindSpeed || dvr.isAtBeginning);
+        this.isSlowForwardDisabled = isPlayback && (dvr.isAtMinSlowSpeed || dvr.isAtEnd);
+        this.isFastForwardDisabled = isPlayback && (dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd);
     }
 
     private listenForModeChange() {
@@ -55,19 +68,6 @@ export class DvrStore {
             'starttimeupdate',
             action(() => (this.recordingStartTime = dayjs(this._dvr.recordingStartTime)))
         );
-    }
-
-    private refreshControlAbilities() {
-        const isPlayback = !this._dvr.isLive;
-
-        this.isPlayDisabled = this.isNextFrameDisabled = isPlayback && this._dvr.isAtEnd;
-
-        this.isRewindDisabled =
-            isPlayback && (this._dvr.isAtMaxRewindSpeed || this._dvr.isAtBeginning);
-        this.isSlowForwardDisabled =
-            isPlayback && (this._dvr.isAtMinSlowSpeed || this._dvr.isAtEnd);
-        this.isFastForwardDisabled =
-            isPlayback && (this._dvr.isAtMaxFastForwardSpeed || this._dvr.isAtEnd);
     }
 
     private listenForPlayPauseChange() {
