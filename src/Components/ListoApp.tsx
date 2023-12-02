@@ -49,7 +49,7 @@ export const ListoApp = observer(function ListoApp() {
             {!isDvrReady ? null : (
                 <>
                     <PlaybackControls dvrStore={dvrStore} />
-                    <Timeline onSnapToTime={() => dvr.goToPlaybackTime(0.5)} />
+                    <Timeline dvrStore={dvrStore} onSnapToTime={() => dvr.goToPlaybackTime(0.5)} />
                 </>
             )}
         </>
