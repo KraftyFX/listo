@@ -16,9 +16,72 @@ interface Bar {
     durationInMin: number;
 }
 
-const multiplierToMakeTestingEasier = 30;
-const sliceSizeInMin = 15;
-const minuteSizeInPx = 10;
+class TimelineHelper {
+    private readonly multiplierToMakeTestingEasier = 30;
+    public readonly sliceSizeInMin = 15;
+    private readonly minuteSizeInPx = 10;
+
+    constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {}
+
+    private get firstRecording() {
+        return this.recordings[0];
+    }
+
+    private get lastRecording() {
+        return this.recordings[this.recordings.length - 1];
+    }
+
+    get liveRecording() {
+        return {
+            startTime: this.dvrStore.recordingStartTime,
+            durationInMin: dayjs
+                .duration({ seconds: this.dvrStore.duration * this.multiplierToMakeTestingEasier })
+                .asMinutes(),
+        };
+    }
+
+    get currentTime() {
+        return this.dvrStore.recordingStartTime.add(
+            this.dvrStore.currentTime * this.multiplierToMakeTestingEasier,
+            'seconds'
+        );
+    }
+
+    get startOfTimeline() {
+        const startOfTimeline = this.getSliceBefore(this.firstRecording.startTime);
+
+        return startOfTimeline;
+    }
+
+    get endOfTimeline() {
+        const { startTime, durationInMin } = this.lastRecording;
+        const endOfTimeline = startTime.add(
+            this.sliceSizeInMin - (durationInMin % this.sliceSizeInMin),
+            'minutes'
+        );
+
+        return endOfTimeline;
+    }
+
+    private getSliceBefore(time: Dayjs) {
+        return time
+            .startOf('hour')
+            .add(this.sliceSizeInMin * Math.floor(time.minute() / this.sliceSizeInMin), 'minutes');
+    }
+
+    getTimelineMinutes(time: dayjs.Dayjs) {
+        const startOfDay = this.firstRecording.startTime.startOf('day');
+        const timelineStartInSec = this.startOfTimeline.diff(startOfDay, 'seconds');
+        const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
+        const minutes = seconds / 60;
+
+        return minutes;
+    }
+
+    getAsPixels(timelineMinutes: number) {
+        return timelineMinutes * this.minuteSizeInPx;
+    }
+}
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore } = props;
@@ -35,47 +98,17 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         durationInMin: dayjs.duration({ minutes: 10 }).asMinutes(),
     });
 
+    const timeline = new TimelineHelper(dvrStore, recordings);
+
     if (dvrStore.isLive) {
-        recordings.push(getLiveRecordingBar());
+        recordings.push(timeline.liveRecording);
     }
 
-    const firstRecording = recordings[0];
-    const lastRecording = recordings[recordings.length - 1];
-
-    const startOfDay = firstRecording.startTime.startOf('day');
-    const startOfTimeline = getSliceStartTimeBefore(firstRecording.startTime);
-
-    const slices = getSlices();
-    const bars = getBars();
-    const thumb = getThumb(getThumbTime());
-
-    function getLiveRecordingBar(): Bar {
-        return {
-            startTime: dvrStore.recordingStartTime,
-            durationInMin: dayjs
-                .duration({ seconds: dvrStore.duration * multiplierToMakeTestingEasier })
-                .asMinutes(),
-        };
-    }
-
-    function getThumbTime(): dayjs.Dayjs {
-        return dvrStore.recordingStartTime.add(
-            dvrStore.currentTime * multiplierToMakeTestingEasier,
-            'seconds'
-        );
-    }
-
-    function getSliceStartTimeBefore(time: Dayjs) {
-        return time
-            .startOf('hour')
-            .add(sliceSizeInMin * Math.floor(time.minute() / sliceSizeInMin), 'minutes');
-    }
-
-    function getThumb(thumbTime: Dayjs) {
-        const thumbTimeInMin = getTimelineMinutes(thumbTime);
+    function getThumb() {
+        const thumbTimeInMin = timeline.getTimelineMinutes(timeline.currentTime);
 
         const style: React.CSSProperties = {
-            left: `${getTimelineMinutesAsPixels(thumbTimeInMin)}px`,
+            left: `${timeline.getAsPixels(thumbTimeInMin)}px`,
         };
 
         return (
@@ -85,25 +118,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         );
     }
 
-    function getTimelineMinutes(time: dayjs.Dayjs) {
-        const timelineStartInSec = startOfTimeline.diff(startOfDay, 'seconds');
-        const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
-        const minutes = seconds / 60;
-
-        return minutes;
-    }
-
-    function getTimelineMinutesAsPixels(timelineMinutes: number) {
-        return timelineMinutes * minuteSizeInPx;
-    }
-
     function getBars() {
         return recordings.map(({ startTime, durationInMin }, i) => {
-            const startTimeInMin = getTimelineMinutes(startTime);
+            const startTimeInMin = timeline.getTimelineMinutes(startTime);
 
             const style: React.CSSProperties = {
-                left: `${getTimelineMinutesAsPixels(startTimeInMin)}px`,
-                width: `${getTimelineMinutesAsPixels(durationInMin)}px`,
+                left: `${timeline.getAsPixels(startTimeInMin)}px`,
+                width: `${timeline.getAsPixels(durationInMin)}px`,
             };
 
             const classNames = ['bar'];
@@ -127,10 +148,12 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     function getSlices() {
         const elts: React.JSX.Element[] = [];
 
-        let currTime = startOfTimeline;
-        const endTime = lastRecording.startTime.add(lastRecording.durationInMin, 'minutes');
+        let currTime = timeline.startOfTimeline;
+        const endTime = timeline.endOfTimeline;
 
-        const style: React.CSSProperties = { width: `${sliceSizeInMin * minuteSizeInPx}px` };
+        const style: React.CSSProperties = {
+            width: `${timeline.getAsPixels(timeline.sliceSizeInMin)}px`,
+        };
 
         while (currTime.isBefore(endTime)) {
             elts.push(
@@ -139,7 +162,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 </div>
             );
 
-            currTime = currTime.add(sliceSizeInMin, 'minutes');
+            currTime = currTime.add(timeline.sliceSizeInMin, 'minutes');
         }
 
         return elts;
@@ -147,9 +170,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     return (
         <div className="timeline">
-            {bars}
-            {slices}
-            {thumb}
+            {getBars()}
+            {getSlices()}
+            {getThumb()}
         </div>
     );
 });
