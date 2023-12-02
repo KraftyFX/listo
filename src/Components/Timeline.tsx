@@ -50,12 +50,7 @@ class TimelineHelper {
     get startOfTimeline() {
         const { startTime } = this.firstRecording;
 
-        const timeToPrevSliceInMin =
-            this.sliceSizeInMin * Math.floor(startTime.minute() / this.sliceSizeInMin);
-
-        const prevSliceStartTime = startTime.startOf('hour').add(timeToPrevSliceInMin, 'minutes');
-
-        return prevSliceStartTime;
+        return this.getPrevSliceStartTime(startTime);
     }
 
     get endOfTimeline() {
@@ -65,17 +60,20 @@ class TimelineHelper {
 
         const endOfRecording = startTime.add(durationInMin, 'minutes');
 
-        const timeToNextSliceInMin =
-            this.sliceSizeInMin - (endOfRecording.minute() % this.sliceSizeInMin);
+        return this.getPrevSliceStartTime(endOfRecording).add(this.sliceSizeInMin, 'minutes');
+    }
 
-        const nextSliceStartTime = endOfRecording.add(timeToNextSliceInMin, 'minutes');
+    private getPrevSliceStartTime(time: dayjs.Dayjs) {
+        const minutesFromPrevSliceStart =
+            this.sliceSizeInMin * Math.floor(time.minute() / this.sliceSizeInMin);
 
-        return nextSliceStartTime;
+        return time.startOf('hour').add(minutesFromPrevSliceStart, 'minutes');
     }
 
     getTimelineMinutesFromTime(time: dayjs.Dayjs) {
         const startOfDay = this.firstRecording.startTime.startOf('day');
         const timelineStartInSec = this.startOfTimeline.diff(startOfDay, 'seconds');
+
         const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
         const minutes = seconds / 60;
 
@@ -97,12 +95,12 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     const recordings: Bar[] = [];
 
-    recordings.push({
-        startTime: dayjs().subtract(15, 'minutes'),
-        durationInMin: dayjs.duration({ minutes: 10 }).asMinutes(),
-    });
-
     const timeline = new TimelineHelper(dvrStore, recordings);
+
+    // recordings.push({
+    //     startTime: recordings[0].startTime.subtract(15, 'minutes'),
+    //     durationInMin: dayjs.duration({ minutes: 10 }).asMinutes(),
+    // });
 
     if (dvrStore.isLive) {
         recordings.push(timeline.liveRecording);
@@ -159,7 +157,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             width: `${timeline.getAsPixels(timeline.sliceSizeInMin)}px`,
         };
 
-        while (currTime.isBefore(endTime)) {
+        while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
                 <div key={elts.length} className="slice" style={style}>
                     <span>{currTime.format('h:mma')}</span>
