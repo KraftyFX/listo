@@ -1,12 +1,9 @@
 import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
 import { Bar, TimelineStore } from './stores/timelineStore';
-
-dayjs.extend(duration);
 
 export interface TimelineProps {
     timeline: TimelineStore;
@@ -24,19 +21,31 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     useEffect(
         action(function init() {
             timeline.viewportWidthInPx = timelineRef.current.offsetWidth;
-            timeline.markerSizeInMin = 1;
-            timeline.minutesToShowInViewport = 2;
+            timeline.viewportSizeInSec = 10;
+
+            timeline.markerSizeInSec = 2;
 
             liveBarRef.current?.scrollIntoView({ block: 'end', inline: 'end' });
         }),
         []
     );
 
+    function getTimelineOffsetForRecording({ startTime, duration }: Bar) {
+        const startTimeOffset = dayjs.duration(startTime.diff(timeline.startOfTimeline));
+
+        return {
+            left: timeline.getAsPixelOffset(startTimeOffset),
+            width: timeline.getAsPixelOffset(duration),
+        };
+    }
+
     function getThumb() {
-        const thumbTimeInMin = timeline.getTimelineMinutesFromTime(timeline.currentTime);
+        const thumbOffset = dayjs.duration(
+            timeline.liveRecordingCurrentTime.diff(timeline.startOfTimeline)
+        );
 
         const style: React.CSSProperties = {
-            left: `${timeline.getAsPixels(thumbTimeInMin)}px`,
+            left: `${timeline.getAsPixelOffset(thumbOffset)}px`,
         };
 
         return (
@@ -47,25 +56,20 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getBars() {
-        return recordings.map(({ startTime, durationInMin }, i) => {
-            const startTimeInMin = timeline.getTimelineMinutesFromTime(startTime);
+        return recordings.map((recording, i) => {
+            const offset = getTimelineOffsetForRecording(recording);
 
             const style: React.CSSProperties = {
-                left: `${timeline.getAsPixels(startTimeInMin)}px`,
-                width: `${timeline.getAsPixels(durationInMin)}px`,
+                left: `${offset.left}px`,
+                width: `${offset.width}px`,
             };
 
-            const classNames = ['bar'];
             const isLiveBar = dvrStore.isLive && i === recordings.length - 1;
-
-            if (isLiveBar) {
-                classNames.push('live');
-            }
 
             return (
                 <div
                     key={i}
-                    className={classNames.join(' ')}
+                    className={isLiveBar ? `bar live` : `bar`}
                     ref={isLiveBar ? liveBarRef : null}
                     style={style}
                 />
@@ -80,24 +84,33 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const endTime = timeline.endOfTimeline;
 
         const style: React.CSSProperties = {
-            width: `${timeline.getAsPixels(timeline.markerSizeInMin)}px`,
+            width: `${timeline.getAsPixelOffset(timeline.markerDuration)}px`,
         };
 
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
                 <div key={elts.length} className="marker" style={style}>
-                    <span>{currTime.format('h:mm')}</span>
+                    <span>{currTime.format('h:mm:ss')}</span>
                 </div>
             );
 
-            currTime = currTime.add(timeline.markerSizeInMin, 'minutes');
+            currTime = currTime.add(timeline.markerDuration);
         }
 
         return elts;
     }
 
+    function onMouseMove(ev: React.MouseEvent<HTMLDivElement>) {
+        const elt = ev.currentTarget;
+        const rect = elt.getBoundingClientRect();
+        const x = ev.clientX + elt.scrollLeft - rect.x;
+        const seconds = timeline.getAsTimelineSeconds(x);
+
+        timeline.setCurrentTimeBySeconds(seconds);
+    }
+
     return (
-        <div className="timeline" ref={timelineRef}>
+        <div className="timeline" ref={timelineRef} onMouseMove={action((ev) => onMouseMove(ev))}>
             {getBars()}
             {getTimeMarkers()}
             {getThumb()}

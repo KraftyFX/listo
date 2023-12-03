@@ -1,28 +1,34 @@
-import dayjs, { Dayjs } from 'dayjs';
-import { makeObservable, observable } from 'mobx';
+import dayjs from 'dayjs';
+import duration, { Duration } from 'dayjs/plugin/duration';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { DvrStore } from './dvrStore';
 
+dayjs.extend(duration);
+
 export interface Bar {
-    startTime: Dayjs;
-    durationInMin: number;
+    startTime: dayjs.Dayjs;
+    duration: Duration;
 }
 
 export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
-    markerSizeInMin = 10;
+
     viewportWidthInPx: number = 600;
-    minutesToShowInViewport: number = 30;
+    viewportSizeInSec: number = 60;
+
+    markerSizeInSec = 10;
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {
         makeObservable(this, {
-            markerSizeInMin: observable,
-            minutesToShowInViewport: observable,
+            markerSizeInSec: observable,
+            markerDuration: computed,
+            viewportDuration: computed,
+            viewportSizeInSec: observable,
             viewportWidthInPx: observable,
+            setCurrentTimeBySeconds: action,
         });
 
-        if (dvrStore.isLive) {
-            recordings.push(this.liveRecording);
-        }
+        recordings.push(this.liveRecording);
     }
 
     private get firstRecording() {
@@ -33,20 +39,30 @@ export class TimelineStore {
         return this.recordings[this.recordings.length - 1];
     }
 
-    private get liveRecording() {
+    get liveRecording(): Bar {
+        const durationInSec = this.dvrStore.duration * this.multiplierToMakeTestingEasier;
+
+        // return {
+        //     startTime: dayjs().startOf('hour'),
+        //     duration: dayjs.duration({ seconds: durationInSec }),
+        // };
+
         return {
             startTime: this.dvrStore.recordingStartTime,
-            durationInMin: dayjs
-                .duration({ seconds: this.dvrStore.duration * this.multiplierToMakeTestingEasier })
-                .asMinutes(),
+            duration: dayjs.duration({ seconds: durationInSec }),
         };
     }
 
-    get currentTime() {
-        return this.dvrStore.recordingStartTime.add(
-            this.dvrStore.currentTime * this.multiplierToMakeTestingEasier,
-            'seconds'
-        );
+    get liveRecordingCurrentTime() {
+        const currentTimeInSec = this.dvrStore.currentTime * this.multiplierToMakeTestingEasier;
+
+        // return this.startOfTimeline.add(currentTimeInSec, 'seconds');
+
+        return this.dvrStore.recordingStartTime.add(currentTimeInSec, 'seconds');
+    }
+
+    setCurrentTimeBySeconds(seconds: number) {
+        this.dvrStore.currentTime = seconds;
     }
 
     get startOfTimeline() {
@@ -56,34 +72,39 @@ export class TimelineStore {
     }
 
     get endOfTimeline() {
-        const { startTime, durationInMin } = this.dvrStore.isLive
+        const { startTime, duration } = this.dvrStore.isLive
             ? this.liveRecording
             : this.lastRecording;
 
-        const endOfRecording = startTime.add(durationInMin, 'minutes');
+        const endOfRecording = startTime.add(duration);
 
-        return this.getPrevMarkerStartTime(endOfRecording).add(this.markerSizeInMin, 'minutes');
+        return this.getPrevMarkerStartTime(endOfRecording).add(this.markerDuration);
+    }
+
+    get markerDuration(): Duration {
+        return dayjs.duration({ seconds: this.markerSizeInSec });
+    }
+
+    get viewportDuration(): Duration {
+        return dayjs.duration({ seconds: this.viewportSizeInSec });
     }
 
     private getPrevMarkerStartTime(time: dayjs.Dayjs) {
-        const minFromPrevMarkerStart =
-            this.markerSizeInMin * Math.floor(time.minute() / this.markerSizeInMin);
-
-        return time.startOf('hour').add(minFromPrevMarkerStart, 'minutes');
-    }
-
-    getTimelineMinutesFromTime(time: dayjs.Dayjs) {
         const startOfDay = this.firstRecording.startTime.startOf('day');
-        const timelineStartInSec = this.startOfTimeline.diff(startOfDay, 'seconds');
+        const durationInDay = dayjs.duration(time.diff(startOfDay));
+        const msSinceLastMarker =
+            durationInDay.asMilliseconds() % this.markerDuration.asMilliseconds();
 
-        const seconds = time.diff(startOfDay, 'seconds') - timelineStartInSec;
-        const minutes = seconds / 60;
-
-        return minutes;
+        return time.subtract(msSinceLastMarker, 'milliseconds');
     }
 
-    getAsPixels(timelineMinutes: number) {
-        const minuteSizeInPx = this.viewportWidthInPx / this.minutesToShowInViewport;
-        return timelineMinutes * minuteSizeInPx;
+    getAsPixelOffset(duration: Duration) {
+        const pixelsPerSec = this.viewportWidthInPx / this.viewportDuration.asSeconds();
+        return duration.asSeconds() * pixelsPerSec;
+    }
+
+    getAsTimelineSeconds(x: number) {
+        const secPerPixel = this.viewportDuration.asSeconds() / this.viewportWidthInPx;
+        return x * secPerPixel;
     }
 }
