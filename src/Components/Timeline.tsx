@@ -22,12 +22,10 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const recordings: Bar[] = [];
 
     useEffect(
-        action(() => {
-            const width = timelineRef.current.offsetWidth;
-            const minutesToShowInViewport = 10;
-
+        action(function init() {
+            timeline.viewportWidthInPx = timelineRef.current.offsetWidth;
             timeline.markerSizeInMin = 1;
-            timeline.minuteSizeInPx = width / minutesToShowInViewport;
+            timeline.minutesToShowInViewport = 2;
 
             liveBarRef.current?.scrollIntoView({ block: 'end', inline: 'end' });
         }),

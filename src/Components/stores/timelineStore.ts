@@ -9,13 +9,15 @@ export interface Bar {
 
 export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
-    public markerSizeInMin = 10;
-    public minuteSizeInPx = 10;
+    markerSizeInMin = 10;
+    viewportWidthInPx: number = 600;
+    minutesToShowInViewport: number = 30;
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {
         makeObservable(this, {
-            minuteSizeInPx: observable,
             markerSizeInMin: observable,
+            minutesToShowInViewport: observable,
+            viewportWidthInPx: observable,
         });
 
         if (dvrStore.isLive) {
@@ -81,6 +83,7 @@ export class TimelineStore {
     }
 
     getAsPixels(timelineMinutes: number) {
-        return timelineMinutes * this.minuteSizeInPx;
+        const minuteSizeInPx = this.viewportWidthInPx / this.minutesToShowInViewport;
+        return timelineMinutes * minuteSizeInPx;
     }
 }
