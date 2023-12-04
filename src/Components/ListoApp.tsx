@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
@@ -10,6 +11,8 @@ import { PlaybackControls } from './PlaybackContols';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 import { TimelineStore } from './stores/timelineStore';
+
+dayjs.extend(duration);
 
 let dvr: DigitalVideoRecorder;
 const dvrStore = new DvrStore();
@@ -55,7 +58,8 @@ export const ListoApp = observer(function ListoApp() {
                     <Timeline
                         dvrStore={dvrStore}
                         timeline={timeline}
-                        viewportDuration={dayjs.duration({ seconds: 30 })}
+                        viewportDuration={dayjs.duration({ minutes: 1 })}
+                        markerDuration={dayjs.duration({ seconds: 10 })}
                         onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
                     />
                 </>

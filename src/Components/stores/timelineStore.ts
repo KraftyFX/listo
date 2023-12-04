@@ -13,12 +13,11 @@ export interface Bar {
 export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
 
-    markerSizeInSec = 10;
+    markerDuration: Duration = dayjs.duration({ minutes: 1 });
 
     constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {
         makeObservable(this, {
-            markerSizeInSec: observable,
-            markerDuration: computed,
+            markerDuration: observable.ref,
             startOfTimeline: computed,
             endOfTimeline: computed,
             liveRecording: computed,
@@ -27,10 +26,6 @@ export class TimelineStore {
             lastRecording: computed,
             allRecordings: computed,
         });
-    }
-
-    get markerDuration(): Duration {
-        return dayjs.duration({ seconds: this.markerSizeInSec });
     }
 
     get firstRecording() {

@@ -9,6 +9,7 @@ import { TimelineStore } from './stores/timelineStore';
 export interface TimelineProps {
     timeline: TimelineStore;
     viewportDuration: Duration;
+    markerDuration: Duration;
     dvrStore: DvrStore;
     onSnapToTime: () => void;
 }
@@ -22,6 +23,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     useEffect(
         action(function init() {
+            timeline.markerDuration = props.markerDuration;
+
             setWidth(timelineRef.current.offsetWidth);
         }),
         []
@@ -75,11 +78,28 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         });
     }
 
-    function getTimeMarkers() {
+    function getMarkerFormat(time: dayjs.Dayjs) {
+        if (time.minute() === 0 && time.second() === 0) {
+            // 11pm
+            return time.format('ha');
+        } else if (time.second() === 0) {
+            // 11:20pm
+            return time.format('hh:mma');
+        } else if (time.second() % 10 === 0) {
+            return time.format('ss') + `s`;
+        } else {
+            return '???';
+        }
+    }
+
+    function getMarkers() {
         const elts: React.JSX.Element[] = [];
 
         let currTime = timeline.startOfTimeline;
-        const endTime = timeline.endOfTimeline;
+        const minEndTime = getTimeFromPixels(width - 1);
+        const endTime = timeline.endOfTimeline.isBefore(minEndTime)
+            ? minEndTime
+            : timeline.endOfTimeline;
 
         const style: React.CSSProperties = {
             width: `${getPixelsFromDuration(timeline.markerDuration)}px`,
@@ -88,7 +108,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
                 <div key={elts.length} className="marker" style={style}>
-                    <span>{currTime.format('mm:ss')}</span>
+                    <span>{getMarkerFormat(currTime)}</span>
                 </div>
             );
 
@@ -98,22 +118,22 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         return elts;
     }
 
-    const onMouseMove = action((ev: React.MouseEvent<HTMLDivElement>) => {
-        const { x } = getScrolledCoordinates(ev);
+    const onMouseDown = action((ev: React.MouseEvent<HTMLDivElement>) => {
+        const { x } = getRelativeMouseCoordinates(ev);
         const time = getTimeFromPixels(x);
 
         timeline.currentTime = time;
     });
 
     return (
-        <div ref={timelineRef} className="timeline" onMouseMove={onMouseMove}>
+        <div ref={timelineRef} className="timeline" onMouseDown={onMouseDown}>
             {getBars()}
-            {getTimeMarkers()}
+            {getMarkers()}
             {getThumb()}
         </div>
     );
 
-    function getScrolledCoordinates(ev: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    function getRelativeMouseCoordinates(ev: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         const elt = ev.currentTarget;
         const rect = elt.getBoundingClientRect();
         const x = ev.clientX + elt.scrollLeft - rect.x;
