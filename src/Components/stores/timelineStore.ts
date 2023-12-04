@@ -13,10 +13,11 @@ export interface Bar {
 export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
 
+    pastRecordings: Bar[] = [];
     markerDuration: Duration = dayjs.duration({ minutes: 1 });
 
-    constructor(public readonly dvrStore: DvrStore, public readonly recordings: Bar[]) {
-        makeObservable(this, {
+    constructor(public readonly dvrStore: DvrStore) {
+        makeObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
             markerDuration: observable.ref,
             startOfTimeline: computed,
             endOfTimeline: computed,
@@ -28,17 +29,17 @@ export class TimelineStore {
         });
     }
 
-    get firstRecording() {
+    private get firstRecording() {
         return this.allRecordings[0];
     }
 
-    get lastRecording() {
+    private get lastRecording() {
         const arr = this.allRecordings;
         return arr[arr.length - 1];
     }
 
     get allRecordings() {
-        return [...this.recordings, this.liveRecording];
+        return [...this.pastRecordings, this.liveRecording];
     }
 
     get liveRecording() {

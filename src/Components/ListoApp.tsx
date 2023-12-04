@@ -16,7 +16,7 @@ dayjs.extend(duration);
 
 let dvr: DigitalVideoRecorder;
 const dvrStore = new DvrStore();
-const timeline = new TimelineStore(dvrStore, []);
+const timeline = new TimelineStore(dvrStore);
 
 export const ListoApp = observer(function ListoApp() {
     const videoRef = useRef<HTMLVideoElement>(null!);
