@@ -22,7 +22,7 @@ export class DigitalVideoRecorder extends EventEmitter {
             this.options.recording
         );
         this.liveStreamRecorder.on('recordingerror', console.error);
-        this.liveStreamRecorder.on('starttimeupdated', console.error);
+        this.liveStreamRecorder.on('starttimeupdate', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
@@ -237,7 +237,7 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
 
     private emitStartTimeUpdate() {
-        this.emit('starttimeupdated');
+        this.emit('starttimeupdate');
     }
 
     private info(message: string) {
