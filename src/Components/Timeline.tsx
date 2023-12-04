@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
@@ -29,23 +29,30 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         []
     );
 
-    function getAsPixelOffset(duration: Duration) {
-        const pixelsPerSec = width / viewportDuration.asSeconds();
-        return duration.asSeconds() * pixelsPerSec;
+    function getPixelsFromTime(time: Dayjs) {
+        const duration = dayjs.duration(time.diff(timeline.startOfTimeline));
+
+        return getPixelsFromDuration(duration);
     }
 
-    function getAsTimelineSeconds(x: number) {
+    function getPixelsFromDuration(duration: Duration) {
+        const pixelsPerSec = width / (viewportDuration.asMilliseconds() / 1000);
+        return (duration.asMilliseconds() / 1000) * pixelsPerSec;
+    }
+
+    function getTimeFromPixels(x: number) {
         const secPerPixel = viewportDuration.asSeconds() / width;
-        return x * secPerPixel;
+        const ms = dayjs.duration({ seconds: x * secPerPixel }).asMilliseconds();
+        const time = timeline.startOfTimeline.add(ms, 'milliseconds');
+
+        return time;
     }
 
     function getThumb() {
-        const thumbOffset = dayjs.duration(
-            timeline.liveRecordingCurrentTime.diff(timeline.startOfTimeline)
-        );
+        const thumbOffset = timeline.currentTime;
 
         const style: React.CSSProperties = {
-            left: `${getAsPixelOffset(thumbOffset)}px`,
+            left: `${getPixelsFromTime(thumbOffset)}px`,
         };
 
         return (
@@ -57,11 +64,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getBars() {
         return timeline.allRecordings.map(({ startTime, duration }, i, recordings) => {
-            const startTimeOffset = dayjs.duration(startTime.diff(timeline.startOfTimeline));
-
             const style: React.CSSProperties = {
-                left: `${getAsPixelOffset(startTimeOffset)}px`,
-                width: `${getAsPixelOffset(duration)}px`,
+                left: `${getPixelsFromTime(startTime)}px`,
+                width: `${getPixelsFromDuration(duration) - 1}px`,
             };
 
             const isLiveBar = dvrStore.isLive && i === recordings.length - 1;
@@ -77,13 +82,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const endTime = timeline.endOfTimeline;
 
         const style: React.CSSProperties = {
-            width: `${getAsPixelOffset(timeline.markerDuration)}px`,
+            width: `${getPixelsFromDuration(timeline.markerDuration)}px`,
         };
 
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             elts.push(
                 <div key={elts.length} className="marker" style={style}>
-                    <span>{currTime.format('h:mm:ss')}</span>
+                    <span>{currTime.format('mm:ss')}</span>
                 </div>
             );
 
@@ -97,9 +102,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const elt = ev.currentTarget;
         const rect = elt.getBoundingClientRect();
         const xWithScrollbar = ev.clientX + elt.scrollLeft - rect.x;
-        const seconds = getAsTimelineSeconds(xWithScrollbar);
+        const time = getTimeFromPixels(xWithScrollbar);
 
-        timeline.setCurrentTimeBySeconds(seconds);
+        timeline.currentTime = time;
     });
 
     return (

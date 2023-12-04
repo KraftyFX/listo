@@ -1,6 +1,6 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import duration, { Duration } from 'dayjs/plugin/duration';
-import { action, computed, makeObservable, observable } from 'mobx';
+import { computed, makeObservable, observable } from 'mobx';
 import { DvrStore } from './dvrStore';
 
 dayjs.extend(duration);
@@ -22,11 +22,10 @@ export class TimelineStore {
             startOfTimeline: computed,
             endOfTimeline: computed,
             liveRecording: computed,
-            liveRecordingCurrentTime: computed,
+            liveRecordingEndTime: computed,
             firstRecording: computed,
             lastRecording: computed,
             allRecordings: computed,
-            setCurrentTimeBySeconds: action,
         });
     }
 
@@ -56,16 +55,22 @@ export class TimelineStore {
         };
     }
 
-    get liveRecordingCurrentTime() {
-        const currentTimeInSec = this.dvrStore.currentTime * this.multiplierToMakeTestingEasier;
+    get liveRecordingEndTime() {
+        const { startTime, duration } = this.liveRecording;
 
-        // return this.startOfTimeline.add(currentTimeInSec, 'seconds');
-
-        return this.dvrStore.recordingStartTime.add(currentTimeInSec, 'seconds');
+        return startTime.add(duration);
     }
 
-    setCurrentTimeBySeconds(seconds: number) {
-        this.dvrStore.currentTime = seconds;
+    get currentTime() {
+        const ms = dayjs.duration({ seconds: this.dvrStore.currentTime }).asMilliseconds();
+
+        return this.firstRecording.startTime.add(ms, 'milliseconds');
+    }
+
+    set currentTime(time: Dayjs) {
+        const offset = dayjs.duration(time.diff(this.firstRecording.startTime));
+
+        this.dvrStore.currentTime = offset.asMilliseconds() / 1000;
     }
 
     get startOfTimeline() {
