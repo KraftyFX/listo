@@ -23,8 +23,6 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     useEffect(
         action(function init() {
             setWidth(timelineRef.current.offsetWidth);
-
-            timeline.markerSizeInSec = 2;
         }),
         []
     );
@@ -37,7 +35,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getPixelsFromDuration(duration: Duration) {
         const pixelsPerSec = width / (viewportDuration.asMilliseconds() / 1000);
-        return (duration.asMilliseconds() / 1000) * pixelsPerSec;
+        const pixels = (duration.asMilliseconds() / 1000) * pixelsPerSec;
+
+        return pixels;
     }
 
     function getTimeFromPixels(x: number) {
@@ -99,10 +99,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     const onMouseMove = action((ev: React.MouseEvent<HTMLDivElement>) => {
-        const elt = ev.currentTarget;
-        const rect = elt.getBoundingClientRect();
-        const xWithScrollbar = ev.clientX + elt.scrollLeft - rect.x;
-        const time = getTimeFromPixels(xWithScrollbar);
+        const { x } = getScrolledCoordinates(ev);
+        const time = getTimeFromPixels(x);
 
         timeline.currentTime = time;
     });
@@ -114,4 +112,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             {getThumb()}
         </div>
     );
+
+    function getScrolledCoordinates(ev: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+        const elt = ev.currentTarget;
+        const rect = elt.getBoundingClientRect();
+        const x = ev.clientX + elt.scrollLeft - rect.x;
+        const y = ev.clientY + elt.scrollTop - rect.y;
+
+        return { x, y };
+    }
 });
