@@ -47,9 +47,6 @@ export class DvrStore {
     private _isSlowForwardDisabled = false;
     private _isFastForwardDisabled = false;
 
-    get dvr() {
-        return this._dvr;
-    }
     get isLive() {
         return this._isLive;
     }
@@ -84,6 +81,13 @@ export class DvrStore {
         return this._isFastForwardDisabled;
     }
 
+    get dvr() {
+        if (!this._dvr) {
+            throw new Error(`The DVR has not been set yet.`);
+        }
+
+        return this._dvr;
+    }
     set dvr(value: DigitalVideoRecorder) {
         if (this._dvr) {
             throw new Error(`The DVR can only be set once`);
@@ -98,7 +102,7 @@ export class DvrStore {
     }
 
     private refreshControlAbilities() {
-        const dvr = this._dvr;
+        const dvr = this.dvr;
 
         const isPlayback = !dvr.isLive;
 
@@ -111,41 +115,41 @@ export class DvrStore {
     }
 
     private listenForModeChange() {
-        this._isLive = this._dvr.isLive;
+        this._isLive = this.dvr.isLive;
 
-        this._dvr.on(
+        this.dvr.on(
             'modechange',
             action(() => {
-                this._isLive = this._dvr.isLive;
+                this._isLive = this.dvr.isLive;
                 this.refreshControlAbilities();
             })
         );
     }
 
     private listenForStartTimeUpdate() {
-        this._isLive = this._dvr.isLive;
+        this._isLive = this.dvr.isLive;
 
-        this._dvr.on(
+        this.dvr.on(
             'starttimeupdate',
-            action(() => (this._recordingStartTime = dayjs(this._dvr.recordingStartTime)))
+            action(() => (this._recordingStartTime = dayjs(this.dvr.recordingStartTime)))
         );
     }
 
     private listenForPlayPauseChange() {
-        this._isPaused = this._dvr.paused;
+        this._isPaused = this.dvr.paused;
 
-        this._dvr.on(
+        this.dvr.on(
             'play',
-            action(() => (this._isPaused = this._dvr.paused))
+            action(() => (this._isPaused = this.dvr.paused))
         );
-        this._dvr.on(
+        this.dvr.on(
             'pause',
-            action(() => (this._isPaused = this._dvr.paused))
+            action(() => (this._isPaused = this.dvr.paused))
         );
     }
 
     private listenForTimeUpdate() {
-        this._dvr.on(
+        this.dvr.on(
             'timeupdate',
             action((currentTime, duration, speed) => {
                 this._currentTime = currentTime;
