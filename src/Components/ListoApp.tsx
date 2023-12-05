@@ -7,7 +7,7 @@ import { CameraStore } from '~/media/cameraStore';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
 import { DvrOptions } from '~/media/dvrconfig';
 import { CameraList } from './CameraList';
-import { PlaybackControls } from './PlaybackContols';
+import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 import { TimelineStore } from './stores/timelineStore';
