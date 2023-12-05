@@ -92,14 +92,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getMarkers() {
-        const elts: React.JSX.Element[] = [];
-
         let currTime = timeline.startOfTimeline;
-        const minEndTime = getTimeFromPixels(width - 1);
-        const endTime = timeline.endOfTimeline.isBefore(minEndTime)
-            ? minEndTime
-            : timeline.endOfTimeline;
 
+        const endOfTimeline = timeline.endOfTimeline;
+        const viewportEndTime = getTimeFromPixels(width - 1);
+        const endTime = endOfTimeline.isBefore(viewportEndTime) ? viewportEndTime : endOfTimeline;
+
+        const elts: React.JSX.Element[] = [];
         const style: React.CSSProperties = {
             width: `${getPixelsFromDuration(timeline.markerDuration)}px`,
         };
