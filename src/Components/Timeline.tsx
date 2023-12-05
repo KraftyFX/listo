@@ -31,8 +31,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getPixelsFromTime(time: Dayjs) {
         const duration = dayjs.duration(time.diff(timeline.startOfTimeline));
+        const pixels = getPixelsFromDuration(duration);
 
-        return getPixelsFromDuration(duration);
+        return pixels;
     }
 
     function getPixelsFromDuration(duration: Duration) {
@@ -79,12 +80,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getMarkerFormat(time: dayjs.Dayjs) {
         if (time.minute() === 0 && time.second() === 0) {
-            // 11pm
+            // Example: 11pm
             return time.format('ha');
         } else if (time.second() === 0) {
-            // 11:20pm
+            // Example: 11:20pm
             return time.format('hh:mma');
         } else if (time.second() % 10 === 0) {
+            // Example: 30s
             return time.format('ss') + `s`;
         } else {
             return '???';
