@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import duration, { Duration } from 'dayjs/plugin/duration';
-import { computed, makeObservable, observable } from 'mobx';
+import { computed, makeAutoObservable, observable } from 'mobx';
 import { DvrStore } from './dvrStore';
 
 dayjs.extend(duration);
@@ -17,15 +17,10 @@ export class TimelineStore {
     markerDuration: Duration = dayjs.duration({ minutes: 1 });
 
     constructor(public readonly dvrStore: DvrStore) {
-        makeObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
+        makeAutoObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
             markerDuration: observable.ref,
-            startOfTimeline: computed,
-            endOfTimeline: computed,
-            liveRecording: computed,
-            liveRecordingEndTime: computed,
             firstRecording: computed,
             lastRecording: computed,
-            allRecordings: computed,
         });
     }
 
@@ -49,12 +44,6 @@ export class TimelineStore {
             startTime: this.dvrStore.recordingStartTime,
             duration: dayjs.duration({ seconds: durationInSec }),
         };
-    }
-
-    get liveRecordingEndTime() {
-        const { startTime, duration } = this.liveRecording;
-
-        return startTime.add(duration);
     }
 
     get currentTime() {
