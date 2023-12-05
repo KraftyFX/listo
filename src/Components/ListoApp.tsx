@@ -32,11 +32,11 @@ export const ListoApp = observer(function ListoApp() {
             } as DvrOptions;
 
             dvr = new DigitalVideoRecorder(videoRef.current, options);
-
             window.dvr = dvr;
 
             await dvr.showLiveStreamAndStartRecording();
-            dvrStore.init(dvr);
+            dvrStore.dvr = dvr;
+            window.dvrStore = dvrStore;
 
             setIsDvrReady(true);
         };

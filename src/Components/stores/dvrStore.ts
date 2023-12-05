@@ -1,34 +1,95 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { action, makeAutoObservable } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
 
 export class DvrStore {
-    isLive = true;
-    isPaused = false;
-    currentTime = 0;
-    duration = 0;
-    speed = 1;
-    recordingStartTime: Dayjs = dayjs();
-
-    estimatedRecordingStartTime: Dayjs = null!;
-
-    isPlayDisabled = false;
-    isNextFrameDisabled = false;
-    isRewindDisabled = false;
-    isSlowForwardDisabled = false;
-    isFastForwardDisabled = false;
-
     constructor() {
-        makeAutoObservable(this);
+        makeAutoObservable<
+            DvrStore,
+            | '_dvr'
+            | '_isLive'
+            | '_isPaused'
+            | '_currentTime'
+            | '_duration'
+            | '_speed'
+            | '_recordingStartTime'
+            | '_isPlayDisabled'
+            | '_isNextFrameDisabled'
+            | '_isRewindDisabled'
+            | '_isSlowForwardDisabled'
+            | '_isFastForwardDisabled'
+        >(this, {
+            _dvr: observable.ref,
+            _isLive: observable,
+            _isPaused: observable,
+            _currentTime: observable,
+            _duration: observable,
+            _speed: observable,
+            _recordingStartTime: observable.ref,
+            _isPlayDisabled: observable,
+            _isNextFrameDisabled: observable,
+            _isRewindDisabled: observable,
+            _isSlowForwardDisabled: observable,
+            _isFastForwardDisabled: observable,
+        });
     }
 
-    public get dvr() {
+    private _dvr!: DigitalVideoRecorder;
+    private _isLive = true;
+    private _isPaused = false;
+    private _currentTime = 0;
+    private _duration = 0;
+    private _speed = 1;
+    private _recordingStartTime: Dayjs = dayjs();
+    private _isPlayDisabled = false;
+    private _isNextFrameDisabled = false;
+    private _isRewindDisabled = false;
+    private _isSlowForwardDisabled = false;
+    private _isFastForwardDisabled = false;
+
+    get dvr() {
         return this._dvr;
     }
-    private _dvr!: DigitalVideoRecorder;
+    get isLive() {
+        return this._isLive;
+    }
+    get isPaused() {
+        return this._isPaused;
+    }
+    get currentTime() {
+        return this._currentTime;
+    }
+    get duration() {
+        return this._duration;
+    }
+    get speed() {
+        return this._speed;
+    }
+    get recordingStartTime() {
+        return this._recordingStartTime;
+    }
+    get isPlayDisabled() {
+        return this._isPlayDisabled;
+    }
+    get isNextFrameDisabled() {
+        return this._isNextFrameDisabled;
+    }
+    get isRewindDisabled() {
+        return this._isRewindDisabled;
+    }
+    get isSlowForwardDisabled() {
+        return this._isSlowForwardDisabled;
+    }
+    get isFastForwardDisabled() {
+        return this._isFastForwardDisabled;
+    }
 
-    init(dvr: DigitalVideoRecorder) {
-        this._dvr = dvr;
+    set dvr(value: DigitalVideoRecorder) {
+        if (this._dvr) {
+            throw new Error(`The DVR can only be set once`);
+        }
+
+        this._dvr = value;
 
         this.listenForModeChange();
         this.listenForPlayPauseChange();
@@ -41,45 +102,45 @@ export class DvrStore {
 
         const isPlayback = !dvr.isLive;
 
-        this.isPlayDisabled = isPlayback && dvr.isAtEnd;
-        this.isNextFrameDisabled = isPlayback && dvr.isAtEnd;
+        this._isPlayDisabled = isPlayback && dvr.isAtEnd;
+        this._isNextFrameDisabled = isPlayback && dvr.isAtEnd;
 
-        this.isRewindDisabled = isPlayback && (dvr.isAtMaxRewindSpeed || dvr.isAtBeginning);
-        this.isSlowForwardDisabled = isPlayback && (dvr.isAtMinSlowSpeed || dvr.isAtEnd);
-        this.isFastForwardDisabled = isPlayback && (dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd);
+        this._isRewindDisabled = isPlayback && (dvr.isAtMaxRewindSpeed || dvr.isAtBeginning);
+        this._isSlowForwardDisabled = isPlayback && (dvr.isAtMinSlowSpeed || dvr.isAtEnd);
+        this._isFastForwardDisabled = isPlayback && (dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd);
     }
 
     private listenForModeChange() {
-        this.isLive = this._dvr.isLive;
+        this._isLive = this._dvr.isLive;
 
         this._dvr.on(
             'modechange',
             action(() => {
-                this.isLive = this._dvr.isLive;
+                this._isLive = this._dvr.isLive;
                 this.refreshControlAbilities();
             })
         );
     }
 
     private listenForStartTimeUpdate() {
-        this.isLive = this._dvr.isLive;
+        this._isLive = this._dvr.isLive;
 
         this._dvr.on(
             'starttimeupdate',
-            action(() => (this.recordingStartTime = dayjs(this._dvr.recordingStartTime)))
+            action(() => (this._recordingStartTime = dayjs(this._dvr.recordingStartTime)))
         );
     }
 
     private listenForPlayPauseChange() {
-        this.isPaused = this._dvr.paused;
+        this._isPaused = this._dvr.paused;
 
         this._dvr.on(
             'play',
-            action(() => (this.isPaused = this._dvr.paused))
+            action(() => (this._isPaused = this._dvr.paused))
         );
         this._dvr.on(
             'pause',
-            action(() => (this.isPaused = this._dvr.paused))
+            action(() => (this._isPaused = this._dvr.paused))
         );
     }
 
@@ -87,9 +148,9 @@ export class DvrStore {
         this._dvr.on(
             'timeupdate',
             action((currentTime, duration, speed) => {
-                this.currentTime = currentTime = Math.floor(currentTime);
-                this.duration = duration = Math.floor(duration);
-                this.speed = speed;
+                this._currentTime = currentTime;
+                this._duration = duration;
+                this._speed = speed;
 
                 this.refreshControlAbilities();
             })

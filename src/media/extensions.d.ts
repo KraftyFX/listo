@@ -1,7 +1,9 @@
-import { DigitalVideoRecorder } from "./digitalvideorecorder";
+import { DvrStore } from '~/Components/stores/dvrStore';
+import { DigitalVideoRecorder } from './digitalvideorecorder';
 
 declare global {
     interface Window {
-        dvr: DigitalVideoRecorder
+        dvr: DigitalVideoRecorder;
+        dvrStore: DvrStore;
     }
-  }
+}
