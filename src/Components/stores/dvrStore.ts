@@ -1,11 +1,13 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
+import { TimelineStore } from './timelineStore';
 
 export class DvrStore {
     constructor() {
         makeAutoObservable<
             DvrStore,
+            | '_timeline'
             | '_dvr'
             | '_isLive'
             | '_isPaused'
@@ -19,6 +21,7 @@ export class DvrStore {
             | '_isSlowForwardDisabled'
             | '_isFastForwardDisabled'
         >(this, {
+            _timeline: false,
             _dvr: observable.ref,
             _isLive: observable,
             _isPaused: observable,
@@ -32,9 +35,12 @@ export class DvrStore {
             _isSlowForwardDisabled: observable,
             _isFastForwardDisabled: observable,
         });
+
+        this._timeline = new TimelineStore(this);
     }
 
     private _dvr!: DigitalVideoRecorder;
+    private _timeline: TimelineStore;
     private _isLive = true;
     private _isPaused = false;
     private _currentTime = 0;
@@ -46,6 +52,10 @@ export class DvrStore {
     private _isRewindDisabled = false;
     private _isSlowForwardDisabled = false;
     private _isFastForwardDisabled = false;
+
+    get timeline() {
+        return this._timeline;
+    }
 
     get isLive() {
         return this._isLive;

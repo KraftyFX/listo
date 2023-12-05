@@ -4,18 +4,17 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
-import { TimelineStore } from './stores/timelineStore';
 
 export interface TimelineProps {
-    timeline: TimelineStore;
+    dvrStore: DvrStore;
     viewportDuration: Duration;
     markerDuration: Duration;
-    dvrStore: DvrStore;
     onSnapToTime: () => void;
 }
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
-    const { dvrStore, timeline, viewportDuration } = props;
+    const { dvrStore, viewportDuration } = props;
+    const { timeline } = dvrStore;
     const [width, setWidth] = useState(1);
 
     const timelineRef = useRef<HTMLDivElement>(null!);

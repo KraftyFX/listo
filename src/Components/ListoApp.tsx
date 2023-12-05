@@ -10,13 +10,11 @@ import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
-import { TimelineStore } from './stores/timelineStore';
 
 dayjs.extend(duration);
 
 let dvr: DigitalVideoRecorder;
 const dvrStore = new DvrStore();
-const timeline = new TimelineStore(dvrStore);
 
 export const ListoApp = observer(function ListoApp() {
     const videoRef = useRef<HTMLVideoElement>(null!);
@@ -57,7 +55,6 @@ export const ListoApp = observer(function ListoApp() {
                     <PlaybackControls dvrStore={dvrStore} />
                     <Timeline
                         dvrStore={dvrStore}
-                        timeline={timeline}
                         viewportDuration={dayjs.duration({ minutes: 1 })}
                         markerDuration={dayjs.duration({ seconds: 10 })}
                         onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
