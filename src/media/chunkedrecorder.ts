@@ -36,18 +36,13 @@ export class ChunkedRecorder extends EventEmitter {
     }
 
     private _segments = new SegmentCollection();
+    private segmentBeingRecorded: Segment;
     private interval: any;
 
     start() {
-        const segment: Segment = {
-            index: this._segments.length,
-            url: '',
-            startTime: this._segments.length == 0 ? 0 : this.currentTime,
-            duration: 0,
-            chunks: [],
-        };
-
-        this._segments.addSegment(segment);
+        this.segmentBeingRecorded = this._segments.addSegment(
+            this._segments.isEmpty ? 0 : this.currentTime
+        );
 
         try {
             this.recorder.start();
@@ -86,13 +81,13 @@ export class ChunkedRecorder extends EventEmitter {
     }
 
     private finalizeActiveSegment(blob: Blob) {
-        const segment = this.activeSegmentBeingRecorded;
+        const segment = this.segmentBeingRecorded;
 
         segment.chunks.push(blob);
 
         const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
         const url = URL.createObjectURL(blobs);
-        const duration = this.estimatedDurationOfActiveSegment;
+        const duration = this.currentTime - segment.startTime;
 
         this._segments.finalizeSegment(segment, url, duration);
     }
@@ -101,14 +96,6 @@ export class ChunkedRecorder extends EventEmitter {
         await this.ensureHasSegmentToRender();
 
         return this._segments;
-    }
-
-    private get activeSegmentBeingRecorded() {
-        return this._segments.lastSegment;
-    }
-
-    private get estimatedDurationOfActiveSegment() {
-        return this.currentTime - this.activeSegmentBeingRecorded.startTime;
     }
 
     private get currentTime() {
@@ -126,7 +113,7 @@ export class ChunkedRecorder extends EventEmitter {
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
 
     ensureHasSegmentToRender() {
-        if (this._segments.length === 1) {
+        if (!this._segments.isEmpty) {
             return new Promise<boolean>((resolve) => {
                 this.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
@@ -147,7 +134,7 @@ export class ChunkedRecorder extends EventEmitter {
     }
 
     private assertHasSegmentToRender() {
-        if (this._segments.length <= 1) {
+        if (this._segments.isEmpty) {
             throw new Error(
                 `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
             );

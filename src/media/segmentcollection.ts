@@ -21,10 +21,6 @@ export class SegmentCollection extends EventEmitter {
         this._recordingStartTime = value;
     }
 
-    get segments() {
-        return this._segments;
-    }
-
     get playableSegments() {
         return this._segments.filter((s) => s.duration > 0);
     }
@@ -33,17 +29,35 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.reduce((p, c) => p + c.duration, 0);
     }
 
-    get length() {
-        return this._segments.length;
+    get isEmpty() {
+        return this._segments.length === 0;
     }
 
-    addSegment(segment: Segment) {
+    addSegment(startTime: number) {
+        const segment: Segment = {
+            index: this._segments.length,
+            url: '',
+            startTime: this._segments.length == 0 ? 0 : startTime,
+            duration: 0,
+            chunks: [],
+        };
+
         this._segments.push(segment);
 
         this.emitSegmentAdded(segment);
+
+        return segment;
     }
 
     finalizeSegment(segment: Segment, url: string, duration: number) {
+        if (segment !== this._segments[this._segments.length - 1]) {
+            throw new Error(
+                `This function assumes the segment being provided is the` +
+                    `active one being recorded which should always be the ` +
+                    `last one in the array. There's a bug somewhere.`
+            );
+        }
+
         segment.url = url;
         segment.duration = duration;
 
@@ -120,10 +134,6 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    get lastSegment() {
-        return this._segments[this.segments.length - 1];
-    }
-
     getNextPlayableSegment(segment: Segment) {
         this.assertHasPlayableSegments();
 
@@ -162,11 +172,14 @@ export class SegmentCollection extends EventEmitter {
                 3
             )} to ${duration.toFixed(3)}`
         );
+
         segment.duration = duration;
 
-        let prev = this._segments[0];
+        const segments = this.playableSegments;
 
-        this._segments.forEach((curr) => {
+        let prev = segments[0];
+
+        segments.forEach((curr) => {
             if (curr.index == 0) {
                 return;
             }
