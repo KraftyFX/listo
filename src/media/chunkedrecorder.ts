@@ -114,7 +114,7 @@ export class ChunkedRecorder extends EventEmitter {
 
             const segments = this.segments.filter((s) => s.duration > 0);
 
-            this._segments = new SegmentCollection(this, segments);
+            this._segments = new SegmentCollection(segments);
         }
 
         return this._segments;
@@ -171,33 +171,6 @@ export class ChunkedRecorder extends EventEmitter {
                 `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
             );
         }
-    }
-
-    resetSegmentDuration(segment: Segment, duration: number) {
-        if (segment.duration === duration) {
-            return false;
-        }
-
-        this.log(
-            `Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(
-                3
-            )} to ${duration.toFixed(3)}`
-        );
-        segment.duration = duration;
-
-        let prev = this.segments[0];
-
-        this.segments.forEach((curr) => {
-            if (curr.index == 0) {
-                return;
-            }
-
-            curr.startTime = prev.startTime + prev.duration + 0.0001;
-
-            prev = curr;
-        });
-
-        return true;
     }
 
     private emitSegmentAvailable(segment: Segment) {

@@ -1,10 +1,10 @@
-import { ChunkedRecorder, Segment } from './chunkedrecorder';
+import EventEmitter from 'events';
+import { Segment, printSegment } from './chunkedrecorder';
 
-export class SegmentCollection {
-    constructor(
-        private readonly chunkedRecorder: ChunkedRecorder,
-        public readonly segments: Segment[]
-    ) {
+export class SegmentCollection extends EventEmitter {
+    constructor(public readonly segments: Segment[]) {
+        super();
+
         if (segments.length === 0) {
             throw new Error(`The segment collection is empty`);
         }
@@ -87,7 +87,36 @@ export class SegmentCollection {
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
-        this.chunkedRecorder.resetSegmentDuration(segment, duration);
+        if (segment.duration === duration) {
+            return false;
+        }
+
+        this.log(
+            `Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(
+                3
+            )} to ${duration.toFixed(3)}`
+        );
+        segment.duration = duration;
+
+        let prev = this.segments[0];
+
+        this.segments.forEach((curr) => {
+            if (curr.index == 0) {
+                return;
+            }
+
+            curr.startTime = prev.startTime + prev.duration + 0.0001;
+
+            prev = curr;
+        });
+
+        this.emitDurationChange(segment);
+
+        return true;
+    }
+
+    private emitDurationChange(segment: Segment) {
+        this.emit('durationchange', segment);
     }
 
     private log(message: string) {
