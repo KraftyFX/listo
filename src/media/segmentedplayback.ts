@@ -123,7 +123,7 @@ export class SegmentedPlayback extends EventEmitter {
     private playNextSegment() {
         this.assertAutoPlaybackIsEnabled();
 
-        const nextSegment = this.segments.getNextSegment(this.currentSegment!);
+        const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment!);
 
         if (nextSegment) {
             this.log(`Playing next segment ${printSegment(nextSegment)}`);
@@ -229,13 +229,14 @@ export class SegmentedPlayback extends EventEmitter {
 
     public get isAtBeginning() {
         return Boolean(
-            this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
+            this.segments.isFirstPlayableSegment(this.currentSegment) &&
+                this.videoElt.currentTime === 0
         );
     }
 
     public get isAtEnd() {
         return Boolean(
-            this.segments.isLastSegment(this.currentSegment) &&
+            this.segments.isLastPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
     }

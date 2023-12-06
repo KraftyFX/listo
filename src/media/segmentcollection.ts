@@ -44,9 +44,9 @@ export class SegmentCollection extends EventEmitter {
     }
 
     async getSegmentAtTime(timestamp: number) {
-        this.assertHasSegments();
+        this.assertHasPlayableSegments();
 
-        const segments = this._segments;
+        const segments = this.playableSegments;
 
         if (timestamp <= 0) {
             const segment = segments[0];
@@ -57,7 +57,7 @@ export class SegmentCollection extends EventEmitter {
             this.log(printSegmentRange('Max', segment));
             return { segment, offset: segment.startTime + segment.duration };
         } else {
-            let segment = this.findClosestSegmentForTimestamp(timestamp, segments);
+            let segment = this.findClosestSegmentForTimestamp(timestamp);
 
             this.log(printSegmentRange('Mid', segment));
 
@@ -73,14 +73,16 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    private assertHasSegments() {
-        if (this._segments.length === 0) {
+    private assertHasPlayableSegments() {
+        if (this._segments.length <= 1) {
             throw new Error(`The segments collection is empty`);
         }
     }
 
-    private findClosestSegmentForTimestamp(timestamp: number, segments: Segment[]) {
-        this.assertHasSegments();
+    private findClosestSegmentForTimestamp(timestamp: number) {
+        this.assertHasPlayableSegments();
+
+        const segments = this.playableSegments;
 
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
@@ -113,30 +115,34 @@ export class SegmentCollection extends EventEmitter {
         return this._segments[this.segments.length - 1];
     }
 
-    getNextSegment(segment: Segment) {
-        this.assertHasSegments();
+    getNextPlayableSegment(segment: Segment) {
+        this.assertHasPlayableSegments();
 
-        if (segment.index >= this._segments.length - 1) {
+        const segments = this.playableSegments;
+
+        if (segment.index >= segments.length - 1) {
             return null;
         } else {
-            return this._segments[segment.index + 1];
+            return segments[segment.index + 1];
         }
     }
 
-    isFirstSegment(segment: Segment | null) {
-        this.assertHasSegments();
+    isFirstPlayableSegment(segment: Segment | null) {
+        this.assertHasPlayableSegments();
 
         return segment && segment.index == 0;
     }
 
-    isLastSegment(segment: Segment | null) {
-        this.assertHasSegments();
+    isLastPlayableSegment(segment: Segment | null) {
+        this.assertHasPlayableSegments();
 
-        return segment && segment.index == this._segments[this._segments.length - 1].index;
+        const segments = this.playableSegments;
+
+        return segment && segment.index == segments[segments.length - 1].index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
-        this.assertHasSegments();
+        this.assertHasPlayableSegments();
 
         if (segment.duration === duration) {
             return false;
