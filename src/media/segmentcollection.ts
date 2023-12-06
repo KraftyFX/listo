@@ -2,20 +2,41 @@ import EventEmitter from 'events';
 import { Segment, printSegment } from './chunkedrecorder';
 
 export class SegmentCollection extends EventEmitter {
-    constructor(public readonly segments: Segment[]) {
-        super();
+    private _recordingStartTime: Date | null = null;
+    private readonly _segments: Segment[] = [];
 
-        if (segments.length === 0) {
-            throw new Error(`The segment collection is empty`);
+    get hasRecordingStartTime() {
+        return !!this._recordingStartTime;
+    }
+
+    get recordingStartTime() {
+        if (!this._recordingStartTime) {
+            throw new Error(`The recording start time has not been set yet`);
         }
+
+        return this._recordingStartTime;
+    }
+
+    set recordingStartTime(value: Date) {
+        this._recordingStartTime = value;
+    }
+
+    get segments() {
+        return this._segments;
+    }
+
+    get playableSegments() {
+        return this._segments.filter((s) => s.duration > 0);
     }
 
     get duration() {
-        return this.segments.reduce((p, c) => p + c.duration, 0);
+        return this._segments.reduce((p, c) => p + c.duration, 0);
     }
 
     async getSegmentAtTime(timestamp: number) {
-        const segments = this.segments;
+        this.assertHasSegments();
+
+        const segments = this._segments;
 
         if (timestamp <= 0) {
             const segment = segments[0];
@@ -42,7 +63,15 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
+    private assertHasSegments() {
+        if (this._segments.length === 0) {
+            throw new Error(`The segments collection is empty`);
+        }
+    }
+
     private findClosestSegmentForTimestamp(timestamp: number, segments: Segment[]) {
+        this.assertHasSegments();
+
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
 
@@ -71,22 +100,30 @@ export class SegmentCollection extends EventEmitter {
     }
 
     getNextSegment(segment: Segment) {
-        if (segment.index >= this.segments.length - 1) {
+        this.assertHasSegments();
+
+        if (segment.index >= this._segments.length - 1) {
             return null;
         } else {
-            return this.segments[segment.index + 1];
+            return this._segments[segment.index + 1];
         }
     }
 
     isFirstSegment(segment: Segment | null) {
+        this.assertHasSegments();
+
         return segment && segment.index == 0;
     }
 
     isLastSegment(segment: Segment | null) {
-        return segment && segment.index == this.segments[this.segments.length - 1].index;
+        this.assertHasSegments();
+
+        return segment && segment.index == this._segments[this._segments.length - 1].index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
+        this.assertHasSegments();
+
         if (segment.duration === duration) {
             return false;
         }
@@ -98,9 +135,9 @@ export class SegmentCollection extends EventEmitter {
         );
         segment.duration = duration;
 
-        let prev = this.segments[0];
+        let prev = this._segments[0];
 
-        this.segments.forEach((curr) => {
+        this._segments.forEach((curr) => {
             if (curr.index == 0) {
                 return;
             }

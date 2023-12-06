@@ -80,8 +80,10 @@ export class ChunkedRecorder extends EventEmitter {
     };
 
     private acquireAccurateRecordingStartTime() {
-        if (!this._recordingStartTime) {
-            this._recordingStartTime = subtractSecondsFromNow(this.liveStream.videoElt.currentTime);
+        if (!this._segments.hasRecordingStartTime) {
+            this._segments.recordingStartTime = subtractSecondsFromNow(
+                this.liveStream.videoElt.currentTime
+            );
         }
     }
 
@@ -106,16 +108,10 @@ export class ChunkedRecorder extends EventEmitter {
         this.emitSegmentAvailable(segment);
     }
 
-    private _segments: SegmentCollection | null = null;
+    private _segments = new SegmentCollection();
 
     async getRecordedSegments() {
-        if (!this._segments) {
-            await this.ensureHasSegmentToRender();
-
-            const segments = this.segments.filter((s) => s.duration > 0);
-
-            this._segments = new SegmentCollection(segments);
-        }
+        await this.ensureHasSegmentToRender();
 
         return this._segments;
     }
@@ -128,10 +124,8 @@ export class ChunkedRecorder extends EventEmitter {
         return this.currentTime - this.activeSegmentBeingRecorded.startTime;
     }
 
-    private _recordingStartTime: Date | null = null;
-
     private get currentTime() {
-        if (!this._recordingStartTime) {
+        if (!this._segments.hasRecordingStartTime) {
             throw new Error(
                 `The current time is only available after onDataAvailable is called ` +
                     `at least once and an acurate start time is acquired. Make sure you're ` +
@@ -139,7 +133,7 @@ export class ChunkedRecorder extends EventEmitter {
             );
         }
 
-        return secondsSince(this._recordingStartTime);
+        return secondsSince(this._segments.recordingStartTime);
     }
 
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
