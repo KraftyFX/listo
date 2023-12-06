@@ -1,10 +1,10 @@
 import EventEmitter from 'events';
-import { Segment } from './chunkedrecorder';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import { DvrOptions } from './dvrconfig';
 import { LiveStreamRecorder } from './livestreamrecorder';
 import { SegmentCollection } from './segmentcollection';
 import { SegmentedPlayback } from './segmentedplayback';
+import { Segment } from './segmentedrecorder';
 
 export class DigitalVideoRecorder extends EventEmitter {
     private liveStreamRecorder!: LiveStreamRecorder;

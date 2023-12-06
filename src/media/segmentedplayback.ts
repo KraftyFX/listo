@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
-import { Segment, printSegment } from './chunkedrecorder';
 import { DEFAULT_PLAYBACK_OPTIONS } from './constants';
 import { PlaybackOptions } from './dvrconfig';
 import { PlaybackController } from './playbackcontroller';
 import { SegmentCollection } from './segmentcollection';
+import { Segment, printSegment } from './segmentedrecorder';
 
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;

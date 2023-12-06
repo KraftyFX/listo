@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import { Segment, printSegment } from './chunkedrecorder';
+import { Segment, printSegment } from './segmentedrecorder';
 
 export class SegmentCollection extends EventEmitter {
     private _recordingStartTime: Date | null = null;

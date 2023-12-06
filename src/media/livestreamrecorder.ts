@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
-import { ChunkedRecorder } from './chunkedrecorder';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { RecordingOptions } from './dvrconfig';
+import { ChunkedRecorder } from './segmentedrecorder';
 import { pauseAndWait, playAndWait } from './videoutil';
 
 export class LiveStreamRecorder extends EventEmitter {
