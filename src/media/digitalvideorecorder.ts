@@ -84,11 +84,9 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
         this.playback.on('segmentfinalized', () => {
-            this.emitTimeUpdate(
-                this.playback.currentTime,
-                this.playback.duration,
-                this.playback.speed
-            );
+            const { currentTime, duration, speed } = this.playback;
+
+            this.emitTimeUpdate(currentTime, duration, speed);
         });
 
         this._segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
