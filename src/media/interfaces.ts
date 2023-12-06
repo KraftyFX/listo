@@ -3,4 +3,12 @@ export interface Camera {
     label: string;
 }
 
+export interface Segment {
+    index: number;
+    url: string;
+    chunks: Blob[];
+    startTime: number;
+    duration: number;
+}
+
 export type PlayerMode = 'live' | 'playback';

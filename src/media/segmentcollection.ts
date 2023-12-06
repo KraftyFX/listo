@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
-import { Segment, printSegment } from './segmentedrecorder';
+import { Segment } from './interfaces';
+import { printSegment } from './segmentedrecorder';
 
 export class SegmentCollection extends EventEmitter {
     private _recordingStartTime: Date | null = null;

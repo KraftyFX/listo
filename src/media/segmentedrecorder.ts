@@ -2,16 +2,9 @@ import EventEmitter from 'events';
 import { DEFAULT_RECORDING_OPTIONS } from './constants';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { RecordingOptions } from './dvrconfig';
+import { Segment } from './interfaces';
 import { LiveStreamRecorder } from './livestreamrecorder';
 import { SegmentCollection } from './segmentcollection';
-
-export interface Segment {
-    index: number;
-    url: string;
-    chunks: Blob[];
-    startTime: number;
-    duration: number;
-}
 
 export function printSegment(segment: Segment) {
     return `segment=${segment.index}, start=${segment.startTime.toFixed(

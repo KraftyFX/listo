@@ -1,9 +1,10 @@
 import EventEmitter from 'events';
 import { DEFAULT_PLAYBACK_OPTIONS } from './constants';
 import { PlaybackOptions } from './dvrconfig';
+import { Segment } from './interfaces';
 import { PlaybackController } from './playbackcontroller';
 import { SegmentCollection } from './segmentcollection';
-import { Segment, printSegment } from './segmentedrecorder';
+import { printSegment } from './segmentedrecorder';
 
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;
