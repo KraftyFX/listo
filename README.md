@@ -4,4 +4,6 @@ An easy to use, customizable, live recording and playback application that runs 
 
 # Inspiration
 
-I enjoy flying trapeze as a recreational hobby. The circus I train at is sophisticated enough to have multiple cameras to record what's going on so you can watch and improve your swings. Unfortunately the playback system that drove it was awful and I vowed to replace it with something better. The word "Listo" is spanish for "Ready" and is a command in flying trapeze to signal to a catcher you're about to to swing.
+I enjoy flying trapeze as a recreational hobby. The circus I train at is sophisticated enough to have multiple cameras to record what's going on so you can watch and improve your swings. Unfortunately the playback system that drove it was awful and I vowed to replace it with something better.
+
+The word "listo" is spanish for "ready" and is a command in flying trapeze to signal to a catcher you're about to to swing.
