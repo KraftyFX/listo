@@ -33,6 +33,14 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.reduce((p, c) => p + c.duration, 0);
     }
 
+    get length() {
+        return this._segments.length;
+    }
+
+    addSegment(segment: Segment) {
+        this._segments.push(segment);
+    }
+
     async getSegmentAtTime(timestamp: number) {
         this.assertHasSegments();
 
@@ -97,6 +105,10 @@ export class SegmentCollection extends EventEmitter {
         function isAtTheEndBoundary(s: Segment) {
             return timestamp === s.startTime + s.duration;
         }
+    }
+
+    get lastSegment() {
+        return this._segments[this.segments.length - 1];
     }
 
     getNextSegment(segment: Segment) {
