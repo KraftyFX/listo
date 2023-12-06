@@ -8,7 +8,7 @@ export class LiveStreamRecorder extends EventEmitter {
     private readonly chunkedRecorder: ChunkedRecorder;
 
     private constructor(
-        public readonly videoElt: HTMLMediaElement,
+        public readonly videoElt: HTMLVideoElement,
         public readonly stream: MediaStream,
         public readonly options: RecordingOptions
     ) {
@@ -17,7 +17,7 @@ export class LiveStreamRecorder extends EventEmitter {
         this.chunkedRecorder = new ChunkedRecorder(this, options);
     }
 
-    static async createFromUserCamera(videoElt: HTMLMediaElement, options: RecordingOptions) {
+    static async createFromUserCamera(videoElt: HTMLVideoElement, options: RecordingOptions) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: options.source,

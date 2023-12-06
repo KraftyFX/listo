@@ -10,7 +10,7 @@ export class SegmentedPlayback extends EventEmitter {
     public readonly options: PlaybackOptions;
     private _segments: SegmentCollection | null;
 
-    constructor(public readonly videoElt: HTMLMediaElement, opt?: PlaybackOptions) {
+    constructor(public readonly videoElt: HTMLVideoElement, opt?: PlaybackOptions) {
         super();
         this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
 

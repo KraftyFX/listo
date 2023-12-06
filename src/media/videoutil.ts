@@ -1,4 +1,4 @@
-export function playAndWait(videoElt: HTMLMediaElement) {
+export function playAndWait(videoElt: HTMLVideoElement) {
     return new Promise<void>((resolve) => {
         if (videoElt.paused) {
             console.info('Play');
@@ -11,7 +11,7 @@ export function playAndWait(videoElt: HTMLMediaElement) {
     });
 }
 
-export function pauseAndWait(videoElt: HTMLMediaElement) {
+export function pauseAndWait(videoElt: HTMLVideoElement) {
     return new Promise<void>((resolve) => {
         if (!videoElt.paused) {
             console.info('Pause');
