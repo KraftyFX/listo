@@ -9,12 +9,12 @@ export class DvrStore {
             DvrStore,
             | '_timeline'
             | '_dvr'
-            | '_isLive'
-            | '_isPaused'
+            | '_recordingStartTime'
             | '_currentTime'
             | '_duration'
             | '_speed'
-            | '_recordingStartTime'
+            | '_isLive'
+            | '_isPaused'
             | '_isPlayDisabled'
             | '_isNextFrameDisabled'
             | '_isRewindDisabled'
@@ -23,12 +23,14 @@ export class DvrStore {
         >(this, {
             _timeline: false,
             _dvr: observable.ref,
-            _isLive: observable,
-            _isPaused: observable,
+
+            _recordingStartTime: observable.ref,
             _currentTime: observable,
             _duration: observable,
             _speed: observable,
-            _recordingStartTime: observable.ref,
+
+            _isLive: observable,
+            _isPaused: observable,
             _isPlayDisabled: observable,
             _isNextFrameDisabled: observable,
             _isRewindDisabled: observable,
@@ -39,14 +41,16 @@ export class DvrStore {
         this._timeline = new TimelineStore(this);
     }
 
-    private _dvr!: DigitalVideoRecorder;
     private _timeline: TimelineStore;
-    private _isLive = true;
-    private _isPaused = false;
+    private _dvr!: DigitalVideoRecorder;
+
+    private _recordingStartTime: Dayjs = dayjs();
     private _currentTime = 0;
     private _duration = 0;
     private _speed = 1;
-    private _recordingStartTime: Dayjs = dayjs();
+
+    private _isLive = true;
+    private _isPaused = false;
     private _isPlayDisabled = false;
     private _isNextFrameDisabled = false;
     private _isRewindDisabled = false;
@@ -57,40 +61,6 @@ export class DvrStore {
         return this._timeline;
     }
 
-    get isLive() {
-        return this._isLive;
-    }
-    get isPaused() {
-        return this._isPaused;
-    }
-    get currentTime() {
-        return this._currentTime;
-    }
-    get duration() {
-        return this._duration;
-    }
-    get speed() {
-        return this._speed;
-    }
-    get recordingStartTime() {
-        return this._recordingStartTime;
-    }
-    get isPlayDisabled() {
-        return this._isPlayDisabled;
-    }
-    get isNextFrameDisabled() {
-        return this._isNextFrameDisabled;
-    }
-    get isRewindDisabled() {
-        return this._isRewindDisabled;
-    }
-    get isSlowForwardDisabled() {
-        return this._isSlowForwardDisabled;
-    }
-    get isFastForwardDisabled() {
-        return this._isFastForwardDisabled;
-    }
-
     get dvr() {
         if (!this._dvr) {
             throw new Error(`The DVR has not been set yet.`);
@@ -98,6 +68,7 @@ export class DvrStore {
 
         return this._dvr;
     }
+
     set dvr(value: DigitalVideoRecorder) {
         if (this._dvr) {
             throw new Error(`The DVR can only be set once`);
@@ -109,6 +80,50 @@ export class DvrStore {
         this.listenForPlayPauseChange();
         this.listenForStartTimeUpdate();
         this.listenForTimeUpdate();
+    }
+
+    get recordingStartTime() {
+        return this._recordingStartTime;
+    }
+
+    get currentTime() {
+        return this._currentTime;
+    }
+
+    get duration() {
+        return this._duration;
+    }
+
+    get speed() {
+        return this._speed;
+    }
+
+    get isLive() {
+        return this._isLive;
+    }
+
+    get isPaused() {
+        return this._isPaused;
+    }
+
+    get isPlayDisabled() {
+        return this._isPlayDisabled;
+    }
+
+    get isNextFrameDisabled() {
+        return this._isNextFrameDisabled;
+    }
+
+    get isRewindDisabled() {
+        return this._isRewindDisabled;
+    }
+
+    get isSlowForwardDisabled() {
+        return this._isSlowForwardDisabled;
+    }
+
+    get isFastForwardDisabled() {
+        return this._isFastForwardDisabled;
     }
 
     private refreshControlAbilities() {
