@@ -5,7 +5,7 @@ import { SegmentedRecorder } from './segmentedrecorder';
 import { pauseAndWait, playAndWait } from './videoutil';
 
 export class LiveStreamRecorder extends EventEmitter {
-    private readonly chunkedRecorder: SegmentedRecorder;
+    private readonly recorder: SegmentedRecorder;
 
     private constructor(
         public readonly videoElt: HTMLVideoElement,
@@ -14,7 +14,7 @@ export class LiveStreamRecorder extends EventEmitter {
     ) {
         super();
 
-        this.chunkedRecorder = new SegmentedRecorder(this, options);
+        this.recorder = new SegmentedRecorder(this, options);
     }
 
     static async createFromUserCamera(videoElt: HTMLVideoElement, options: RecordingOptions) {
@@ -94,15 +94,15 @@ export class LiveStreamRecorder extends EventEmitter {
 
     async startRecording() {
         this._recordingStartTime = new Date();
-        await this.chunkedRecorder.start();
+        await this.recorder.start();
     }
 
     async stopRecording() {
-        await this.chunkedRecorder.stop();
+        await this.recorder.stop();
     }
 
     async getRecordedVideoSegmentsUntilNow() {
-        return await this.chunkedRecorder.getRecordedSegments();
+        return await this.recorder.getRecordedSegments();
     }
 
     async play() {
