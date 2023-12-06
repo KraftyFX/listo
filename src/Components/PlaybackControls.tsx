@@ -2,7 +2,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
-import { formatSeconds } from '~/media/dateutil';
+import { getPlayTime } from './formatutil';
 
 export type PlaybackCommands =
     | 'rewind'
@@ -19,17 +19,6 @@ export interface PlaybackControlsProps {
 export const PlaybackControls = observer(function PlaybackControls(props: PlaybackControlsProps) {
     const { dvrStore } = props;
     const { currentTime, duration, speed } = dvrStore;
-    const parts = [];
-
-    if (currentTime === duration) {
-        parts.push(formatSeconds(currentTime));
-    } else {
-        parts.push(formatSeconds(currentTime) + ' / ' + formatSeconds(duration));
-    }
-
-    if (speed !== 1 && speed !== 0) {
-        parts.push('@ ' + speed + 'x');
-    }
 
     const onCommand = action((command: PlaybackCommands) => {
         switch (command) {
@@ -101,7 +90,7 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
                 Live
             </button>
             <div>
-                <span className="elapsed">{parts.join(' ')}</span>
+                <span className="elapsed">{getPlayTime(currentTime, duration, speed)}</span>
             </div>
         </div>
     );

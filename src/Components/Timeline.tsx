@@ -4,6 +4,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
+import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {
     dvrStore: DvrStore;
@@ -76,21 +77,6 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
             return <div key={i} className={isLiveBar ? `bar live` : `bar`} style={style} />;
         });
-    }
-
-    function getMarkerFormat(time: dayjs.Dayjs) {
-        if (time.minute() === 0 && time.second() === 0) {
-            // Example: 11pm
-            return time.format('ha');
-        } else if (time.second() === 0) {
-            // Example: 11:20pm
-            return time.format('hh:mma');
-        } else if (time.second() % 10 === 0) {
-            // Example: 30s
-            return time.format('ss') + `s`;
-        } else {
-            return '???';
-        }
     }
 
     function getMarkers() {
