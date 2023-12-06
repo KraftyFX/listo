@@ -28,6 +28,10 @@ export class SegmentedPlayback extends EventEmitter {
         return this._segments!;
     }
 
+    get speed() {
+        return this.controller.speed;
+    }
+
     get currentTime() {
         return this.currentSegment!.startTime + this.videoElt.currentTime;
     }
@@ -57,11 +61,13 @@ export class SegmentedPlayback extends EventEmitter {
 
     async replaceActiveSegments(segments: SegmentCollection, timestamp: number) {
         this._segments = segments;
+        this._segments.on('segmentfinalized', (s) => this.emitSegmentFinalized(s));
 
         await this.renderSegmentAtTime(timestamp);
     }
 
     async releaseAsVideoSource() {
+        this._segments!.removeAllListeners();
         this._segments = null;
         this.currentSegment = null;
 
@@ -239,6 +245,10 @@ export class SegmentedPlayback extends EventEmitter {
             this.segments.isLastPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
+    }
+
+    private emitSegmentFinalized(segment: Segment) {
+        this.emit('segmentfinalized', segment);
     }
 
     private emitSegmentRendered(segment: Segment) {

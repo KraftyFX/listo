@@ -3,6 +3,7 @@ import { Segment } from './chunkedrecorder';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import { DvrOptions } from './dvrconfig';
 import { LiveStreamRecorder } from './livestreamrecorder';
+import { SegmentCollection } from './segmentcollection';
 import { SegmentedPlayback } from './segmentedplayback';
 
 export class DigitalVideoRecorder extends EventEmitter {
@@ -35,6 +36,8 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
     private _isLive = false;
 
+    private _segments: SegmentCollection | null = null;
+
     async switchToLiveStream() {
         if (this._isLive) {
             return;
@@ -61,12 +64,6 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.emitModeChange();
     }
 
-    get segments() {
-        this.assertIsInPlayback();
-
-        return this.playback.segments;
-    }
-
     async switchToPlayback() {
         if (!this._isLive) {
             return;
@@ -86,10 +83,17 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.playback.on('pause', () => this.emitPause());
         this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
+        this.playback.on('segmentfinalized', () => {
+            this.emitTimeUpdate(
+                this.playback.currentTime,
+                this.playback.duration,
+                this.playback.speed
+            );
+        });
 
-        const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
+        this._segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
 
-        await this.playback.setAsVideoSource(segments, currentTime);
+        await this.playback.setAsVideoSource(this._segments, currentTime);
 
         this.emitModeChange();
     }
