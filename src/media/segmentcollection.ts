@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import { Segment } from './interfaces';
-import { printSegment } from './segmentutil';
+import { formatSegment } from './segmentutil';
 
 export class SegmentCollection extends EventEmitter {
     private _recordingStartTime: Date | null = null;
@@ -64,7 +64,7 @@ export class SegmentCollection extends EventEmitter {
 
         this.cleanAllStartTimesAndDurations();
 
-        this.log(`Finalizing segment ${printSegment(segment)}`);
+        this.log(`Finalizing ${formatSegment(segment)}`);
 
         this.emitSegmentFinalized(segment);
     }
@@ -171,7 +171,7 @@ export class SegmentCollection extends EventEmitter {
         }
 
         this.log(
-            `Resetting segment ${printSegment(segment)} from ${segment.duration.toFixed(
+            `Resetting ${formatSegment(segment)} from ${segment.duration.toFixed(
                 3
             )} to ${duration.toFixed(3)}`
         );

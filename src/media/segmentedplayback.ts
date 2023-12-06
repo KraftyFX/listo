@@ -4,7 +4,7 @@ import { PlaybackOptions } from './dvrconfig';
 import { Segment } from './interfaces';
 import { PlaybackController } from './playbackcontroller';
 import { SegmentCollection } from './segmentcollection';
-import { printSegment } from './segmentutil';
+import { formatSegment } from './segmentutil';
 
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;
@@ -99,7 +99,7 @@ export class SegmentedPlayback extends EventEmitter {
             this.videoElt.src = segment.url;
             this.videoElt.srcObject = null;
 
-            this.log(`Rendering ${printSegment(segment)}, offset=${offset.toFixed(2)}`);
+            this.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
 
             segmentChanged = true;
         }
@@ -133,7 +133,7 @@ export class SegmentedPlayback extends EventEmitter {
         const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment!);
 
         if (nextSegment) {
-            this.log(`Playing next segment ${printSegment(nextSegment)}`);
+            this.log(`Playing next ${formatSegment(nextSegment)}`);
             this.renderSegment(nextSegment, 0);
             this.play();
         } else {
