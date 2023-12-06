@@ -36,7 +36,7 @@ export class ChunkedRecorder extends EventEmitter {
     }
 
     private _segments = new SegmentCollection();
-    private segmentBeingRecorded: Segment;
+    private segmentBeingRecorded: Segment = null!;
     private interval: any;
 
     start() {
