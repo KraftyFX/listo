@@ -61,6 +61,8 @@ export class SegmentCollection extends EventEmitter {
         segment.url = url;
         segment.duration = duration;
 
+        this.cleanAllStartTimesAndDurations();
+
         this.log(`Finalizing segment ${printSegment(segment)}`);
 
         this.emitSegmentFinalized(segment);
@@ -175,7 +177,15 @@ export class SegmentCollection extends EventEmitter {
 
         segment.duration = duration;
 
-        const segments = this.playableSegments;
+        this.cleanAllStartTimesAndDurations();
+
+        this.emitDurationChange(segment);
+
+        return true;
+    }
+
+    private cleanAllStartTimesAndDurations() {
+        const segments = this._segments;
 
         let prev = segments[0];
 
@@ -188,10 +198,6 @@ export class SegmentCollection extends EventEmitter {
 
             prev = curr;
         });
-
-        this.emitDurationChange(segment);
-
-        return true;
     }
 
     private emitSegmentFinalized(segment: Segment) {
