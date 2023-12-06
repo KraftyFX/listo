@@ -23,13 +23,11 @@ export class SegmentedRecorder extends EventEmitter {
     }
 
     private _segments = new SegmentCollection();
-    private segmentBeingRecorded: Segment = null!;
+    private liveSegment: Segment = null!;
     private interval: any;
 
     start() {
-        this.segmentBeingRecorded = this._segments.addSegment(
-            this._segments.isEmpty ? 0 : this.currentTime
-        );
+        this.liveSegment = this._segments.addNewLiveSegment(this.currentTime);
 
         try {
             this.recorder.start();
@@ -68,7 +66,7 @@ export class SegmentedRecorder extends EventEmitter {
     }
 
     private finalizeActiveSegment(blob: Blob) {
-        const segment = this.segmentBeingRecorded;
+        const segment = this.liveSegment;
 
         segment.chunks.push(blob);
 
@@ -76,7 +74,7 @@ export class SegmentedRecorder extends EventEmitter {
         const url = URL.createObjectURL(blobs);
         const duration = this.currentTime - segment.startTime;
 
-        this._segments.finalizeSegment(segment, url, duration);
+        this._segments.finalizeLiveSegment(segment, url, duration);
     }
 
     async getRecordedSegments() {
@@ -87,14 +85,13 @@ export class SegmentedRecorder extends EventEmitter {
 
     private get currentTime() {
         if (!this._segments.hasRecordingStartTime) {
-            throw new Error(
-                `The current time is only available after onDataAvailable is called ` +
-                    `at least once and an acurate start time is acquired. Make sure you're ` +
-                    `accessing this property after that point.`
+            this.log(
+                'Current time is unavailable. Assuming that the recording is initializing and returning zero.'
             );
+            return 0;
+        } else {
+            return secondsSince(this._segments.recordingStartTime);
         }
-
-        return secondsSince(this._segments.recordingStartTime);
     }
 
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;

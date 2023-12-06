@@ -34,39 +34,45 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(startTime: number) {
-        const segment: Segment = {
+    addNewLiveSegment(startTime: number) {
+        // TODO: Think about if this function should accept the relative start
+        // time or compute it internally each time a new segment is added
+        const liveSegment: Segment = {
             index: this._segments.length,
             url: '',
-            startTime: this._segments.length == 0 ? 0 : startTime,
+            startTime,
             duration: 0,
             chunks: [],
         };
 
-        this._segments.push(segment);
+        this._segments.push(liveSegment);
 
-        this.emitSegmentAdded(segment);
+        this.emitSegmentAdded(liveSegment);
 
-        return segment;
+        return liveSegment;
     }
 
-    finalizeSegment(segment: Segment, url: string, duration: number) {
-        if (segment !== this._segments[this._segments.length - 1]) {
+    finalizeLiveSegment(liveSegment: Segment, url: string, duration: number) {
+        this.assertIsLiveSegment(liveSegment);
+
+        liveSegment.url = url;
+        liveSegment.duration = duration;
+
+        this.cleanAllStartTimesAndDurations();
+
+        this.log(`Finalizing ${formatSegment(liveSegment)}`);
+
+        this.emitSegmentFinalized(liveSegment);
+    }
+
+    private assertIsLiveSegment(liveSegment: Segment) {
+        if (liveSegment !== this._segments[this._segments.length - 1]) {
             throw new Error(
                 `This function assumes the segment being provided is the` +
                     `active one being recorded which should always be the ` +
                     `last one in the array. There's a bug somewhere.`
             );
         }
-
-        segment.url = url;
-        segment.duration = duration;
-
-        this.cleanAllStartTimesAndDurations();
-
-        this.log(`Finalizing ${formatSegment(segment)}`);
-
-        this.emitSegmentFinalized(segment);
     }
 
     async getSegmentAtTime(timestamp: number) {
