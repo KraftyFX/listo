@@ -19,7 +19,7 @@ export function printSegment(segment: Segment) {
     )}, duration=${segment.duration.toFixed(2)}`;
 }
 
-export class ChunkedRecorder extends EventEmitter {
+export class SegmentedRecorder extends EventEmitter {
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
 

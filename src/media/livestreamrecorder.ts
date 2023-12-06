@@ -1,11 +1,11 @@
 import EventEmitter from 'events';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { RecordingOptions } from './dvrconfig';
-import { ChunkedRecorder } from './segmentedrecorder';
+import { SegmentedRecorder } from './segmentedrecorder';
 import { pauseAndWait, playAndWait } from './videoutil';
 
 export class LiveStreamRecorder extends EventEmitter {
-    private readonly chunkedRecorder: ChunkedRecorder;
+    private readonly chunkedRecorder: SegmentedRecorder;
 
     private constructor(
         public readonly videoElt: HTMLVideoElement,
@@ -14,7 +14,7 @@ export class LiveStreamRecorder extends EventEmitter {
     ) {
         super();
 
-        this.chunkedRecorder = new ChunkedRecorder(this, options);
+        this.chunkedRecorder = new SegmentedRecorder(this, options);
     }
 
     static async createFromUserCamera(videoElt: HTMLVideoElement, options: RecordingOptions) {
