@@ -106,12 +106,18 @@ export class ChunkedRecorder extends EventEmitter {
         this.emitSegmentAvailable(segment);
     }
 
+    private _segments: SegmentCollection | null = null;
+
     async getRecordedSegments() {
-        await this.ensureHasSegmentToRender();
+        if (!this._segments) {
+            await this.ensureHasSegmentToRender();
 
-        const segments = this.segments.filter((s) => s.duration > 0);
+            const segments = this.segments.filter((s) => s.duration > 0);
 
-        return new SegmentCollection(this, segments);
+            this._segments = new SegmentCollection(this, segments);
+        }
+
+        return this._segments;
     }
 
     private get activeSegmentBeingRecorded() {
