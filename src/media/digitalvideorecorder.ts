@@ -156,6 +156,9 @@ export class DigitalVideoRecorder extends EventEmitter {
     public get isNearEnd() {
         this.assertIsInPlayback();
 
+        // TODO: Since playback is now constantly updating to be close to the
+        // livestream time this doesn't make sense anymore. Should probably
+        // compare the current time to the live stream duration instead.
         return this.liveStreamRecorder.duration - this.playback.duration < 5;
     }
 
