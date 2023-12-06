@@ -91,13 +91,10 @@ export class ChunkedRecorder extends EventEmitter {
         segment.chunks.push(blob);
 
         const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
+        const url = URL.createObjectURL(blobs);
+        const duration = this.estimatedDurationOfActiveSegment;
 
-        segment.url = URL.createObjectURL(blobs);
-        segment.duration = this.estimatedDurationOfActiveSegment;
-
-        this.log(`Finalizing segment ${printSegment(segment)}`);
-
-        this.emitSegmentAvailable(segment);
+        this._segments.finalizeSegment(segment, url, duration);
     }
 
     async getRecordedSegments() {
@@ -155,10 +152,6 @@ export class ChunkedRecorder extends EventEmitter {
                 `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
             );
         }
-    }
-
-    private emitSegmentAvailable(segment: Segment) {
-        this.emit('segmentavailable', segment);
     }
 
     private info(message: string) {

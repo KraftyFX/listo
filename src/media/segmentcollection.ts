@@ -43,6 +43,15 @@ export class SegmentCollection extends EventEmitter {
         this.emitSegmentAdded(segment);
     }
 
+    finalizeSegment(segment: Segment, url: string, duration: number) {
+        segment.url = url;
+        segment.duration = duration;
+
+        this.log(`Finalizing segment ${printSegment(segment)}`);
+
+        this.emitSegmentFinalized(segment);
+    }
+
     async getSegmentAtTime(timestamp: number) {
         this.assertHasPlayableSegments();
 
@@ -170,6 +179,10 @@ export class SegmentCollection extends EventEmitter {
         this.emitDurationChange(segment);
 
         return true;
+    }
+
+    private emitSegmentFinalized(segment: Segment) {
+        this.emit('segmentfinalized', segment);
     }
 
     private emitSegmentAdded(segment: Segment) {
