@@ -42,7 +42,7 @@ export class DvrStore {
     }
 
     private _timeline: TimelineStore;
-    private _dvr!: DigitalVideoRecorder;
+    private _dvr: DigitalVideoRecorder | null = null;
 
     private _recordingStartTime: Dayjs = dayjs();
     private _currentTime = 0;
@@ -152,7 +152,7 @@ export class DvrStore {
     }
 
     private listenForStartTimeUpdate() {
-        this._isLive = this.dvr.isLive;
+        this._recordingStartTime = dayjs(this.dvr.recordingStartTime);
 
         this.dvr.on(
             'starttimeupdate',
