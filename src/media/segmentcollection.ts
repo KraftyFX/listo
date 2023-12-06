@@ -39,6 +39,8 @@ export class SegmentCollection extends EventEmitter {
 
     addSegment(segment: Segment) {
         this._segments.push(segment);
+
+        this.emitSegmentAdded(segment);
     }
 
     async getSegmentAtTime(timestamp: number) {
@@ -162,6 +164,10 @@ export class SegmentCollection extends EventEmitter {
         this.emitDurationChange(segment);
 
         return true;
+    }
+
+    private emitSegmentAdded(segment: Segment) {
+        this.emit('segmentadded', segment);
     }
 
     private emitDurationChange(segment: Segment) {
