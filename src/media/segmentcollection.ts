@@ -170,11 +170,7 @@ export class SegmentCollection extends EventEmitter {
             return false;
         }
 
-        this.log(
-            `Resetting ${formatSegment(segment)} from ${segment.duration.toFixed(
-                3
-            )} to ${duration.toFixed(3)}`
-        );
+        this.log(`Resetting duration of ${formatSegment(segment)} to ${duration.toFixed(2)}`);
 
         segment.duration = duration;
 
