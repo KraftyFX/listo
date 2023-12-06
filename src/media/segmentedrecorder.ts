@@ -6,12 +6,6 @@ import { Segment } from './interfaces';
 import { LiveStreamRecorder } from './livestreamrecorder';
 import { SegmentCollection } from './segmentcollection';
 
-export function printSegment(segment: Segment) {
-    return `segment=${segment.index}, start=${segment.startTime.toFixed(
-        2
-    )}, duration=${segment.duration.toFixed(2)}`;
-}
-
 export class SegmentedRecorder extends EventEmitter {
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;

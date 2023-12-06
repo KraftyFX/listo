@@ -4,7 +4,7 @@ import { PlaybackOptions } from './dvrconfig';
 import { Segment } from './interfaces';
 import { PlaybackController } from './playbackcontroller';
 import { SegmentCollection } from './segmentcollection';
-import { printSegment } from './segmentedrecorder';
+import { printSegment } from './segmentutil';
 
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;
