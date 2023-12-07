@@ -99,7 +99,7 @@ export class SegmentedRecorder extends EventEmitter {
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
 
     ensureHasSegmentToRender() {
-        if (!this._segments.isEmpty) {
+        if (this._segments.isEmpty) {
             return new Promise<boolean>((resolve) => {
                 this.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
