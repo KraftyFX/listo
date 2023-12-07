@@ -27,10 +27,11 @@ export class SegmentedRecorder extends EventEmitter {
     private interval: any;
 
     start() {
-        this.liveSegment = this._segments.addNewLiveSegment(this.currentTime);
+        this.liveSegment = this._segments.createSegment();
 
         try {
             this.recorder.start();
+
             if (!this.interval) {
                 this.interval = setInterval(() => {
                     this.recorder.stop();
@@ -71,10 +72,11 @@ export class SegmentedRecorder extends EventEmitter {
         segment.chunks.push(blob);
 
         const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
-        const url = URL.createObjectURL(blobs);
-        const duration = this.currentTime - segment.startTime;
 
-        this._segments.finalizeLiveSegment(segment, url, duration);
+        segment.url = URL.createObjectURL(blobs);
+        segment.duration = this.currentTime - segment.startTime;
+
+        this._segments.addSegment(segment);
     }
 
     async getRecordedSegments() {

@@ -22,8 +22,10 @@ export class SegmentCollection extends EventEmitter {
         this._recordingStartTime = value;
     }
 
-    get playableSegments() {
-        return this._segments.filter((s) => s.duration > 0);
+    private get segments() {
+        this.assertHasSegments();
+
+        return this._segments;
     }
 
     get duration() {
@@ -34,51 +36,29 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addNewLiveSegment(startTime: number) {
-        // TODO: Think about if this function should accept the relative start
-        // time or compute it internally each time a new segment is added
-        const liveSegment: Segment = {
+    createSegment() {
+        const segment: Segment = {
             index: this._segments.length,
             url: '',
-            startTime,
+            startTime: this.isEmpty ? 0 : this.duration,
             duration: 0,
             chunks: [],
         };
 
-        this._segments.push(liveSegment);
-
-        this.emitSegmentAdded(liveSegment);
-
-        return liveSegment;
+        return segment;
     }
 
-    finalizeLiveSegment(liveSegment: Segment, url: string, duration: number) {
-        this.assertIsLiveSegment(liveSegment);
+    addSegment(segment: Segment) {
+        this.log(`Adding ${formatSegment(segment)}`);
 
-        liveSegment.url = url;
-        liveSegment.duration = duration;
+        this._segments.push(segment);
+        this.cleanAllStartTimes();
 
-        this.cleanAllStartTimesAndDurations();
-
-        this.log(`Finalizing ${formatSegment(liveSegment)}`);
-
-        this.emitSegmentFinalized(liveSegment);
-    }
-
-    private assertIsLiveSegment(liveSegment: Segment) {
-        if (liveSegment !== this._segments[this._segments.length - 1]) {
-            throw new Error(
-                `This function assumes the segment being provided is the` +
-                    `active one being recorded which should always be the ` +
-                    `last one in the array. There's a bug somewhere.`
-            );
-        }
+        this.emitSegmentAdded(segment);
     }
 
     async getSegmentAtTime(timestamp: number) {
-        this.assertHasPlayableSegments();
-
-        const segments = this.playableSegments;
+        const segments = this.segments;
 
         if (timestamp <= 0) {
             const segment = segments[0];
@@ -105,16 +85,14 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    private assertHasPlayableSegments() {
-        if (this._segments.length <= 1) {
+    private assertHasSegments() {
+        if (this.isEmpty) {
             throw new Error(`The segments collection is empty`);
         }
     }
 
     private findClosestSegmentForTimestamp(timestamp: number) {
-        this.assertHasPlayableSegments();
-
-        const segments = this.playableSegments;
+        const segments = this.segments;
 
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
@@ -144,9 +122,7 @@ export class SegmentCollection extends EventEmitter {
     }
 
     getNextPlayableSegment(segment: Segment) {
-        this.assertHasPlayableSegments();
-
-        const segments = this.playableSegments;
+        const segments = this.segments;
 
         if (segment.index >= segments.length - 1) {
             return null;
@@ -156,22 +132,18 @@ export class SegmentCollection extends EventEmitter {
     }
 
     isFirstPlayableSegment(segment: Segment | null) {
-        this.assertHasPlayableSegments();
+        this.assertHasSegments();
 
         return segment && segment.index == 0;
     }
 
     isLastPlayableSegment(segment: Segment | null) {
-        this.assertHasPlayableSegments();
-
-        const segments = this.playableSegments;
+        const segments = this.segments;
 
         return segment && segment.index == segments[segments.length - 1].index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
-        this.assertHasPlayableSegments();
-
         if (segment.duration === duration) {
             return false;
         }
@@ -180,15 +152,15 @@ export class SegmentCollection extends EventEmitter {
 
         segment.duration = duration;
 
-        this.cleanAllStartTimesAndDurations();
+        this.cleanAllStartTimes();
 
         this.emitDurationChange(segment);
 
         return true;
     }
 
-    private cleanAllStartTimesAndDurations() {
-        const segments = this._segments;
+    private cleanAllStartTimes() {
+        const segments = this.segments;
 
         let prev = segments[0];
 
@@ -201,10 +173,6 @@ export class SegmentCollection extends EventEmitter {
 
             prev = curr;
         });
-    }
-
-    private emitSegmentFinalized(segment: Segment) {
-        this.emit('segmentfinalized', segment);
     }
 
     private emitSegmentAdded(segment: Segment) {

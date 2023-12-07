@@ -62,7 +62,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async replaceActiveSegments(segments: SegmentCollection, timestamp: number) {
         this._segments = segments;
-        this._segments.on('segmentfinalized', (s) => this.emitSegmentFinalized(s));
+        this._segments.on('segmentadded', (s) => this.emitSegmentAdded(s));
 
         await this.renderSegmentAtTime(timestamp);
     }
@@ -248,8 +248,8 @@ export class SegmentedPlayback extends EventEmitter {
         );
     }
 
-    private emitSegmentFinalized(segment: Segment) {
-        this.emit('segmentfinalized', segment);
+    private emitSegmentAdded(segment: Segment) {
+        this.emit('segmentadded', segment);
     }
 
     private emitSegmentRendered(segment: Segment) {
