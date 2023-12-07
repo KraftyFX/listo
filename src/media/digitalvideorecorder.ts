@@ -35,12 +35,11 @@ export class DigitalVideoRecorder extends EventEmitter {
             this.options.recording
         );
         this.liveStreamRecorder.on('recordingerror', console.error);
-        this.liveStreamRecorder.on('starttimeupdate', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
 
-        this.playback = new SegmentedPlayback(this.videoElt, this.segments);
+        this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
     }
 
     public get isLive() {
