@@ -9,6 +9,8 @@ import { SegmentedPlayback } from './segmentedplayback';
 export class DigitalVideoRecorder extends EventEmitter {
     private liveStreamRecorder!: LiveStreamRecorder;
     private playback!: SegmentedPlayback;
+    private segments!: SegmentCollection;
+
     public readonly options: DvrOptions;
 
     constructor(public readonly videoElt: HTMLVideoElement, opt?: Partial<DvrOptions>) {
@@ -18,8 +20,18 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
 
     async showLiveStreamAndStartRecording() {
+        this.segments = new SegmentCollection();
+        this.segments.on('segmentadded', (segment) => {
+            if (!this.isLive) {
+                const { currentTime, duration, speed } = this.playback;
+
+                this.emitTimeUpdate(currentTime, duration, speed);
+            }
+        });
+
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
             this.videoElt,
+            this.segments,
             this.options.recording
         );
         this.liveStreamRecorder.on('recordingerror', console.error);
@@ -28,15 +40,13 @@ export class DigitalVideoRecorder extends EventEmitter {
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
 
-        this.playback = new SegmentedPlayback(this.videoElt);
+        this.playback = new SegmentedPlayback(this.videoElt, this.segments);
     }
 
     public get isLive() {
         return this._isLive;
     }
     private _isLive = false;
-
-    private _segments: SegmentCollection | null = null;
 
     async switchToLiveStream() {
         if (this._isLive) {
@@ -83,15 +93,10 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.playback.on('pause', () => this.emitPause());
         this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
-        this.playback.on('segmentadded', () => {
-            const { currentTime, duration, speed } = this.playback;
 
-            this.emitTimeUpdate(currentTime, duration, speed);
-        });
+        await this.liveStreamRecorder.ensureHasSegmentToRender();
 
-        this._segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
-
-        await this.playback.setAsVideoSource(this._segments, currentTime);
+        await this.playback.setAsVideoSource(currentTime);
 
         this.emitModeChange();
     }
@@ -101,21 +106,8 @@ export class DigitalVideoRecorder extends EventEmitter {
             return;
         }
 
-        if (this.isNearEnd) {
-            this.info('Playback is super close to the end.  Switching to Live.');
-            await this.switchToLiveStream();
-        } else {
-            this.info('Playback finished but far away from live. Getting more recorded video.');
-            await this.updateWithLatestLiveRecordingDataAndResumePlaying();
-        }
-    }
-
-    private async updateWithLatestLiveRecordingDataAndResumePlaying() {
-        const endTime = this.playback.duration;
-        const segments = await this.liveStreamRecorder.getRecordedVideoSegmentsUntilNow();
-
-        await this.playback.replaceActiveSegments(segments, endTime);
-        await this.play();
+        this.info('Playback is at the end.  Switching to Live.');
+        await this.switchToLiveStream();
     }
 
     get recordingStartTime() {
@@ -156,10 +148,7 @@ export class DigitalVideoRecorder extends EventEmitter {
     public get isNearEnd() {
         this.assertIsInPlayback();
 
-        // TODO: Since playback is now constantly updating to be close to the
-        // livestream time this doesn't make sense anymore. Should probably
-        // compare the current time to the live stream duration instead.
-        return this.liveStreamRecorder.duration - this.playback.duration < 5;
+        return this.liveStreamRecorder.duration - this.playback.currentTime <= 6;
     }
 
     async goToPlaybackTime(timecode: number) {

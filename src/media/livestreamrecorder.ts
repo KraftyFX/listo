@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { RecordingOptions } from './dvrconfig';
+import { SegmentCollection } from './segmentcollection';
 import { SegmentedRecorder } from './segmentedrecorder';
 import { pauseAndWait, playAndWait } from './videoutil';
 
@@ -10,14 +11,19 @@ export class LiveStreamRecorder extends EventEmitter {
     private constructor(
         public readonly videoElt: HTMLVideoElement,
         public readonly stream: MediaStream,
+        public readonly segments: SegmentCollection,
         public readonly options: RecordingOptions
     ) {
         super();
 
-        this.recorder = new SegmentedRecorder(this, options);
+        this.recorder = new SegmentedRecorder(this, segments, options);
     }
 
-    static async createFromUserCamera(videoElt: HTMLVideoElement, options: RecordingOptions) {
+    static async createFromUserCamera(
+        videoElt: HTMLVideoElement,
+        segments: SegmentCollection,
+        options: RecordingOptions
+    ) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: options.source,
@@ -26,7 +32,7 @@ export class LiveStreamRecorder extends EventEmitter {
 
         assertLiveStreamAcquired();
 
-        const recorder = new LiveStreamRecorder(videoElt, stream, options);
+        const recorder = new LiveStreamRecorder(videoElt, stream, segments, options);
 
         return recorder;
 
@@ -68,6 +74,10 @@ export class LiveStreamRecorder extends EventEmitter {
         }
     }
 
+    ensureHasSegmentToRender() {
+        return this.recorder.ensureHasSegmentToRender();
+    }
+
     private updateEstimatedRecordingStartTime() {
         const recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
 
@@ -99,10 +109,6 @@ export class LiveStreamRecorder extends EventEmitter {
 
     async stopRecording() {
         await this.recorder.stop();
-    }
-
-    async getRecordedVideoSegmentsUntilNow() {
-        return await this.recorder.getRecordedSegments();
     }
 
     async play() {

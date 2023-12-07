@@ -10,7 +10,11 @@ export class SegmentedRecorder extends EventEmitter {
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
 
-    constructor(private readonly liveStream: LiveStreamRecorder, opt?: Partial<RecordingOptions>) {
+    constructor(
+        private readonly liveStream: LiveStreamRecorder,
+        public readonly segments: SegmentCollection,
+        opt?: Partial<RecordingOptions>
+    ) {
         super();
 
         this.liveStream = liveStream;
@@ -22,12 +26,11 @@ export class SegmentedRecorder extends EventEmitter {
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
-    private _segments = new SegmentCollection();
     private liveSegment: Segment = null!;
     private interval: any;
 
     start() {
-        this.liveSegment = this._segments.createSegment();
+        this.liveSegment = this.segments.createSegment();
 
         try {
             this.recorder.start();
@@ -59,8 +62,8 @@ export class SegmentedRecorder extends EventEmitter {
     };
 
     private acquireAccurateRecordingStartTime() {
-        if (!this._segments.hasRecordingStartTime) {
-            this._segments.recordingStartTime = subtractSecondsFromNow(
+        if (!this.segments.hasRecordingStartTime) {
+            this.segments.recordingStartTime = subtractSecondsFromNow(
                 this.liveStream.videoElt.currentTime
             );
         }
@@ -76,30 +79,24 @@ export class SegmentedRecorder extends EventEmitter {
         segment.url = URL.createObjectURL(blobs);
         segment.duration = this.currentTime - segment.startTime;
 
-        this._segments.addSegment(segment);
-    }
-
-    async getRecordedSegments() {
-        await this.ensureHasSegmentToRender();
-
-        return this._segments;
+        this.segments.addSegment(segment);
     }
 
     private get currentTime() {
-        if (!this._segments.hasRecordingStartTime) {
+        if (!this.segments.hasRecordingStartTime) {
             this.log(
                 'Current time is unavailable. Assuming that the recording is initializing and returning zero.'
             );
             return 0;
         } else {
-            return secondsSince(this._segments.recordingStartTime);
+            return secondsSince(this.segments.recordingStartTime);
         }
     }
 
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
 
     ensureHasSegmentToRender() {
-        if (this._segments.isEmpty) {
+        if (this.segments.isEmpty) {
             return new Promise<boolean>((resolve) => {
                 this.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
@@ -120,7 +117,7 @@ export class SegmentedRecorder extends EventEmitter {
     }
 
     private assertHasSegmentToRender() {
-        if (this._segments.isEmpty) {
+        if (this.segments.isEmpty) {
             throw new Error(
                 `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
             );

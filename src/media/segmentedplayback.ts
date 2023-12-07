@@ -9,24 +9,16 @@ import { formatSegment } from './segmentutil';
 export class SegmentedPlayback extends EventEmitter {
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
-    private _segments: SegmentCollection | null;
 
-    constructor(public readonly videoElt: HTMLVideoElement, opt?: PlaybackOptions) {
+    constructor(
+        public readonly videoElt: HTMLVideoElement,
+        public readonly segments: SegmentCollection,
+        opt?: PlaybackOptions
+    ) {
         super();
         this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
 
         this.controller = new PlaybackController(this, this.options);
-        this._segments = null;
-    }
-
-    get segments() {
-        if (!this._segments) {
-            throw new Error(
-                `The segments array for the playback has not been set. This happens during setAsVideoSource.`
-            );
-        }
-
-        return this._segments!;
     }
 
     get speed() {
@@ -34,15 +26,21 @@ export class SegmentedPlayback extends EventEmitter {
     }
 
     get currentTime() {
-        return this.currentSegment!.startTime + this.videoElt.currentTime;
+        if (!this.currentSegment) {
+            throw new Error(
+                `The current playback time is only available when it's the active source on the video element`
+            );
+        }
+
+        return this.currentSegment.startTime + this.videoElt.currentTime;
     }
 
     get duration() {
         return this.segments.duration;
     }
 
-    async setAsVideoSource(segments: SegmentCollection, timestamp: number) {
-        this.replaceActiveSegments(segments, timestamp);
+    async setAsVideoSource(timestamp: number) {
+        await this.renderSegmentAtTime(timestamp);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
@@ -60,16 +58,7 @@ export class SegmentedPlayback extends EventEmitter {
         }
     }
 
-    async replaceActiveSegments(segments: SegmentCollection, timestamp: number) {
-        this._segments = segments;
-        this._segments.on('segmentadded', (s) => this.emitSegmentAdded(s));
-
-        await this.renderSegmentAtTime(timestamp);
-    }
-
     async releaseAsVideoSource() {
-        this._segments!.removeAllListeners();
-        this._segments = null;
         this.currentSegment = null;
 
         this.disableAutoPlayback();
@@ -166,7 +155,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async play() {
         if (this.isAtEnd) {
-            this.info(`Can't play. At playback end`);
+            this.info(`Can't play. At playback end.`);
             return;
         }
 
@@ -243,10 +232,6 @@ export class SegmentedPlayback extends EventEmitter {
             this.segments.isLastPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
-    }
-
-    private emitSegmentAdded(segment: Segment) {
-        this.emit('segmentadded', segment);
     }
 
     private emitSegmentRendered(segment: Segment) {
