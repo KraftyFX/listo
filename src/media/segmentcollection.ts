@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import { Segment } from './interfaces';
-import { formatSegment } from './segmentutil';
+import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './segmentutil';
 
 export class SegmentCollection extends EventEmitter {
     private _recordingStartTime: Date | null = null;
@@ -62,26 +62,20 @@ export class SegmentCollection extends EventEmitter {
 
         if (timestamp <= 0) {
             const segment = segments[0];
-            this.log(printSegmentRange('Min', segment));
+            this.log(`Min ${formatSegmentSpan(segment, timestamp)}`);
             return { segment, offset: 0 };
         } else if (timestamp >= this.duration) {
             const segment = segments[segments.length - 1];
-            this.log(printSegmentRange('Max', segment));
+            this.log(`Max ${formatSegmentSpan(segment, timestamp)}`);
             return { segment, offset: segment.startTime + segment.duration };
         } else {
             let segment = this.findClosestSegmentForTimestamp(timestamp);
 
-            this.log(printSegmentRange('Mid', segment));
+            this.log(`Mid ${formatSegmentSpan(segment, timestamp)}`);
 
             const offset = Math.max(0, timestamp - segment.startTime);
 
             return { segment, offset };
-        }
-
-        function printSegmentRange(prefix: string, segment: Segment) {
-            return `${prefix} ${segment.index} = ${segment.startTime} <= ${timestamp} < ${
-                segment.startTime + segment.duration
-            }`;
         }
     }
 
