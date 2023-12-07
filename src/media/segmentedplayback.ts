@@ -137,7 +137,7 @@ export class SegmentedPlayback extends EventEmitter {
             this.renderSegment(nextSegment, 0);
             this.play();
         } else {
-            this.info('No next segment available to play paused=' + this.controller.paused);
+            this.info('No next segment available');
             this.pause().then(() => this.emitEnded('end'));
         }
     }
@@ -149,10 +149,7 @@ export class SegmentedPlayback extends EventEmitter {
     }
 
     private enableAutoPlayNextSegmet() {
-        this.videoElt.onended = () => {
-            this.info('Reached the end of current segment');
-            this.playNextSegment();
-        };
+        this.videoElt.onended = () => this.playNextSegment();
     }
 
     private disableAutoPlayback() {
