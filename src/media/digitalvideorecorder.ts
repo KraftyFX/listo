@@ -42,10 +42,15 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
     }
 
+    private _isLive = false;
+
     public get isLive() {
         return this._isLive;
     }
-    private _isLive = false;
+
+    public get liveStreamDuration() {
+        return this.liveStreamRecorder.duration;
+    }
 
     async switchToLiveStream() {
         if (this._isLive) {
@@ -122,7 +127,11 @@ export class DigitalVideoRecorder extends EventEmitter {
         if (this.isLive) {
             await this.liveStreamRecorder.play();
         } else {
-            await this.playback.play();
+            if (this.isNearEnd) {
+                await this.switchToLiveStream();
+            } else {
+                await this.playback.play();
+            }
         }
     }
 
@@ -142,13 +151,14 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     public get isAtEnd() {
         this.assertIsInPlayback();
-        return this.playback.isAtEnd;
+
+        return this.liveStreamDuration - this.playback.currentTime <= 1;
     }
 
     public get isNearEnd() {
         this.assertIsInPlayback();
 
-        return this.liveStreamRecorder.duration - this.playback.currentTime <= 6;
+        return this.liveStreamDuration - this.playback.currentTime <= 5;
     }
 
     async goToPlaybackTime(timecode: number) {

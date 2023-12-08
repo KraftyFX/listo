@@ -38,7 +38,7 @@ export class TimelineStore {
     }
 
     get liveRecording() {
-        const durationInSec = this.dvrStore.duration * this.multiplierToMakeTestingEasier;
+        const durationInSec = this.dvrStore.liveStreamDuration * this.multiplierToMakeTestingEasier;
 
         return {
             startTime: this.dvrStore.recordingStartTime,

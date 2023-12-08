@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { action, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
 import { TimelineStore } from './timelineStore';
 
@@ -12,6 +12,7 @@ export class DvrStore {
             | '_recordingStartTime'
             | '_currentTime'
             | '_duration'
+            | '_liveStreamDuration'
             | '_speed'
             | '_isLive'
             | '_isPaused'
@@ -27,6 +28,7 @@ export class DvrStore {
             _recordingStartTime: observable.ref,
             _currentTime: observable,
             _duration: observable,
+            _liveStreamDuration: observable,
             _speed: observable,
 
             _isLive: observable,
@@ -47,6 +49,7 @@ export class DvrStore {
     private _recordingStartTime: Dayjs = dayjs();
     private _currentTime = 0;
     private _duration = 0;
+    private _liveStreamDuration = 0;
     private _speed = 1;
 
     private _isLive = true;
@@ -88,6 +91,10 @@ export class DvrStore {
 
     get currentTime() {
         return this._currentTime;
+    }
+
+    get liveStreamDuration() {
+        return this._liveStreamDuration;
     }
 
     get duration() {
@@ -146,9 +153,41 @@ export class DvrStore {
             'modechange',
             action(() => {
                 this._isLive = this.dvr.isLive;
+
+                if (this.isLive) {
+                    this.stopPollingLiveRecordingDuration();
+                } else {
+                    this.pollLiveRecordingDuration('playback');
+                }
+
                 this.refreshControlAbilities();
             })
         );
+    }
+
+    private interval: any = 0;
+
+    private pollLiveRecordingDuration(reason: string) {
+        if (this.interval === 0) {
+            console.log(`Polling live duration. Reason=${reason}`);
+
+            this.interval = setInterval(() => {
+                runInAction(() => {
+                    this._liveStreamDuration = this.dvr.liveStreamDuration;
+                    this.refreshControlAbilities();
+                });
+            }, 1000);
+        } else {
+            console.log(`(no-op) Polling live duration. Reason=${reason}`);
+        }
+    }
+
+    private stopPollingLiveRecordingDuration() {
+        if (this.interval !== 0) {
+            console.log('Stopping polling');
+            clearInterval(this.interval);
+            this.interval = 0;
+        }
     }
 
     private listenForStartTimeUpdate() {
@@ -165,11 +204,21 @@ export class DvrStore {
 
         this.dvr.on(
             'play',
-            action(() => (this._isPaused = this.dvr.paused))
+            action(() => {
+                this.stopPollingLiveRecordingDuration();
+
+                this._isPaused = this.dvr.paused;
+            })
         );
         this.dvr.on(
             'pause',
-            action(() => (this._isPaused = this.dvr.paused))
+            action(() => {
+                if (!this.isLive) {
+                    this.pollLiveRecordingDuration('pause');
+                }
+
+                this._isPaused = this.dvr.paused;
+            })
         );
     }
 
@@ -180,6 +229,7 @@ export class DvrStore {
                 this._currentTime = currentTime;
                 this._duration = duration;
                 this._speed = speed;
+                this._liveStreamDuration = this.dvr.liveStreamDuration;
 
                 this.refreshControlAbilities();
             })
