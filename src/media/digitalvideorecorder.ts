@@ -52,8 +52,6 @@ export class DigitalVideoRecorder extends EventEmitter {
             return;
         }
 
-        this._isLive = true;
-
         if (this.playback) {
             await this.playback.pause();
             this.playback.removeAllListeners();
@@ -68,36 +66,39 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.liveStreamRecorder.on('pause', () => this.emitPause());
         await this.liveStreamRecorder.setAsVideoSource();
 
-        await this.play();
+        this._isLive = true;
 
+        await this.play();
         this.emitModeChange();
     }
 
-    async switchToPlayback() {
+    async switchToPlayback(timecode?: number) {
         if (!this._isLive) {
-            return;
+            timecode = timecode || this.playback.currentTime;
+
+            await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
+            await this.playback.goToTimecode(timecode);
+        } else {
+            timecode = timecode || this.liveStreamRecorder.currentTime;
+
+            this.liveStreamRecorder.removeAllListeners();
+            this.liveStreamRecorder.releaseAsVideoSource();
+
+            this.playback.on('timeupdate', (currentTime, duration, speed) =>
+                this.emitTimeUpdate(currentTime, duration, speed)
+            );
+            this.playback.on('play', () => this.emitPlay());
+            this.playback.on('pause', () => this.emitPause());
+            this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
+            this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
+
+            await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
+            await this.playback.setAsVideoSource(timecode);
+
+            this._isLive = false;
+
+            this.emitModeChange();
         }
-
-        this._isLive = false;
-
-        const currentTime = this.liveStreamRecorder.currentTime;
-
-        this.liveStreamRecorder.removeAllListeners();
-        this.liveStreamRecorder.releaseAsVideoSource();
-
-        this.playback.on('timeupdate', (currentTime, duration, speed) =>
-            this.emitTimeUpdate(currentTime, duration, speed)
-        );
-        this.playback.on('play', () => this.emitPlay());
-        this.playback.on('pause', () => this.emitPause());
-        this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
-        this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
-
-        await this.liveStreamRecorder.ensureHasSegmentToRender();
-
-        await this.playback.setAsVideoSource(currentTime);
-
-        this.emitModeChange();
     }
 
     private async onPlaybackEnded(where: 'start' | 'end') {
@@ -153,8 +154,7 @@ export class DigitalVideoRecorder extends EventEmitter {
     async goToPlaybackTime(timecode: number) {
         const wasPlaying = !this.paused;
 
-        await this.switchToPlayback();
-        await this.playback.goToTimecode(timecode);
+        await this.switchToPlayback(timecode);
 
         if (wasPlaying) {
             await this.play();

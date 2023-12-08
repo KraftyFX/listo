@@ -60,7 +60,7 @@ export class LiveStreamRecorder extends EventEmitter {
     }
 
     get duration() {
-        if (!this.videoElt.paused) {
+        if (this._isVideoSource && !this.videoElt.paused) {
             this.updateEstimatedRecordingStartTime();
             const actualDuration = this.videoElt.currentTime;
 
@@ -74,8 +74,20 @@ export class LiveStreamRecorder extends EventEmitter {
         }
     }
 
-    ensureHasSegmentToRender() {
-        return this.recorder.ensureHasSegmentToRender();
+    fillSegmentsToIncludeTimecode(timecode: number) {
+        this.assertIsTimecodeWithinRecordingDuration(timecode);
+
+        return this.recorder.fillSegments(timecode);
+    }
+
+    private assertIsTimecodeWithinRecordingDuration(timecode: number) {
+        const marginOfErrorAllowed = 1;
+
+        if (timecode < 0 || timecode > this.duration + marginOfErrorAllowed) {
+            throw new Error(
+                `The requested time ${timecode} is outside the bounds of the recorded duration (${this.duration}).`
+            );
+        }
     }
 
     private updateEstimatedRecordingStartTime() {
@@ -88,14 +100,18 @@ export class LiveStreamRecorder extends EventEmitter {
         }
     }
 
+    private _isVideoSource = false;
+
     async setAsVideoSource() {
         this.videoElt.src = '';
         this.videoElt.srcObject = this.stream;
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
+        this._isVideoSource = true;
     }
 
     releaseAsVideoSource() {
         this.videoElt.ontimeupdate = null;
+        this._isVideoSource = false;
     }
 
     get paused() {
