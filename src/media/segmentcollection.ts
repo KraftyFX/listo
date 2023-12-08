@@ -69,7 +69,7 @@ export class SegmentCollection extends EventEmitter {
             this.log(`Max ${formatSegmentSpan(segment, timestamp)}`);
             return { segment, offset: segment.startTime + segment.duration };
         } else {
-            let segment = this.findClosestSegmentForTimestamp(timestamp);
+            const segment = this.findClosestSegmentForTimestamp(timestamp);
 
             this.log(`Mid ${formatSegmentSpan(segment, timestamp)}`);
 
