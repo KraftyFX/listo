@@ -3,6 +3,7 @@ export type LogLevel = 'info' | 'log' | 'warn' | 'error' | null;
 export interface DvrOptions {
     recording: RecordingOptions;
     playback: PlaybackOptions;
+    logging: LogLevel;
 }
 
 export interface RecordingOptions {

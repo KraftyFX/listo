@@ -1,15 +1,18 @@
 import EventEmitter from 'events';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/media/constants';
 import { PlaybackOptions } from '~/media/dvrconfig';
+import { Logger, getLog } from '../logutil';
 import { pauseAndWait, playAndWait } from './playbackutil';
 import { SegmentedPlayback } from './segmentedplayback';
 
 export class PlaybackController extends EventEmitter {
+    private logger: Logger;
     private recorder: SegmentedPlayback;
 
     constructor(recorder: SegmentedPlayback, public readonly options: PlaybackOptions) {
         super();
 
+        this.logger = getLog('pbk-cntr', this.options);
         this.recorder = recorder;
     }
 
@@ -90,7 +93,7 @@ export class PlaybackController extends EventEmitter {
 
         this.mode = 'rewind';
 
-        this.info(`Rewinding at ${this.speed}x`);
+        this.logger.info(`Rewinding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
@@ -106,7 +109,7 @@ export class PlaybackController extends EventEmitter {
 
         this.mode = 'normal';
 
-        this.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
+        this.logger.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
         this.emitTimeUpdate(nextTimestamp);
         this.emitPause();
     }
@@ -128,7 +131,7 @@ export class PlaybackController extends EventEmitter {
 
         this.mode = 'slowForward';
 
-        this.info(`Slow Forwarding at ${this.speed}x`);
+        this.logger.info(`Slow Forwarding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
@@ -147,7 +150,7 @@ export class PlaybackController extends EventEmitter {
 
         this.mode = 'fastForward';
 
-        this.info(`Forwarding at ${this.speed}x`);
+        this.logger.info(`Forwarding at ${this.speed}x`);
 
         this.startInterval();
         this.emitPlay();
@@ -163,7 +166,7 @@ export class PlaybackController extends EventEmitter {
     private _interval: any = 0;
 
     private startInterval() {
-        this.log('Starting playback timer');
+        this.logger.log('Starting playback timer');
 
         this._interval =
             this._interval ||
@@ -171,14 +174,14 @@ export class PlaybackController extends EventEmitter {
                 const nextTimestamp = this.recorder.currentTime + this.deltaInSec;
 
                 if (this.deltaInSec === 0) {
-                    this.info('Unexpected Stop');
+                    this.logger.info('Unexpected Stop');
 
                     this.emitTimeUpdate(this.recorder.currentTime);
 
                     this.stopInterval();
                     this.emitPause();
                 } else if (nextTimestamp <= 0 && this.direction === 'backward') {
-                    this.info('Reached the beginning');
+                    this.logger.info('Reached the beginning');
 
                     this.stopInterval();
 
@@ -189,7 +192,7 @@ export class PlaybackController extends EventEmitter {
                     nextTimestamp >= this.recorder.duration &&
                     this.direction === 'forward'
                 ) {
-                    this.info('Reached the end');
+                    this.logger.info('Reached the end');
 
                     this.stopInterval();
 
@@ -204,7 +207,7 @@ export class PlaybackController extends EventEmitter {
 
     private stopInterval() {
         if (this._interval !== 0) {
-            this.log('Stopping playback timer');
+            this.logger.log('Stopping playback timer');
 
             clearInterval(this._interval);
             this._interval = 0;
@@ -215,7 +218,7 @@ export class PlaybackController extends EventEmitter {
     }
 
     private emitTimeUpdate(timestamp: number) {
-        this.log(
+        this.logger.log(
             `Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(
                 3
             )}, max=${this.recorder.duration.toFixed(3)}`
@@ -233,17 +236,5 @@ export class PlaybackController extends EventEmitter {
 
     private emitPause() {
         this.emit('pause');
-    }
-
-    private info(message: string) {
-        if (this.options.logging === 'info' || this.options.logging === 'log') {
-            console.info(message);
-        }
-    }
-
-    private log(message: string) {
-        if (this.options.logging === 'log') {
-            console.log(message);
-        }
     }
 }

@@ -23,25 +23,25 @@ export function getLog(name: string, options: { logging: LogLevel }): Logger {
     return {
         name,
         error(message: string) {
-            if (level <= levels.error) {
+            if (levels.error <= level) {
                 console.error(`[${name}] ${message}`);
             }
         },
 
         warn(message: string) {
-            if (level <= levels.warn) {
+            if (levels.warn <= level) {
                 console.warn(`[${name}] ${message}`);
             }
         },
 
         info(message: string) {
-            if (level <= levels.info) {
+            if (levels.info <= level) {
                 console.info(`[${name}] ${message}`);
             }
         },
 
         log(message: string) {
-            if (level <= levels.log) {
+            if (levels.log <= level) {
                 console.log(`[${name}] ${message}`);
             }
         },

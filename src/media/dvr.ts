@@ -1,12 +1,15 @@
 import EventEmitter from 'events';
+import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import { DvrOptions } from './dvrconfig';
 import { Segment } from './interfaces';
+import { Logger, getLog } from './logutil';
 import { SegmentedPlayback } from './playback/segmentedplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { SegmentCollection } from './segments/segmentcollection';
 
 export class DigitalVideoRecorder extends EventEmitter {
+    private logger: Logger;
     private liveStreamRecorder!: LiveStreamRecorder;
     private playback!: SegmentedPlayback;
     private segments!: SegmentCollection;
@@ -16,7 +19,8 @@ export class DigitalVideoRecorder extends EventEmitter {
     constructor(public readonly videoElt: HTMLVideoElement, opt?: Partial<DvrOptions>) {
         super();
 
-        this.options = Object.assign(DEFAULT_DVR_OPTIONS, opt);
+        this.options = _merge({}, DEFAULT_DVR_OPTIONS, opt);
+        this.logger = getLog('dvr', this.options);
     }
 
     async showLiveStreamAndStartRecording() {
@@ -111,7 +115,7 @@ export class DigitalVideoRecorder extends EventEmitter {
             return;
         }
 
-        this.info('Playback is at the end.  Switching to Live.');
+        this.logger.info('Playback is at the end.  Switching to Live.');
         await this.switchToLiveStream();
     }
 
@@ -233,7 +237,7 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     private startPollingLiveStreamRecordingDuration(reason: string) {
         if (this.interval === 0) {
-            console.log(`Starting live duration polling. Reason=${reason}`);
+            this.logger.log(`Starting live duration polling. Reason=${reason}`);
 
             this.interval = setInterval(() => {
                 const { currentTime, speed } = this.playback;
@@ -241,13 +245,13 @@ export class DigitalVideoRecorder extends EventEmitter {
                 this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed);
             }, 1000);
         } else {
-            console.log(`(no-op) Polling live duration. Reason=${reason}`);
+            this.logger.log(`(no-op) Polling live duration. Reason=${reason}`);
         }
     }
 
     private stopPollingLiveStreamRecordingDuration() {
         if (this.interval !== 0) {
-            console.log('Stopping live duration polling');
+            this.logger.log('Stopping live duration polling');
             clearInterval(this.interval);
             this.interval = 0;
         }
@@ -277,11 +281,5 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     private emitStartTimeUpdate() {
         this.emit('starttimeupdate');
-    }
-
-    private info(message: string) {
-        if (this.options.playback.logging === 'info' || this.options.playback.logging === 'log') {
-            console.info(message);
-        }
     }
 }

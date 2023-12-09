@@ -4,9 +4,11 @@ import { PlaybackOptions } from '~/media/dvrconfig';
 import { Segment } from '~/media/interfaces';
 import { formatSegment } from '~/media/segments/formatutil';
 import { SegmentCollection } from '~/media/segments/segmentcollection';
+import { Logger, getLog } from '../logutil';
 import { PlaybackController } from './playbackcontroller';
 
 export class SegmentedPlayback extends EventEmitter {
+    private logger: Logger;
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
 
@@ -18,6 +20,7 @@ export class SegmentedPlayback extends EventEmitter {
         super();
         this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
 
+        this.logger = getLog('pbk', this.options);
         this.controller = new PlaybackController(this, this.options);
     }
 
@@ -74,7 +77,7 @@ export class SegmentedPlayback extends EventEmitter {
     private async renderSegmentAtTime(timestamp: number) {
         const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
 
-        this.log(`Requesting segment at ${timestamp.toFixed(2)}`);
+        this.logger.log(`Requesting segment at ${timestamp.toFixed(2)}`);
 
         this.renderSegment(segment, offset);
     }
@@ -88,7 +91,7 @@ export class SegmentedPlayback extends EventEmitter {
             this.videoElt.src = segment.url;
             this.videoElt.srcObject = null;
 
-            this.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
+            this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
 
             segmentChanged = true;
         }
@@ -122,11 +125,11 @@ export class SegmentedPlayback extends EventEmitter {
         const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment!);
 
         if (nextSegment) {
-            this.log(`Playing next ${formatSegment(nextSegment)}`);
+            this.logger.log(`Playing next ${formatSegment(nextSegment)}`);
             this.renderSegment(nextSegment, 0);
             this.play();
         } else {
-            this.info('No next segment available');
+            this.logger.info('No next segment available');
             this.pause().then(() => this.emitEnded('end'));
         }
     }
@@ -155,7 +158,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async play() {
         if (this.isAtEnd) {
-            this.info(`Can't play. At playback end.`);
+            this.logger.info(`Can't play. At playback end.`);
             return;
         }
 
@@ -174,7 +177,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async rewind() {
         if (this.isAtBeginning) {
-            this.info(`Can't rewind. At playback start`);
+            this.logger.info(`Can't rewind. At playback start`);
             return;
         }
 
@@ -188,7 +191,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async slowForward() {
         if (this.isAtEnd) {
-            this.info(`Cant slow forward. At playback end`);
+            this.logger.info(`Cant slow forward. At playback end`);
             return;
         }
 
@@ -202,7 +205,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async fastForward() {
         if (this.isAtEnd) {
-            this.info(`Can't fast fowrardAt playback end`);
+            this.logger.info(`Can't fast fowrardAt playback end`);
             return;
         }
 
@@ -212,7 +215,7 @@ export class SegmentedPlayback extends EventEmitter {
 
     async nextFrame() {
         if (this.isAtEnd) {
-            this.info('At playback end');
+            this.logger.info('At playback end');
             return;
         }
 
@@ -256,17 +259,5 @@ export class SegmentedPlayback extends EventEmitter {
 
     private emitEnded(where: 'start' | 'end') {
         this.emit('ended', where);
-    }
-
-    private info(message: string) {
-        if (this.options.logging === 'info' || this.options.logging === 'log') {
-            console.info(message);
-        }
-    }
-
-    private log(message: string) {
-        if (this.options.logging === 'log') {
-            console.log(message);
-        }
     }
 }

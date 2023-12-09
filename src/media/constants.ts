@@ -24,4 +24,5 @@ export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
 export const DEFAULT_DVR_OPTIONS: DvrOptions = {
     recording: DEFAULT_RECORDING_OPTIONS,
     playback: DEFAULT_PLAYBACK_OPTIONS,
+    logging: 'info',
 };
