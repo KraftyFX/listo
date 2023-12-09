@@ -34,6 +34,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 // This timeout is needed so the thumb can be moved first before scrolling to it.
                 // Otherwise it'll scroll based on the old position. This is bad for situations
                 // like when the user is jumping around the timeline.
+
+                // TODO: Consider _throttle for this.
                 setTimeout(() => {
                     thumbRef.current?.scrollIntoView({
                         behavior: 'smooth',
