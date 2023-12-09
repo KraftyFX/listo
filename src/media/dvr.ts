@@ -168,7 +168,11 @@ export class DigitalVideoRecorder extends EventEmitter {
         await this.switchToPlayback(timecode);
 
         if (wasPlaying) {
-            await this.play();
+            try {
+                await this.play();
+            } catch (e) {
+                console.warn(e);
+            }
         }
     }
 
