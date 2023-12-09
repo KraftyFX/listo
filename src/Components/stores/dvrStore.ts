@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
 import { TimelineStore } from './timelineStore';
 
@@ -154,40 +154,9 @@ export class DvrStore {
             action(() => {
                 this._isLive = this.dvr.isLive;
 
-                if (this.isLive) {
-                    this.stopPollingLiveRecordingDuration();
-                } else {
-                    this.pollLiveRecordingDuration('playback');
-                }
-
                 this.refreshControlAbilities();
             })
         );
-    }
-
-    private interval: any = 0;
-
-    private pollLiveRecordingDuration(reason: string) {
-        if (this.interval === 0) {
-            console.log(`Polling live duration. Reason=${reason}`);
-
-            this.interval = setInterval(() => {
-                runInAction(() => {
-                    this._liveStreamDuration = this.dvr.liveStreamDuration;
-                    this.refreshControlAbilities();
-                });
-            }, 1000);
-        } else {
-            console.log(`(no-op) Polling live duration. Reason=${reason}`);
-        }
-    }
-
-    private stopPollingLiveRecordingDuration() {
-        if (this.interval !== 0) {
-            console.log('Stopping polling');
-            clearInterval(this.interval);
-            this.interval = 0;
-        }
     }
 
     private listenForStartTimeUpdate() {
@@ -204,21 +173,11 @@ export class DvrStore {
 
         this.dvr.on(
             'play',
-            action(() => {
-                this.stopPollingLiveRecordingDuration();
-
-                this._isPaused = this.dvr.paused;
-            })
+            action(() => (this._isPaused = this.dvr.paused))
         );
         this.dvr.on(
             'pause',
-            action(() => {
-                if (!this.isLive) {
-                    this.pollLiveRecordingDuration('pause');
-                }
-
-                this._isPaused = this.dvr.paused;
-            })
+            action(() => (this._isPaused = this.dvr.paused))
         );
     }
 

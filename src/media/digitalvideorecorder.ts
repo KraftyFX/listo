@@ -23,9 +23,9 @@ export class DigitalVideoRecorder extends EventEmitter {
         this.segments = new SegmentCollection();
         this.segments.on('segmentadded', (segment) => {
             if (!this.isLive) {
-                const { currentTime, duration, speed } = this.playback;
+                const { currentTime, speed } = this.playback;
 
-                this.emitTimeUpdate(currentTime, duration, speed);
+                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed);
             }
         });
 
@@ -65,7 +65,7 @@ export class DigitalVideoRecorder extends EventEmitter {
 
         this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
         this.liveStreamRecorder.on('timeupdate', (currentTime, duration) =>
-            this.emitTimeUpdate(currentTime, duration, 1)
+            this.emitTimeUpdate(currentTime, this.liveStreamDuration, 1)
         );
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
@@ -90,7 +90,7 @@ export class DigitalVideoRecorder extends EventEmitter {
             this.liveStreamRecorder.releaseAsVideoSource();
 
             this.playback.on('timeupdate', (currentTime, duration, speed) =>
-                this.emitTimeUpdate(currentTime, duration, speed)
+                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed)
             );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
@@ -220,7 +220,37 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
 
     private emitModeChange() {
+        if (this.isLive) {
+            this.stopPollingLiveStreamRecordingDuration();
+        } else {
+            this.startPollingLiveStreamRecordingDuration('playback');
+        }
+
         this.emit('modechange', this.isLive);
+    }
+
+    private interval: any = 0;
+
+    private startPollingLiveStreamRecordingDuration(reason: string) {
+        if (this.interval === 0) {
+            console.log(`Starting live duration polling. Reason=${reason}`);
+
+            this.interval = setInterval(() => {
+                const { currentTime, speed } = this.playback;
+
+                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed);
+            }, 1000);
+        } else {
+            console.log(`(no-op) Polling live duration. Reason=${reason}`);
+        }
+    }
+
+    private stopPollingLiveStreamRecordingDuration() {
+        if (this.interval !== 0) {
+            console.log('Stopping live duration polling');
+            clearInterval(this.interval);
+            this.interval = 0;
+        }
     }
 
     private emitTimeUpdate(currentTime: number, duration: number, speed: number): void {
@@ -228,10 +258,16 @@ export class DigitalVideoRecorder extends EventEmitter {
     }
 
     private emitPlay() {
+        this.stopPollingLiveStreamRecordingDuration();
+
         this.emit('play');
     }
 
     private emitPause() {
+        if (!this.isLive) {
+            this.startPollingLiveStreamRecordingDuration('pause');
+        }
+
         this.emit('pause');
     }
 
