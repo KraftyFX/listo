@@ -1,8 +1,8 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useState } from 'react';
+import { CameraStore } from '~/Components/stores/cameraStore';
 import { Camera } from '~/media';
-import { CameraStore } from '~/media/cameraStore';
 
 export interface CameraListProps {
     cameras?: Camera[];

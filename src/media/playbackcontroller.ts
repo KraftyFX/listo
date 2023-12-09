@@ -1,8 +1,8 @@
 import EventEmitter from 'events';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from './constants';
 import { PlaybackOptions } from './dvrconfig';
-import { SegmentedPlayback } from './segmentedplayback';
-import { pauseAndWait, playAndWait } from './videoutil';
+import { SegmentedPlayback } from './playback/segmentedplayback';
+import { pauseAndWait, playAndWait } from './playback/videoutil';
 
 export class PlaybackController extends EventEmitter {
     private recorder: SegmentedPlayback;

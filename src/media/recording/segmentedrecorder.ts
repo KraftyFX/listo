@@ -1,11 +1,11 @@
 import EventEmitter from 'events';
-import { DEFAULT_RECORDING_OPTIONS } from './constants';
+import { DEFAULT_RECORDING_OPTIONS } from '~/media/constants';
+import { RecordingOptions } from '~/media/dvrconfig';
+import { Segment } from '~/media/interfaces';
+import { Logger, getLog } from '~/media/logutil';
+import { SegmentCollection } from '~/media/segmentcollection';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
-import { RecordingOptions } from './dvrconfig';
-import { Segment } from './interfaces';
 import { LiveStreamRecorder } from './livestreamrecorder';
-import { Logger, getLog } from './logutil';
-import { SegmentCollection } from './segmentcollection';
 
 export class SegmentedRecorder extends EventEmitter {
     private logger: Logger;

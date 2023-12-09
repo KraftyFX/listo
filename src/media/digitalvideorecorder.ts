@@ -2,9 +2,9 @@ import EventEmitter from 'events';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import { DvrOptions } from './dvrconfig';
 import { Segment } from './interfaces';
-import { LiveStreamRecorder } from './livestreamrecorder';
+import { SegmentedPlayback } from './playback/segmentedplayback';
+import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { SegmentCollection } from './segmentcollection';
-import { SegmentedPlayback } from './segmentedplayback';
 
 export class DigitalVideoRecorder extends EventEmitter {
     private liveStreamRecorder!: LiveStreamRecorder;

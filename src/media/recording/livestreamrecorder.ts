@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
+import { RecordingOptions } from '~/media/dvrconfig';
+import { pauseAndWait, playAndWait } from '~/media/playback/videoutil';
+import { SegmentCollection } from '~/media/segmentcollection';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
-import { RecordingOptions } from './dvrconfig';
-import { SegmentCollection } from './segmentcollection';
 import { SegmentedRecorder } from './segmentedrecorder';
-import { pauseAndWait, playAndWait } from './videoutil';
 
 export class LiveStreamRecorder extends EventEmitter {
     private readonly recorder: SegmentedRecorder;
