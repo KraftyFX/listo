@@ -1,4 +1,4 @@
-import { DvrOptions, PlaybackOptions, RecordingOptions } from './dvrconfig';
+import { DvrOptions, PlaybackOptions, RecordingOptions } from './interfaces';
 
 export const LOGITECH_BRIO_CAMERA_ID =
     '94f3aff55f18fcaa8238d5ae2437608852fcdeae132d61a15b94f197cf364acb';

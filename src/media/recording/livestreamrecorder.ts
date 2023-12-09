@@ -1,8 +1,8 @@
 import EventEmitter from 'events';
-import { RecordingOptions } from '~/media/dvrconfig';
+import { RecordingOptions } from '~/media';
+import { Logger, getLog } from '~/media/logutil';
 import { pauseAndWait, playAndWait } from '~/media/playback/playbackutil';
 import { SegmentCollection } from '~/media/segments/segmentcollection';
-import { Logger, getLog } from '../logutil';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { SegmentedRecorder } from './segmentedrecorder';
 

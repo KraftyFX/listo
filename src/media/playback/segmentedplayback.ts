@@ -1,10 +1,10 @@
 import EventEmitter from 'events';
+import { PlaybackOptions } from '~/media';
 import { DEFAULT_PLAYBACK_OPTIONS } from '~/media/constants';
-import { PlaybackOptions } from '~/media/dvrconfig';
 import { Segment } from '~/media/interfaces';
+import { Logger, getLog } from '~/media/logutil';
 import { formatSegment } from '~/media/segments/formatutil';
 import { SegmentCollection } from '~/media/segments/segmentcollection';
-import { Logger, getLog } from '../logutil';
 import { PlaybackController } from './playbackcontroller';
 
 export class SegmentedPlayback extends EventEmitter {

@@ -1,8 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import duration, { Duration } from 'dayjs/plugin/duration';
 import { computed, makeAutoObservable, observable } from 'mobx';
-import { DEFAULT_DVR_OPTIONS } from '~/media';
-import { MarkerConfig } from '~/media/dvrconfig';
+import { DEFAULT_DVR_OPTIONS, MarkerConfig } from '~/media';
 import { DvrStore } from './dvrStore';
 
 dayjs.extend(duration);

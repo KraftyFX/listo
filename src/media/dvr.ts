@@ -1,8 +1,7 @@
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
-import { DvrOptions } from './dvrconfig';
-import { Segment } from './interfaces';
+import { DvrOptions, Segment } from './interfaces';
 import { Logger, getLog } from './logutil';
 import { SegmentedPlayback } from './playback/segmentedplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';

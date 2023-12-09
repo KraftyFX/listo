@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
+import { PlaybackOptions } from '~/media';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/media/constants';
-import { PlaybackOptions } from '~/media/dvrconfig';
-import { Logger, getLog } from '../logutil';
+import { Logger, getLog } from '~/media/logutil';
 import { pauseAndWait, playAndWait } from './playbackutil';
 import { SegmentedPlayback } from './segmentedplayback';
 

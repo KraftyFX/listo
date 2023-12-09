@@ -4,7 +4,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
-import { MarkerConfig } from '~/media/dvrconfig';
+import { MarkerConfig } from '~/media';
 import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {

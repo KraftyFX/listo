@@ -1,4 +1,4 @@
-import { LogLevel } from './dvrconfig';
+import { LogLevel } from './interfaces';
 
 const levels = {
     none: -1,

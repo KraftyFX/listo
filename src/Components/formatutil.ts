@@ -1,5 +1,5 @@
 import { Dayjs } from 'dayjs';
-import { MarkerConfig } from '~/media/dvrconfig';
+import { MarkerConfig } from '~/media';
 
 export function getPlayTime(currentTime: number, duration: number, speed: number) {
     const parts = [];

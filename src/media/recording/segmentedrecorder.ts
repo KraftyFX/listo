@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
+import { RecordingOptions } from '~/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/media/constants';
-import { RecordingOptions } from '~/media/dvrconfig';
 import { Segment } from '~/media/interfaces';
 import { Logger, getLog } from '~/media/logutil';
 import { SegmentCollection } from '~/media/segments/segmentcollection';
