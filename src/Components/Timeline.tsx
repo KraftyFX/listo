@@ -9,9 +9,12 @@ import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {
     dvrStore: DvrStore;
+    autoScrollTimeout: number;
     viewport: Duration;
     marker: MarkerConfig;
 }
+
+let timeout: any = null;
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore, viewport, marker } = props;
@@ -26,6 +29,19 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             timeline.markerSize = marker;
 
             setWidth(timelineRef.current.offsetWidth);
+
+            dvrStore.currenttimechange = () => {
+                // This timeout is needed so the thumb can be moved first before scrolling to it.
+                // Otherwise it'll scroll based on the old position. This is bad for situations
+                // like when the user is jumping around the timeline.
+                setTimeout(() => {
+                    thumbRef.current?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'end',
+                        inline: 'end',
+                    });
+                }, 1);
+            };
         }),
         []
     );
@@ -115,8 +131,27 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         timeline.currentTime = time;
     });
 
+    function clear() {
+        clearTimeout(timeout);
+        timeout = null;
+    }
+
+    const onMouseEnter = () => {
+        clear();
+        dvrStore.disableCurrentTimeUpdate();
+    };
+
+    const onMouseLeave = () => {
+        clear();
+        timeout = setTimeout(() => dvrStore.enableCurrentTimeUpdate(), props.autoScrollTimeout);
+    };
+
     return (
-        <div ref={timelineRef} className="timeline">
+        <div
+            ref={timelineRef}
+            className="timeline"
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}>
             <div onMouseDown={onMouseDown}>
                 {getBars()}
                 {getMarkers()}

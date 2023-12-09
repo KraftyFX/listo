@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { action, makeAutoObservable, observable } from 'mobx';
+import { IReactionDisposer, action, makeAutoObservable, observable, reaction } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/dvr';
 import { TimelineStore } from './timelineStore';
 
@@ -22,6 +22,7 @@ export class DvrStore {
             | '_isSlowForwardDisabled'
             | '_isFastForwardDisabled'
         >(this, {
+            currenttimechange: false,
             _timeline: false,
             _dvr: observable.ref,
 
@@ -38,6 +39,9 @@ export class DvrStore {
             _isRewindDisabled: observable,
             _isSlowForwardDisabled: observable,
             _isFastForwardDisabled: observable,
+
+            enableCurrentTimeUpdate: action,
+            disableCurrentTimeUpdate: action,
         });
 
         this._timeline = new TimelineStore(this);
@@ -181,14 +185,43 @@ export class DvrStore {
         );
     }
 
+    private disposer: IReactionDisposer | null = null;
+    public currenttimechange = () => {};
+
+    enableCurrentTimeUpdate() {
+        if (this.disposer) {
+            return;
+        }
+
+        this.disposer = reaction(
+            () => this._currentTime,
+            () => {
+                if (!this.isPaused) {
+                    this.currenttimechange();
+                }
+            }
+        );
+    }
+
+    disableCurrentTimeUpdate() {
+        if (this.disposer) {
+            this.disposer();
+            this.disposer = null;
+        }
+    }
+
     private listenForTimeUpdate() {
+        this.enableCurrentTimeUpdate();
+
         this.dvr.on(
             'timeupdate',
             action((currentTime, duration, speed) => {
-                this._currentTime = currentTime;
-                this._duration = duration;
+                const testMultiplier = 1;
+
+                this._currentTime = currentTime * testMultiplier;
+                this._duration = duration * testMultiplier;
                 this._speed = speed;
-                this._liveStreamDuration = this.dvr.liveStreamDuration;
+                this._liveStreamDuration = this.dvr.liveStreamDuration * testMultiplier;
 
                 this.refreshControlAbilities();
             })
