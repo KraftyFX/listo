@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
-import { Segment } from './interfaces';
-import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './segmentutil';
+import { Segment } from '~/media/interfaces';
+import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatutil';
 
 export class SegmentCollection extends EventEmitter {
     private _recordingStartTime: Date | null = null;

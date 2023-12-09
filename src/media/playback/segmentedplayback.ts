@@ -1,9 +1,9 @@
 import EventEmitter from 'events';
-import { DEFAULT_PLAYBACK_OPTIONS } from '../constants';
-import { PlaybackOptions } from '../dvrconfig';
-import { Segment } from '../interfaces';
-import { SegmentCollection } from '../segmentcollection';
-import { formatSegment } from '../segmentutil';
+import { DEFAULT_PLAYBACK_OPTIONS } from '~/media/constants';
+import { PlaybackOptions } from '~/media/dvrconfig';
+import { Segment } from '~/media/interfaces';
+import { formatSegment } from '~/media/segments/formatutil';
+import { SegmentCollection } from '~/media/segments/segmentcollection';
 import { PlaybackController } from './playbackcontroller';
 
 export class SegmentedPlayback extends EventEmitter {
