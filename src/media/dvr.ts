@@ -15,10 +15,10 @@ export class DigitalVideoRecorder extends EventEmitter {
 
     public readonly options: DvrOptions;
 
-    constructor(public readonly videoElt: HTMLVideoElement, opt?: Partial<DvrOptions>) {
+    constructor(public readonly videoElt: HTMLVideoElement, options?: Partial<DvrOptions>) {
         super();
 
-        this.options = _merge({}, DEFAULT_DVR_OPTIONS, opt);
+        this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
         this.logger = getLog('dvr', this.options);
     }
 

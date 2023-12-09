@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import _merge from 'lodash.merge';
 import { PlaybackOptions } from '~/media';
 import { DEFAULT_PLAYBACK_OPTIONS } from '~/media/constants';
 import { Segment } from '~/media/interfaces';
@@ -15,10 +16,10 @@ export class SegmentedPlayback extends EventEmitter {
     constructor(
         public readonly videoElt: HTMLVideoElement,
         public readonly segments: SegmentCollection,
-        opt?: PlaybackOptions
+        options?: Partial<PlaybackOptions>
     ) {
         super();
-        this.options = Object.assign({}, DEFAULT_PLAYBACK_OPTIONS, opt);
+        this.options = _merge({}, DEFAULT_PLAYBACK_OPTIONS, options);
 
         this.logger = getLog('pbk', this.options);
         this.controller = new PlaybackController(this, this.options);

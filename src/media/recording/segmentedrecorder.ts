@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import _merge from 'lodash.merge';
 import { RecordingOptions } from '~/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/media/constants';
 import { Segment } from '~/media/interfaces';
@@ -15,11 +16,11 @@ export class SegmentedRecorder extends EventEmitter {
     constructor(
         private readonly liveStream: LiveStreamRecorder,
         public readonly segments: SegmentCollection,
-        opt?: Partial<RecordingOptions>
+        options?: Partial<RecordingOptions>
     ) {
         super();
 
-        this.options = Object.assign({}, DEFAULT_RECORDING_OPTIONS, opt);
+        this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.liveStream = liveStream;
         this.logger = getLog('seg-rec', this.options);
 
