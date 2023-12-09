@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { CameraStore } from '~/Components/stores/cameraStore';
 import { DvrStore } from '~/Components/stores/dvrStore';
-import { DigitalVideoRecorder } from '~/media/digitalvideorecorder';
+import { DigitalVideoRecorder } from '~/media/dvr';
 import { DvrOptions } from '~/media/dvrconfig';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';

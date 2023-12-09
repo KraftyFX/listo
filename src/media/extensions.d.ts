@@ -1,5 +1,5 @@
 import { DvrStore } from '~/Components/stores/dvrStore';
-import { DigitalVideoRecorder } from './digitalvideorecorder';
+import { DigitalVideoRecorder } from './dvr';
 
 declare global {
     interface Window {
