@@ -82,7 +82,7 @@ export class PlaybackController extends EventEmitter {
 
     async rewind() {
         if (this.mode !== 'rewind') {
-            this._speed = -1;
+            this._speed = -2;
         } else {
             if (this.isAtMaxRewindSpeed) {
                 return;
