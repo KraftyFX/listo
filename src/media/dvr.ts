@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
@@ -8,8 +7,6 @@ import { Logger, getLog } from './logutil';
 import { SegmentedPlayback } from './playback/segmentedplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { SegmentCollection } from './segments/segmentcollection';
-
-dayjs.extend(duration);
 
 export class DigitalVideoRecorder extends EventEmitter {
     private logger: Logger;
@@ -24,6 +21,11 @@ export class DigitalVideoRecorder extends EventEmitter {
 
         this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
         this.logger = getLog('dvr', this.options);
+    }
+
+    dispose() {
+        this.removeAllListeners();
+        this.stopPollingLiveStreamRecordingDuration();
     }
 
     async showLiveStreamAndStartRecording() {
