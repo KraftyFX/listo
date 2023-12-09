@@ -21,10 +21,8 @@ export const DEFAULT_DVR_OPTIONS: DvrOptions = {
     recording: DEFAULT_RECORDING_OPTIONS,
     playback: DEFAULT_PLAYBACK_OPTIONS,
     logging: 'info',
-    livePollingInterval: 250,
-    viewport: {
-        minutes: 1,
-    },
+    liveDurationPollingInterval: { milliseconds: 250 },
+    viewport: { minutes: 1 },
     marker: {
         major: { minutes: 10 },
         minor: { seconds: 10 },
