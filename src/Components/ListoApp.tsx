@@ -1,8 +1,6 @@
 import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { CameraStore } from '~/Components/stores/cameraStore';
 import { DvrStore } from '~/Components/stores/dvrStore';
 import { DvrOptions } from '~/media';
 import { DigitalVideoRecorder } from '~/media/dvr';
@@ -10,8 +8,6 @@ import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
-
-dayjs.extend(duration);
 
 let dvr: DigitalVideoRecorder;
 const dvrStore = new DvrStore();
@@ -25,12 +21,14 @@ export const ListoApp = observer(function ListoApp() {
         const initAsync = async () => {
             const options = {
                 recording: {
-                    source: new CameraStore().lastSelectedCameraId,
+                    source: dvrStore.cameraStore.lastSelectedCameraId,
                 },
             } as DvrOptions;
 
             dvr = new DigitalVideoRecorder(videoRef.current, options);
             window.dvr = dvr;
+
+            dvrStore.cameraStore.startWatchingCameraList();
 
             await dvr.showLiveStreamAndStartRecording();
             dvrStore.dvr = dvr;
@@ -42,13 +40,21 @@ export const ListoApp = observer(function ListoApp() {
         initAsync().catch(console.error);
 
         return function dismount() {
-            dvr.removeAllListeners();
+            dvrStore.cameraStore.stopWatchingCameraList();
+            dvr.dispose();
         };
     }, []);
 
     return (
         <>
-            <CameraList onChangeCamera={() => location.reload()} />
+            <CameraList
+                cameras={dvrStore.cameraStore.cameras}
+                selectedCamera={dvrStore.cameraStore.lastSelectedCameraId}
+                onChangeCamera={(selectedId) => {
+                    dvrStore.cameraStore.lastSelectedCameraId = selectedId;
+                    location.reload();
+                }}
+            />
             <VideoPlayer ref={videoRef} />
             {!isDvrReady ? null : (
                 <>

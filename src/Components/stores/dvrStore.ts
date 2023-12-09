@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { IReactionDisposer, action, makeAutoObservable, observable, reaction } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/dvr';
+import { CameraStore } from './cameraStore';
 import { TimelineStore } from './timelineStore';
 
 export class DvrStore {
@@ -45,9 +46,11 @@ export class DvrStore {
         });
 
         this._timeline = new TimelineStore(this);
+        this._cameraStore = new CameraStore();
     }
 
     private _timeline: TimelineStore;
+    private _cameraStore: CameraStore;
     private _dvr: DigitalVideoRecorder | null = null;
 
     private _recordingStartTime: Dayjs = dayjs();
@@ -66,6 +69,10 @@ export class DvrStore {
 
     get timeline() {
         return this._timeline;
+    }
+
+    get cameraStore() {
+        return this._cameraStore;
     }
 
     get dvr() {
