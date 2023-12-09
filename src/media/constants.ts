@@ -23,10 +23,10 @@ export const DEFAULT_DVR_OPTIONS: DvrOptions = {
     logging: 'info',
     livePollingInterval: 250,
     viewport: {
-        minutes: 30,
+        minutes: 1,
     },
     marker: {
         major: { minutes: 10 },
-        minor: { minutes: 5 },
+        minor: { seconds: 10 },
     },
 };
