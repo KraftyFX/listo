@@ -4,9 +4,11 @@ import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { RecordingOptions } from './dvrconfig';
 import { Segment } from './interfaces';
 import { LiveStreamRecorder } from './livestreamrecorder';
+import { Logger, getLog } from './logutil';
 import { SegmentCollection } from './segmentcollection';
 
 export class SegmentedRecorder extends EventEmitter {
+    private logger: Logger;
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
 
@@ -17,8 +19,9 @@ export class SegmentedRecorder extends EventEmitter {
     ) {
         super();
 
-        this.liveStream = liveStream;
         this.options = Object.assign({}, DEFAULT_RECORDING_OPTIONS, opt);
+        this.liveStream = liveStream;
+        this.logger = getLog('seg-rec', this.options);
 
         this.recorder = new MediaRecorder(this.liveStream.stream, {
             mimeType: this.options.mimeType,
@@ -55,7 +58,7 @@ export class SegmentedRecorder extends EventEmitter {
     private onDataAvailable = (event: BlobEvent) => {
         this.acquireAccurateRecordingStartTime();
 
-        this.finalizeActiveSegment(event.data);
+        this.finalizeLiveSegment(event.data);
         this.start();
 
         this.resolveForceRenderDonePromise();
@@ -69,7 +72,7 @@ export class SegmentedRecorder extends EventEmitter {
         }
     }
 
-    private finalizeActiveSegment(blob: Blob) {
+    private finalizeLiveSegment(blob: Blob) {
         const segment = this.liveSegment;
 
         segment.chunks.push(blob);
@@ -84,7 +87,7 @@ export class SegmentedRecorder extends EventEmitter {
 
     private get currentTime() {
         if (!this.segments.hasRecordingStartTime) {
-            this.log(
+            this.logger.log(
                 'Current time is unavailable. Assuming that the recording is initializing and returning zero.'
             );
             return 0;
@@ -105,7 +108,7 @@ export class SegmentedRecorder extends EventEmitter {
     fillSegments(timecode: number) {
         if (timecode > this.segments.duration) {
             return new Promise<boolean>((resolve) => {
-                this.info('Forcing segment rendering');
+                this.logger.info('Forcing segment rendering');
                 this.forcedRenderDone = resolve;
                 this.stop();
             });
@@ -128,18 +131,6 @@ export class SegmentedRecorder extends EventEmitter {
             throw new Error(
                 `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
             );
-        }
-    }
-
-    private info(message: string) {
-        if (this.options.logging === 'info' || this.options.logging === 'log') {
-            console.info(message);
-        }
-    }
-
-    private log(message: string) {
-        if (this.options.logging === 'log') {
-            console.log(message);
         }
     }
 }
