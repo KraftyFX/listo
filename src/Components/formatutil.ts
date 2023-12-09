@@ -119,7 +119,7 @@ function getMinSecFormat({ minor }: MarkerConfig, time: Dayjs) {
         if (time.hour() === 0) {
             return { type: 'major', format: time.format('ha') };
         } else {
-            return { type: 'major', format: time.format('h:mm') };
+            return { type: 'major', format: time.format('h:mma') };
         }
     } else if (time.second() % (minor.seconds ?? 0) === 0) {
         return { type: 'minor', format: time.format('ss') + 's' };
