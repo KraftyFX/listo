@@ -243,7 +243,7 @@ export class DigitalVideoRecorder extends EventEmitter {
                 const { currentTime, speed } = this.playback;
 
                 this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed);
-            }, 1000);
+            }, this.options.livePollingInterval);
         } else {
             this.logger.log(`(no-op) Polling live duration. Reason=${reason}`);
         }

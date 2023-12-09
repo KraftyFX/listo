@@ -4,6 +4,7 @@ export interface DvrOptions {
     recording: RecordingOptions;
     playback: PlaybackOptions;
     logging: LogLevel;
+    livePollingInterval: number;
 }
 
 export interface RecordingOptions {
