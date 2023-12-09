@@ -2,11 +2,13 @@ import EventEmitter from 'events';
 import { RecordingOptions } from '~/media/dvrconfig';
 import { pauseAndWait, playAndWait } from '~/media/playback/playbackutil';
 import { SegmentCollection } from '~/media/segments/segmentcollection';
+import { Logger, getLog } from '../logutil';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { SegmentedRecorder } from './segmentedrecorder';
 
 export class LiveStreamRecorder extends EventEmitter {
     private readonly recorder: SegmentedRecorder;
+    private logger: Logger;
 
     private constructor(
         public readonly videoElt: HTMLVideoElement,
@@ -16,6 +18,7 @@ export class LiveStreamRecorder extends EventEmitter {
     ) {
         super();
 
+        this.logger = getLog('lsr', this.options);
         this.recorder = new SegmentedRecorder(this, segments, options);
     }
 
@@ -66,7 +69,7 @@ export class LiveStreamRecorder extends EventEmitter {
 
             return actualDuration;
         } else {
-            this.info('Using estimated duration of live feed.');
+            this.logger.info('Using estimated duration of live feed.');
 
             const estimatedDuration = secondsSince(this.recordingStartTime);
 
@@ -94,7 +97,7 @@ export class LiveStreamRecorder extends EventEmitter {
         const recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
 
         if (recordingStartTime.getMilliseconds() < this._recordingStartTime!.getMilliseconds()) {
-            this.log(`Updating recording start time ${recordingStartTime}`);
+            this.logger.log(`Updating recording start time ${recordingStartTime}`);
             this._recordingStartTime = recordingStartTime;
             this.emitStartTimeUpdate();
         }
@@ -151,17 +154,5 @@ export class LiveStreamRecorder extends EventEmitter {
 
     private emitStartTimeUpdate() {
         this.emit('starttimeupdate');
-    }
-
-    private info(message: string) {
-        if (this.options.logging === 'info' || this.options.logging === 'log') {
-            console.info(message);
-        }
-    }
-
-    private log(message: string) {
-        if (this.options.logging === 'log') {
-            console.log(message);
-        }
     }
 }
