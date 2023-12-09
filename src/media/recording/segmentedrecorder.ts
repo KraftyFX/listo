@@ -80,12 +80,12 @@ export class SegmentedRecorder extends EventEmitter {
         const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
 
         segment.url = URL.createObjectURL(blobs);
-        segment.duration = this.currentTime - segment.startTime;
+        segment.duration = this.recordingDuration - segment.startTime;
 
         this.segments.addSegment(segment);
     }
 
-    private get currentTime() {
+    private get recordingDuration() {
         if (!this.segments.hasRecordingStartTime) {
             this.logger.log(
                 'Current time is unavailable. Assuming that the recording is initializing and returning zero.'
