@@ -4,17 +4,17 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
+import { MarkerConfig } from '~/media/dvrconfig';
 import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {
     dvrStore: DvrStore;
-    viewportDuration: Duration;
-    markerDuration: Duration;
-    onSnapToTime: () => void;
+    viewport: Duration;
+    marker: MarkerConfig;
 }
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
-    const { dvrStore, viewportDuration } = props;
+    const { dvrStore, viewport, marker } = props;
     const { timeline } = dvrStore;
     const [width, setWidth] = useState(1);
 
@@ -23,7 +23,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     useEffect(
         action(function init() {
-            timeline.markerDuration = props.markerDuration;
+            timeline.markerSize = marker;
 
             setWidth(timelineRef.current.offsetWidth);
         }),
@@ -38,14 +38,14 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getPixelsFromDuration(duration: Duration) {
-        const pixelsPerSec = width / (viewportDuration.asMilliseconds() / 1000);
+        const pixelsPerSec = width / (viewport.asMilliseconds() / 1000);
         const pixels = (duration.asMilliseconds() / 1000) * pixelsPerSec;
 
         return pixels;
     }
 
     function getTimeFromPixels(x: number) {
-        const secPerPixel = viewportDuration.asSeconds() / width;
+        const secPerPixel = viewport.asSeconds() / width;
         const ms = dayjs.duration({ seconds: x * secPerPixel }).asMilliseconds();
         const time = timeline.startOfTimeline.add(ms, 'milliseconds');
 
@@ -87,18 +87,22 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const endTime = endOfTimeline.isBefore(viewportEndTime) ? viewportEndTime : endOfTimeline;
 
         const elts: React.JSX.Element[] = [];
+        const minorMarkerDuration = dayjs.duration(timeline.markerSize.minor);
+
         const style: React.CSSProperties = {
-            width: `${getPixelsFromDuration(timeline.markerDuration)}px`,
+            width: `${getPixelsFromDuration(minorMarkerDuration)}px`,
         };
 
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
+            const { type, format } = getMarkerFormat(timeline.markerSize, currTime);
+
             elts.push(
-                <div key={elts.length} className="marker" style={style}>
-                    <span>{getMarkerFormat(currTime)}</span>
+                <div key={elts.length} className={`marker ${type}`} style={style}>
+                    <span>{format}</span>
                 </div>
             );
 
-            currTime = currTime.add(timeline.markerDuration);
+            currTime = currTime.add(minorMarkerDuration);
         }
 
         return elts;

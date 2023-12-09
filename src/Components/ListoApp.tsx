@@ -55,9 +55,8 @@ export const ListoApp = observer(function ListoApp() {
                     <PlaybackControls dvrStore={dvrStore} />
                     <Timeline
                         dvrStore={dvrStore}
-                        viewportDuration={dayjs.duration({ minutes: 1 })}
-                        markerDuration={dayjs.duration({ seconds: 10 })}
-                        onSnapToTime={() => dvr.goToPlaybackTime(0.5)}
+                        viewport={dayjs.duration(dvr.options.viewport)}
+                        marker={dvr.options.marker}
                     />
                 </>
             )}

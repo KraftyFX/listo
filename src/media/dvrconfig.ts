@@ -1,3 +1,5 @@
+import { DurationUnitsObjectType } from 'dayjs/plugin/duration';
+
 export type LogLevel = 'info' | 'log' | 'warn' | 'error' | null;
 
 export interface DvrOptions {
@@ -5,6 +7,13 @@ export interface DvrOptions {
     playback: PlaybackOptions;
     logging: LogLevel;
     livePollingInterval: number;
+    viewport: DurationUnitsObjectType;
+    marker: MarkerConfig;
+}
+
+export interface MarkerConfig {
+    major: DurationUnitsObjectType;
+    minor: DurationUnitsObjectType;
 }
 
 export interface RecordingOptions {
