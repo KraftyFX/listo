@@ -116,10 +116,12 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     });
 
     return (
-        <div ref={timelineRef} className="timeline" onMouseDown={onMouseDown}>
-            {getBars()}
-            {getMarkers()}
-            {getThumb()}
+        <div ref={timelineRef} className="timeline">
+            <div onMouseDown={onMouseDown}>
+                {getBars()}
+                {getMarkers()}
+                {getThumb()}
+            </div>
         </div>
     );
 
