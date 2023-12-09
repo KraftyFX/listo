@@ -1,8 +1,10 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 
 export class CameraStore {
     constructor() {
-        makeAutoObservable(this);
+        makeAutoObservable<CameraStore, '_lastSelectedCameraId'>(this, {
+            _lastSelectedCameraId: observable,
+        });
     }
 
     private _lastSelectedCameraId!: string;
