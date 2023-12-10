@@ -12,6 +12,8 @@ export interface Bar {
 export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
 
+    autoscroll = true;
+
     pastRecordings: Bar[] = [];
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 

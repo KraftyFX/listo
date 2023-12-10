@@ -31,11 +31,14 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             const dispose = reaction(
                 () => dvrStore.currentTime,
                 () => {
-                    thumbRef.current?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: dvrStore.speed < 0 ? 'start' : 'end',
-                        inline: dvrStore.speed < 0 ? 'start' : 'end',
-                    });
+                    if (timeline.autoscroll) {
+                        // TODO: This is janky for a bunch of reasons.  Need to think how to do this.
+                        // thumbRef.current?.scrollIntoView({
+                        //     behavior: 'smooth',
+                        //     block: dvrStore.speed < 0 ? 'start' : 'end',
+                        //     inline: dvrStore.speed < 0 ? 'start' : 'end',
+                        // });
+                    }
                 }
             );
 
@@ -131,9 +134,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         timeline.currentTime = time;
     });
 
-    const onMouseEnter = () => {};
-
-    const onMouseLeave = () => {};
+    const onMouseEnter = action(() => (timeline.autoscroll = false));
+    const onMouseLeave = action(() => (timeline.autoscroll = true));
 
     return (
         <div
