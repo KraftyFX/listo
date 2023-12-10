@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { IReactionDisposer, action, makeAutoObservable, observable, reaction } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/media/dvr';
 import { CameraStore } from './cameraStore';
 import { TimelineStore } from './timelineStore';
@@ -23,7 +23,6 @@ export class DvrStore {
             | '_isSlowForwardDisabled'
             | '_isFastForwardDisabled'
         >(this, {
-            currenttimechange: false,
             _timeline: false,
             _dvr: observable.ref,
 
@@ -40,9 +39,6 @@ export class DvrStore {
             _isRewindDisabled: observable,
             _isSlowForwardDisabled: observable,
             _isFastForwardDisabled: observable,
-
-            enableCurrentTimeUpdate: action,
-            disableCurrentTimeUpdate: action,
         });
 
         this._timeline = new TimelineStore(this);
@@ -192,34 +188,7 @@ export class DvrStore {
         );
     }
 
-    private disposer: IReactionDisposer | null = null;
-    public currenttimechange = () => {};
-
-    enableCurrentTimeUpdate() {
-        if (this.disposer) {
-            return;
-        }
-
-        this.disposer = reaction(
-            () => this._currentTime,
-            () => {
-                if (!this.isPaused) {
-                    this.currenttimechange();
-                }
-            }
-        );
-    }
-
-    disableCurrentTimeUpdate() {
-        if (this.disposer) {
-            this.disposer();
-            this.disposer = null;
-        }
-    }
-
     private listenForTimeUpdate() {
-        this.enableCurrentTimeUpdate();
-
         this.dvr.on(
             'timeupdate',
             action((currentTime, duration, speed) => {

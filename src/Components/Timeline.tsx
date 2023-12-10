@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
-import { action } from 'mobx';
+import { action, autorun } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
@@ -13,8 +13,6 @@ export interface TimelineProps {
     viewport: Duration;
     marker: MarkerConfig;
 }
-
-let timeout: any = null;
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore, viewport, marker } = props;
@@ -30,20 +28,15 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
             setWidth(timelineRef.current.offsetWidth);
 
-            dvrStore.currenttimechange = () => {
-                // This timeout is needed so the thumb can be moved first before scrolling to it.
-                // Otherwise it'll scroll based on the old position. This is bad for situations
-                // like when the user is jumping around the timeline.
+            autorun(() => {
+                dvrStore.currentTime;
 
-                // TODO: Consider _throttle for this.
-                setTimeout(() => {
-                    thumbRef.current?.scrollIntoView({
-                        behavior: 'smooth',
-                        // block: dvrStore.speed < 0 ? 'start' : 'end',
-                        // inline: dvrStore.speed < 0 ? 'start' : 'end',
-                    });
-                }, 1);
-            };
+                thumbRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: dvrStore.speed < 0 ? 'start' : 'end',
+                    inline: dvrStore.speed < 0 ? 'start' : 'end',
+                });
+            });
         }),
         []
     );
@@ -133,20 +126,9 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         timeline.currentTime = time;
     });
 
-    function clear() {
-        clearTimeout(timeout);
-        timeout = null;
-    }
+    const onMouseEnter = () => {};
 
-    const onMouseEnter = () => {
-        clear();
-        dvrStore.disableCurrentTimeUpdate();
-    };
-
-    const onMouseLeave = () => {
-        clear();
-        timeout = setTimeout(() => dvrStore.enableCurrentTimeUpdate(), props.autoScrollTimeout);
-    };
+    const onMouseLeave = () => {};
 
     return (
         <div
