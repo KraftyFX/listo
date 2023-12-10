@@ -39,8 +39,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 setTimeout(() => {
                     thumbRef.current?.scrollIntoView({
                         behavior: 'smooth',
-                        block: dvrStore.speed < 0 ? 'start' : 'end',
-                        inline: dvrStore.speed < 0 ? 'start' : 'end',
+                        // block: dvrStore.speed < 0 ? 'start' : 'end',
+                        // inline: dvrStore.speed < 0 ? 'start' : 'end',
                     });
                 }, 1);
             };
