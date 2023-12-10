@@ -17,7 +17,7 @@ export interface TimelineProps {
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore, viewport, marker } = props;
     const { timeline } = dvrStore;
-    const [width, setWidth] = useState(1);
+    const [timelineWidthPx, setTimelineWidthPx] = useState(1);
 
     const timelineRef = useRef<HTMLDivElement>(null!);
     const thumbRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         action(function mount() {
             timeline.markerSize = marker;
 
-            setWidth(timelineRef.current.offsetWidth);
+            setTimelineWidthPx(timelineRef.current.offsetWidth);
 
             const dispose = reaction(
                 () => dvrStore.currentTime,
@@ -57,25 +57,30 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getPixelsFromDuration(duration: Duration) {
-        const pixelsPerSec = width / (viewport.asMilliseconds() / 1000);
-        const pixels = (duration.asMilliseconds() / 1000) * pixelsPerSec;
+        const viewportSec = viewport.asMilliseconds() / 1000;
+        const durationSec = duration.asMilliseconds() / 1000;
+
+        const pixelsPerSec = timelineWidthPx / viewportSec;
+        const pixels = durationSec * pixelsPerSec;
 
         return pixels;
     }
 
     function getTimeFromPixels(x: number) {
-        const secPerPixel = viewport.asSeconds() / width;
-        const ms = dayjs.duration({ seconds: x * secPerPixel }).asMilliseconds();
-        const time = timeline.startOfTimeline.add(ms, 'milliseconds');
+        const viewportSec = viewport.asMilliseconds() / 1000;
+        const secPerPixel = viewportSec / timelineWidthPx;
+
+        const duration = dayjs.duration({ seconds: x * secPerPixel });
+        const time = timeline.startOfTimeline.add(duration);
 
         return time;
     }
 
     function getThumb() {
-        const thumbOffset = timeline.currentTime;
+        const thumbTime = timeline.currentTime;
 
         const style: React.CSSProperties = {
-            left: `${getPixelsFromTime(thumbOffset)}px`,
+            left: `${getPixelsFromTime(thumbTime)}px`,
         };
 
         return (
@@ -102,7 +107,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         let currTime = timeline.startOfTimeline;
 
         const endOfTimeline = timeline.endOfTimeline;
-        const viewportEndTime = getTimeFromPixels(width - 1);
+        const viewportEndTime = getTimeFromPixels(timelineWidthPx - 1);
         const endTime = endOfTimeline.isBefore(viewportEndTime) ? viewportEndTime : endOfTimeline;
 
         const elts: React.JSX.Element[] = [];
