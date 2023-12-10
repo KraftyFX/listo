@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
 import { computed, makeAutoObservable, observable } from 'mobx';
-import { DEFAULT_DVR_OPTIONS, MarkerConfig } from '~/media';
+import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/media';
 import { DvrStore } from './dvrStore';
 
 export interface Bar {
@@ -13,7 +13,7 @@ export class TimelineStore {
     private readonly multiplierToMakeTestingEasier = 1;
 
     pastRecordings: Bar[] = [];
-    markerSize: MarkerConfig = DEFAULT_DVR_OPTIONS.marker;
+    markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
         makeAutoObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {

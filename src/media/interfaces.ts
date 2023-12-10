@@ -5,15 +5,9 @@ export type LogLevel = 'info' | 'log' | 'warn' | 'error' | null;
 export interface DvrOptions {
     recording: RecordingOptions;
     playback: PlaybackOptions;
-    logging: LogLevel;
+    timeline: TimelineOptions;
     liveDurationPollingInterval: DurationUnitsObjectType;
-    viewport: DurationUnitsObjectType;
-    marker: MarkerConfig;
-}
-
-export interface MarkerConfig {
-    major: DurationUnitsObjectType;
-    minor: DurationUnitsObjectType;
+    logging: LogLevel;
 }
 
 export interface RecordingOptions {
@@ -27,6 +21,17 @@ export interface PlaybackOptions {
     maxPlaySpeedFactor: number;
     minPlaySpeedFactor: number;
     logging: LogLevel;
+}
+
+export interface TimelineOptions {
+    viewport: DurationUnitsObjectType;
+    marker: MarkerConfig;
+    logging: LogLevel;
+}
+
+export interface MarkerConfig {
+    major: DurationUnitsObjectType;
+    minor: DurationUnitsObjectType;
 }
 
 export interface Camera {
