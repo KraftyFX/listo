@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
-import { action, autorun } from 'mobx';
+import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/Components/stores/dvrStore';
@@ -28,15 +28,16 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
             setWidth(timelineRef.current.offsetWidth);
 
-            const dispose = autorun(() => {
-                dvrStore.currentTime;
-
-                thumbRef.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: dvrStore.speed < 0 ? 'start' : 'end',
-                    inline: dvrStore.speed < 0 ? 'start' : 'end',
-                });
-            });
+            const dispose = reaction(
+                () => dvrStore.currentTime,
+                () => {
+                    thumbRef.current?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: dvrStore.speed < 0 ? 'start' : 'end',
+                        inline: dvrStore.speed < 0 ? 'start' : 'end',
+                    });
+                }
+            );
 
             return function dismount() {
                 dispose();
