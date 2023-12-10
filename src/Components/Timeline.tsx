@@ -23,12 +23,12 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const thumbRef = useRef<HTMLDivElement>(null);
 
     useEffect(
-        action(function init() {
+        action(function mount() {
             timeline.markerSize = marker;
 
             setWidth(timelineRef.current.offsetWidth);
 
-            autorun(() => {
+            const dispose = autorun(() => {
                 dvrStore.currentTime;
 
                 thumbRef.current?.scrollIntoView({
@@ -37,6 +37,10 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                     inline: dvrStore.speed < 0 ? 'start' : 'end',
                 });
             });
+
+            return function dismount() {
+                dispose();
+            };
         }),
         []
     );
