@@ -2,10 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { toUint8Arrays } from './blobutil';
 
 export const LISTO_API = {
-    async getAllRecordings() {
-        return await invoke('getAllRecordings');
-    },
-
     async startNewRecording(chunks: Blob[]) {
         const arrays = await toUint8Arrays(chunks);
 
@@ -13,9 +9,15 @@ export const LISTO_API = {
     },
 
     async appendToRecording(path: string, chunks: Blob[]) {
-        const arrays = await toUint8Arrays(chunks);
+        const chunkArray = await toUint8Arrays(chunks);
 
-        return await invoke('appendToRecording', path, arrays);
+        return await invoke('appendToRecording', path, chunkArray);
+    },
+
+    async saveRecording(startTimeIso: string, durationSec: number, chunks: Blob[]) {
+        const chunkArray = await toUint8Arrays(chunks);
+
+        return await invoke('saveRecording', startTimeIso, durationSec, chunkArray);
     },
 };
 
