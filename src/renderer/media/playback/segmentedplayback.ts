@@ -6,9 +6,19 @@ import { Segment } from '~/renderer/media/interfaces';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import TypedEventEmitter from '../eventemitter';
 import { PlaybackController } from './playbackcontroller';
 
-export class SegmentedPlayback extends EventEmitter {
+type SegmentedPlaybackEvents = {
+    segmentrendered: (segment: Segment) => void;
+
+    play: () => void;
+    pause: () => void;
+    ended: (where: 'start' | 'end') => void;
+    timeupdate: (currentTime: number, duration: number, speed: number) => void;
+};
+
+export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentedPlaybackEvents>) {
     private logger: Logger;
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
@@ -50,7 +60,6 @@ export class SegmentedPlayback extends EventEmitter {
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
 
         this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
-        this.controller.on('rewindstartreached', () => this.emitRewindStartReached());
         this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
         this.controller.on('play', () => this.emitPlay());
         this.controller.on('pause', () => this.emitPause());
@@ -244,10 +253,6 @@ export class SegmentedPlayback extends EventEmitter {
 
     private emitTimeUpdate() {
         this.emit('timeupdate', this.currentTime, this.duration, this.controller.speed);
-    }
-
-    private emitRewindStartReached() {
-        this.emit('rewindstartreached');
     }
 
     private emitPlay() {

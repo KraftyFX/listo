@@ -2,10 +2,18 @@ import EventEmitter from 'events';
 import { PlaybackOptions } from '~/renderer/media';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import TypedEventEmitter from '../eventemitter';
 import { pauseAndWait, playAndWait } from './playbackutil';
 import { SegmentedPlayback } from './segmentedplayback';
 
-export class PlaybackController extends EventEmitter {
+type PlaybackControllerEvents = {
+    play: () => void;
+    pause: () => void;
+    ended: (where: 'start' | 'end') => void;
+    timeupdate: (time: number) => void;
+};
+
+export class PlaybackController extends (EventEmitter as new () => TypedEventEmitter<PlaybackControllerEvents>) {
     private logger: Logger;
     private recorder: SegmentedPlayback;
 
