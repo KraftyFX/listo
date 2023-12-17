@@ -2,13 +2,23 @@ import dayjs from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
+import TypedEventEmitter from './eventemitter';
 import { DvrOptions, Segment } from './interfaces';
 import { Logger, getLog } from './logutil';
 import { SegmentedPlayback } from './playback/segmentedplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { SegmentCollection } from './segments/segmentcollection';
 
-export class DigitalVideoRecorder extends EventEmitter {
+type DvrEvents = {
+    modechange: (isLive: boolean) => void;
+    play: () => void;
+    pause: () => void;
+    timeupdate: (currentTime: number, duration: number, speed: number) => void;
+    segmentrendered: (segment: Segment) => void;
+    starttimeupdate: () => void;
+};
+
+export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventEmitter<DvrEvents>) {
     private logger: Logger;
     private liveStreamRecorder!: LiveStreamRecorder;
     private playback!: SegmentedPlayback;
@@ -37,7 +47,6 @@ export class DigitalVideoRecorder extends EventEmitter {
             this.segments,
             this.options.recording
         );
-        this.liveStreamRecorder.on('recordingerror', console.error);
 
         await this.liveStreamRecorder.startRecording();
         await this.switchToLiveStream();
