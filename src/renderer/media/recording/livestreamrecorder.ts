@@ -3,10 +3,18 @@ import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import TypedEventEmitter from '../eventemitter';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { SegmentedRecorder } from './segmentedrecorder';
 
-export class LiveStreamRecorder extends EventEmitter {
+type LiveStreamRecorderEvents = {
+    play: () => void;
+    pause: () => void;
+    timeupdate: (currentTime: number, duration: number) => void;
+    starttimeupdate: () => void;
+};
+
+export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
     private readonly recorder: SegmentedRecorder;
     private logger: Logger;
 

@@ -5,10 +5,15 @@ import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Segment } from '~/renderer/media/interfaces';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import TypedEventEmitter from '../eventemitter';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { LiveStreamRecorder } from './livestreamrecorder';
 
-export class SegmentedRecorder extends EventEmitter {
+type SegmentedRecorderEvents = {
+    recordingerror: (error: any) => void;
+};
+
+export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
     private logger: Logger;
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
