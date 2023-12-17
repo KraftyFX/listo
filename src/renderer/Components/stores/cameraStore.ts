@@ -1,5 +1,5 @@
 import { makeAutoObservable, observable, runInAction } from 'mobx';
-import { Camera } from '~/media';
+import { Camera } from '~/renderer/media';
 
 // export const LOGITECH_BRIO_CAMERA_ID =
 //     '94f3aff55f18fcaa8238d5ae2437608852fcdeae132d61a15b94f197cf364acb';

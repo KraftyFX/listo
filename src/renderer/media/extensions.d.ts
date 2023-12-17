@@ -1,4 +1,4 @@
-import { DvrStore } from '~/Components/stores/dvrStore';
+import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { DigitalVideoRecorder } from './dvr';
 
 declare global {

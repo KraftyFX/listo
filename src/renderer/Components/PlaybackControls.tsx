@@ -1,7 +1,7 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { DvrStore } from '~/Components/stores/dvrStore';
+import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { getPlayTime } from './formatutil';
 
 export type PlaybackCommands =

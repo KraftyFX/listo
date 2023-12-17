@@ -1,9 +1,9 @@
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { DvrStore } from '~/Components/stores/dvrStore';
-import { DvrOptions } from '~/media';
-import { DigitalVideoRecorder } from '~/media/dvr';
+import { DvrStore } from '~/renderer/Components/stores/dvrStore';
+import { DvrOptions } from '~/renderer/media';
+import { DigitalVideoRecorder } from '~/renderer/media/dvr';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';

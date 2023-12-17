@@ -1,7 +1,7 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect } from 'react';
-import { Camera } from '~/media';
+import { Camera } from '~/renderer/media';
 
 export interface CameraListProps {
     cameras: Camera[];

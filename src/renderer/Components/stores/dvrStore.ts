@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable, observable } from 'mobx';
-import { DigitalVideoRecorder } from '~/media/dvr';
+import { DigitalVideoRecorder } from '~/renderer/media/dvr';
 import { CameraStore } from './cameraStore';
 import { TimelineStore } from './timelineStore';
 

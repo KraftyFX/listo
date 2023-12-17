@@ -3,8 +3,8 @@ import { Duration } from 'dayjs/plugin/duration';
 import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { DvrStore } from '~/Components/stores/dvrStore';
-import { MarkerConfig } from '~/media';
+import { DvrStore } from '~/renderer/Components/stores/dvrStore';
+import { MarkerConfig } from '~/renderer/media';
 import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {

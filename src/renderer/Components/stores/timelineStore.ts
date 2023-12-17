@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
 import { computed, makeAutoObservable, observable } from 'mobx';
-import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/media';
+import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
 import { DvrStore } from './dvrStore';
 
 export interface Bar {

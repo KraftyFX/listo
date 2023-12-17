@@ -1,10 +1,10 @@
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
-import { RecordingOptions } from '~/media';
-import { DEFAULT_RECORDING_OPTIONS } from '~/media/constants';
-import { Segment } from '~/media/interfaces';
-import { Logger, getLog } from '~/media/logutil';
-import { SegmentCollection } from '~/media/segments/segmentcollection';
+import { RecordingOptions } from '~/renderer/media';
+import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
+import { Segment } from '~/renderer/media/interfaces';
+import { Logger, getLog } from '~/renderer/media/logutil';
+import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { LiveStreamRecorder } from './livestreamrecorder';
 

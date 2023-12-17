@@ -1,8 +1,8 @@
 import EventEmitter from 'events';
-import { RecordingOptions } from '~/media';
-import { Logger, getLog } from '~/media/logutil';
-import { pauseAndWait, playAndWait } from '~/media/playback/playbackutil';
-import { SegmentCollection } from '~/media/segments/segmentcollection';
+import { RecordingOptions } from '~/renderer/media';
+import { Logger, getLog } from '~/renderer/media/logutil';
+import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
+import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { SegmentedRecorder } from './segmentedrecorder';
 
