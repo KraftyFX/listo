@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { RecordingOptions } from '~/renderer/media';
@@ -61,10 +62,10 @@ export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmit
         this.recorder.stop();
     }
 
-    private onDataAvailable = (event: BlobEvent) => {
+    private onDataAvailable = async (event: BlobEvent) => {
         this.acquireAccurateRecordingStartTime();
 
-        this.finalizeLiveSegment(event.data);
+        await this.finalizeLiveSegment(event.data);
         this.start();
 
         this.resolveForceRenderDonePromise();
@@ -78,7 +79,7 @@ export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    private finalizeLiveSegment(blob: Blob) {
+    private async finalizeLiveSegment(blob: Blob) {
         const segment = this.liveSegment;
 
         segment.chunks.push(blob);
@@ -87,6 +88,8 @@ export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmit
 
         segment.url = URL.createObjectURL(blobs);
         segment.duration = this.recordingDuration - segment.startTime;
+
+        await window.listoApi.saveRecording(dayjs().toISOString(), segment.duration, [blob]);
 
         this.segments.addSegment(segment);
     }

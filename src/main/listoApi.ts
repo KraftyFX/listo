@@ -4,6 +4,7 @@ import * as fs from 'node:fs';
 import { join } from 'upath';
 import { ListoApiKeys } from '~/preload/listoApi';
 import { IpcMainHandlers } from './interfaces';
+import { beginStitchingWebmFiles } from './webmstitch';
 
 const desktop = app.getPath('desktop');
 const listoRootDir = join(desktop, 'listo');
@@ -50,7 +51,7 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         chunks: Uint8Array[]
     ) {
         const startTimeFormat = dayjs(startTimeIso).format('YYYY-MM-DD-h-mm-ssa');
-        const recordingFilename = `${startTimeFormat}-${durationSec}.webm`;
+        const recordingFilename = `${startTimeFormat}-${durationSec.toFixed(3)}._webm`;
         const recordingFilepath = join(listoRootDir, recordingFilename);
 
         if (!fs.existsSync(listoRootDir)) {
@@ -62,6 +63,8 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         }
 
         fs.appendFileSync(recordingFilepath, chunks[0]);
+
+        beginStitchingWebmFiles();
 
         return `listo://recordings/${recordingFilename}`;
     },
