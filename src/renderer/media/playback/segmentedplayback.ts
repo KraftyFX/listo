@@ -2,11 +2,11 @@ import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { PlaybackOptions } from '~/renderer/media';
 import { DEFAULT_PLAYBACK_OPTIONS } from '~/renderer/media/constants';
-import { Segment } from '~/renderer/media/interfaces';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
+import { Segment } from '../segments/interfaces';
 import { PlaybackController } from './playbackcontroller';
 
 type SegmentedPlaybackEvents = {

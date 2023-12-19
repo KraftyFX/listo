@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
-import { Segment } from '~/renderer/media/interfaces';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatutil';
+import { Segment } from './interfaces';
 
 export class SegmentCollection extends EventEmitter {
     private logger: Logger;

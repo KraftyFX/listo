@@ -3,10 +3,11 @@ import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
-import { DvrOptions, Segment } from './interfaces';
+import { DvrOptions } from './interfaces';
 import { Logger, getLog } from './logutil';
 import { SegmentedPlayback } from './playback/segmentedplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
+import { Segment } from './segments/interfaces';
 import { SegmentCollection } from './segments/segmentcollection';
 
 type DvrEvents = {
