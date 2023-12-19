@@ -23,25 +23,23 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    createSegment() {
+    addSegment(url: string, duration: number) {
         const segment: Segment = {
             index: this._segments.length,
-            url: '',
+            url,
             startTime: this.isEmpty ? 0 : this.endOfTime,
-            duration: 0,
+            duration,
             chunks: [],
         };
 
-        return segment;
-    }
-
-    addSegment(segment: Segment) {
         this.logger.log(`Adding ${formatSegment(segment)}`);
 
         this._segments.push(segment);
         this.cleanAllStartTimes();
 
         this.emitSegmentAdded(segment);
+
+        return segment;
     }
 
     async getSegmentAtTime(timestamp: number) {

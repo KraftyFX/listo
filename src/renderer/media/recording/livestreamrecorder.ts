@@ -30,15 +30,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
         this.recorder = new SegmentRecorder(this.stream, options);
         this.recorder.onrecording = async ({ startTime, duration, blob }) => {
-            const segment = this.segments.createSegment();
-
-            segment.url = await window.listoApi.saveRecording(startTime.toISOString(), duration, [
+            const url = await window.listoApi.saveRecording(startTime.toISOString(), duration, [
                 blob,
             ]);
 
-            segment.duration = duration;
-
-            this.segments.addSegment(segment);
+            this.segments.addSegment(url, duration);
         };
     }
 
