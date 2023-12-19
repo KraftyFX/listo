@@ -22,17 +22,26 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     private logger: Logger;
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
+    private readonly _segments: SegmentCollection;
 
     constructor(
         public readonly videoElt: HTMLVideoElement,
-        public readonly segments: SegmentCollection,
+        segments: SegmentCollection,
         options?: Partial<PlaybackOptions>
     ) {
         super();
+
+        this._segments = segments;
         this.options = _merge({}, DEFAULT_PLAYBACK_OPTIONS, options);
 
         this.logger = getLog('pbk', this.options);
         this.controller = new PlaybackController(this, this.options);
+    }
+
+    private get segments() {
+        this.assertHasSegments();
+
+        return this._segments;
     }
 
     get speed() {
@@ -50,6 +59,8 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     async setAsVideoSource(timestamp: number) {
+        this.assertHasSegments();
+
         await this.renderSegmentAtTime(timestamp);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
@@ -254,6 +265,16 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
             this.segments.isLastPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
+    }
+
+    private assertHasSegments() {
+        if (this._segments.isEmpty) {
+            // The SegmentPlayback class is trying to access the segments
+            // collection when it's empty. This suggests a switch from
+            // recording to playback is happening and force rendering the
+            // video data failed along the way.
+            throw new Error(`Playback has no segments to work with.`);
+        }
     }
 
     private emitSegmentRendered(segment: Segment) {
