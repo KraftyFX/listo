@@ -100,32 +100,21 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.segments.addSegment(segment);
     }
 
-    private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;
+    private forcedRenderDone: (() => void) | null = null;
 
-    /**
-     * Fills the segment collection with more data if and only if the provided
-     * timecode is for a moment beyond what has already been recorded.
-     *
-     * @param timecode the timecode that is about to be rendered.
-     * @returns boolean indicating if a fill occurred.
-     */
-    fillSegments(timecode: number) {
-        if (timecode > this.segments.duration) {
-            return new Promise<boolean>((resolve) => {
-                this.logger.info('Forcing segment rendering');
-                this.forcedRenderDone = resolve;
-                this.stop();
-            });
-        } else {
-            return Promise.resolve(false);
-        }
+    fillSegments() {
+        return new Promise<void>((resolve) => {
+            this.logger.info('Forcing segment rendering');
+            this.forcedRenderDone = resolve;
+            this.stop();
+        });
     }
 
     private resolveForceRenderDonePromise() {
         if (this.forcedRenderDone) {
             this.assertHasSegmentToRender();
 
-            this.forcedRenderDone(true);
+            this.forcedRenderDone();
             this.forcedRenderDone = null;
         }
     }
