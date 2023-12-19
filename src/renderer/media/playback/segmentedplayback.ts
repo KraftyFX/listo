@@ -49,14 +49,12 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     get currentTime() {
-        if (!this.currentSegment) {
-            throw new Error(
-                `The current playback time is only available when it's the active source on the video element`
-            );
-        }
+        this.assertIsActiveVideoSource();
 
-        return this.currentSegment.startTime + this.videoElt.currentTime;
+        return this.currentSegment!.startTime + this.videoElt.currentTime;
     }
+
+    private _isVideoSource = false;
 
     async setAsVideoSource(timestamp: number) {
         this.assertHasSegments();
@@ -69,6 +67,8 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
         this.controller.on('play', () => this.emitPlay());
         this.controller.on('pause', () => this.emitPause());
+
+        this._isVideoSource = true;
 
         if (this.paused) {
             this.emitPause();
@@ -86,6 +86,8 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
         this.controller.removeAllListeners();
         this.controller.stop();
+
+        this._isVideoSource = false;
     }
 
     private currentSegment: Segment | null = null;
@@ -255,16 +257,24 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     public get isAtBeginning() {
         return Boolean(
-            this.segments.isFirstPlayableSegment(this.currentSegment) &&
+            this.segments.isFirstPlayableSegment(this.currentSegment!) &&
                 this.videoElt.currentTime === 0
         );
     }
 
     public get isAtEnd() {
         return Boolean(
-            this.segments.isLastPlayableSegment(this.currentSegment) &&
+            this.segments.isLastPlayableSegment(this.currentSegment!) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
+    }
+
+    private assertIsActiveVideoSource() {
+        if (!this._isVideoSource) {
+            throw new Error(
+                `This is only available when playback the active source on the video element`
+            );
+        }
     }
 
     private assertHasSegments() {
