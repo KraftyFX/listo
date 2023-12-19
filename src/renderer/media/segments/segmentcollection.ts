@@ -94,6 +94,8 @@ export class SegmentCollection extends EventEmitter {
     }
 
     getNextPlayableSegment(segment: Segment) {
+        this.assertIsSegmentDefined(segment);
+
         const segments = this.segments;
 
         if (segment.index >= segments.length) {
@@ -103,10 +105,11 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    isFirstPlayableSegment(segment: Segment | null) {
+    isFirstPlayableSegment(segment: Segment) {
         this.assertHasSegments();
+        this.assertIsSegmentDefined(segment);
 
-        return segment && segment.index == 0;
+        return segment.index == 0;
     }
 
     get lastSegment() {
@@ -125,13 +128,16 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    isLastPlayableSegment(segment: Segment | null) {
+    isLastPlayableSegment(segment: Segment) {
         this.assertHasSegments();
+        this.assertIsSegmentDefined(segment);
 
-        return segment && segment.index == this.lastSegment.index;
+        return segment.index == this.lastSegment.index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
+        this.assertIsSegmentDefined(segment);
+
         if (segment.duration === duration) {
             return false;
         }
@@ -170,6 +176,12 @@ export class SegmentCollection extends EventEmitter {
     private assertHasSegments() {
         if (this.isEmpty) {
             throw new Error(`The segments collection is empty`);
+        }
+    }
+
+    private assertIsSegmentDefined(segment: Segment) {
+        if (!segment) {
+            throw new Error(`The provided segment is undefined`);
         }
     }
 
