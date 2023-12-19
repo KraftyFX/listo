@@ -93,7 +93,7 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    getNextPlayableSegment(segment: Segment) {
+    getNextSegment(segment: Segment) {
         this.assertIsSegmentDefined(segment);
 
         const segments = this.segments;
@@ -105,11 +105,18 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    isFirstPlayableSegment(segment: Segment) {
+    isFirstSegment(segment: Segment) {
         this.assertHasSegments();
         this.assertIsSegmentDefined(segment);
 
         return segment.index == 0;
+    }
+
+    isLastSegment(segment: Segment) {
+        this.assertHasSegments();
+        this.assertIsSegmentDefined(segment);
+
+        return segment.index == this.lastSegment.index;
     }
 
     get lastSegment() {
@@ -126,13 +133,6 @@ export class SegmentCollection extends EventEmitter {
 
             return segment.startTime + segment.duration;
         }
-    }
-
-    isLastPlayableSegment(segment: Segment) {
-        this.assertHasSegments();
-        this.assertIsSegmentDefined(segment);
-
-        return segment.index == this.lastSegment.index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {

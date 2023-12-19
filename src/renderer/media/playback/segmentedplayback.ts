@@ -141,7 +141,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     private async playNextSegment() {
         this.assertAutoPlaybackIsEnabled();
 
-        const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment);
+        const nextSegment = this.segments.getNextSegment(this.currentSegment);
 
         if (nextSegment) {
             this.logger.log(`Playing next ${formatSegment(nextSegment)}`);
@@ -245,14 +245,13 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     public get isAtBeginning() {
         return Boolean(
-            this.segments.isFirstPlayableSegment(this.currentSegment) &&
-                this.videoElt.currentTime === 0
+            this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
         );
     }
 
     public get isAtEnd() {
         return Boolean(
-            this.segments.isLastPlayableSegment(this.currentSegment) &&
+            this.segments.isLastSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
     }
