@@ -8,7 +8,7 @@ import { Segment } from '~/renderer/media/interfaces';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
-import { secondsSince, subtractSecondsFromNow } from './dateutil';
+import { secondsSince } from './dateutil';
 import { LiveStreamRecorder } from './livestreamrecorder';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
@@ -39,9 +39,11 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private liveSegment: Segment = null!;
+    private startTime: Date = null!;
 
     start() {
         this.liveSegment = this.segments.createSegment();
+        this.startTime = new Date();
 
         try {
             this.recorder.start();
@@ -73,31 +75,18 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private onDataAvailable = async (event: BlobEvent) => {
-        this.acquireAccurateRecordingStartTime();
-
         await this.finalizeLiveSegment(event.data);
         this.start();
 
         this.resolveForceRenderDonePromise();
     };
 
-    private acquireAccurateRecordingStartTime() {
-        if (!this.segments.hasRecordingStartTime) {
-            this.segments.recordingStartTime = subtractSecondsFromNow(
-                this.liveStream.videoElt.currentTime
-            );
-        }
-    }
-
     private async finalizeLiveSegment(chunk: Blob) {
         const segment = this.liveSegment;
 
         segment.chunks.push(chunk);
 
-        // const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
-        // segment.url = URL.createObjectURL(blobs);
-
-        segment.duration = this.recordingDuration - segment.startTime;
+        segment.duration = secondsSince(this.startTime);
 
         const blob = new Blob([...segment.chunks], { type: this.options.mimeType });
         const durationPatchedBlob = [await fixWebmDuration(blob)];
@@ -109,17 +98,6 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         );
 
         this.segments.addSegment(segment);
-    }
-
-    private get recordingDuration() {
-        if (!this.segments.hasRecordingStartTime) {
-            this.logger.log(
-                'Current time is unavailable. Assuming that the recording is initializing and returning zero.'
-            );
-            return 0;
-        } else {
-            return secondsSince(this.segments.recordingStartTime);
-        }
     }
 
     private forcedRenderDone: ((hadToRender: boolean) => void) | null = null;

@@ -5,29 +5,12 @@ import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatut
 
 export class SegmentCollection extends EventEmitter {
     private logger: Logger;
-    private _recordingStartTime: Date | null = null;
     private readonly _segments: Segment[] = [];
 
     constructor() {
         super();
 
         this.logger = getLog('seg-coll', { logging: 'info' });
-    }
-
-    get hasRecordingStartTime() {
-        return !!this._recordingStartTime;
-    }
-
-    get recordingStartTime() {
-        if (!this._recordingStartTime) {
-            throw new Error(`The recording start time has not been set yet`);
-        }
-
-        return this._recordingStartTime;
-    }
-
-    set recordingStartTime(value: Date) {
-        this._recordingStartTime = value;
     }
 
     private get segments() {
