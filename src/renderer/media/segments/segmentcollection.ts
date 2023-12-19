@@ -158,15 +158,9 @@ export class SegmentCollection extends EventEmitter {
     private cleanAllStartTimes() {
         this.assertHasSegments();
 
-        const segments = this.segments;
+        let [prev, ...rest] = this.segments;
 
-        let prev = segments[0];
-
-        segments.forEach((curr) => {
-            if (curr.index == 0) {
-                return;
-            }
-
+        rest.forEach((curr) => {
             curr.startTime = prev.startTime + prev.duration + 0.0001;
 
             prev = curr;
