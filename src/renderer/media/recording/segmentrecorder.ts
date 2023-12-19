@@ -39,7 +39,6 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private liveSegment: Segment = null!;
-    private interval: any;
 
     start() {
         this.liveSegment = this.segments.createSegment();
@@ -47,21 +46,30 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         try {
             this.recorder.start();
 
-            if (!this.interval) {
-                this.interval = setInterval(() => {
-                    this.recorder.stop();
-                }, this.options.minSegmentSizeInSec * 1000);
-            }
+            this.startTimeout();
         } catch (err) {
             this.emit('recordingerror', err);
         }
     }
 
     async stop() {
-        clearInterval(this.interval);
-        this.interval = 0;
+        this.stopTimeout();
 
         this.recorder.stop();
+    }
+
+    private timeout: any;
+
+    private startTimeout() {
+        if (!this.timeout) {
+            const ms = this.options.minSegmentSizeInSec * 1000;
+            this.timeout = setTimeout(() => this.recorder.stop(), ms);
+        }
+    }
+
+    private stopTimeout() {
+        clearTimeout(this.timeout);
+        this.timeout = 0;
     }
 
     private onDataAvailable = async (event: BlobEvent) => {
