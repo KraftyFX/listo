@@ -15,13 +15,13 @@ type PlaybackControllerEvents = {
 
 export class PlaybackController extends (EventEmitter as new () => TypedEventEmitter<PlaybackControllerEvents>) {
     private logger: Logger;
-    private recorder: SegmentedPlayback;
+    private playback: SegmentedPlayback;
 
-    constructor(recorder: SegmentedPlayback, public readonly options: PlaybackOptions) {
+    constructor(playback: SegmentedPlayback, public readonly options: PlaybackOptions) {
         super();
 
         this.logger = getLog('pbk-cntr', this.options);
-        this.recorder = recorder;
+        this.playback = playback;
     }
 
     stop() {
@@ -41,7 +41,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     }
 
     private get videoElt() {
-        return this.recorder.videoElt;
+        return this.playback.videoElt;
     }
 
     public get paused() {
@@ -111,8 +111,8 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this.stopInterval();
 
         const nextTimestamp = Math.min(
-            this.recorder.currentTime + SECONDS_PER_FRAME,
-            this.recorder.duration
+            this.playback.currentTime + SECONDS_PER_FRAME,
+            this.playback.duration
         );
 
         this.mode = 'normal';
@@ -179,12 +179,12 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this._interval =
             this._interval ||
             setInterval(async () => {
-                const nextTimestamp = this.recorder.currentTime + this.deltaInSec;
+                const nextTimestamp = this.playback.currentTime + this.deltaInSec;
 
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');
 
-                    this.emitTimeUpdate(this.recorder.currentTime);
+                    this.emitTimeUpdate(this.playback.currentTime);
 
                     this.stopInterval();
                     this.emitPause();
@@ -197,14 +197,14 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (
-                    nextTimestamp >= this.recorder.duration &&
+                    nextTimestamp >= this.playback.duration &&
                     this.direction === 'forward'
                 ) {
                     this.logger.info('Reached the end');
 
                     this.stopInterval();
 
-                    this.emitTimeUpdate(this.recorder.duration);
+                    this.emitTimeUpdate(this.playback.duration);
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
@@ -229,7 +229,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this.logger.log(
             `Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(
                 3
-            )}, max=${this.recorder.duration.toFixed(3)}`
+            )}, max=${this.playback.duration.toFixed(3)}`
         );
         this.emit('timeupdate', timestamp);
     }
