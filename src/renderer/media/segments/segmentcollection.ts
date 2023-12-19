@@ -29,7 +29,6 @@ export class SegmentCollection extends EventEmitter {
             url,
             startTime: this.isEmpty ? 0 : this.endOfTime,
             duration,
-            chunks: [],
         };
 
         this.logger.log(`Adding ${formatSegment(segment)}`);
