@@ -6,13 +6,13 @@ import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
 
-type MediaRecorderExEvents = {
+type StreamingRecorderEvents = {
     recordingerror: (error: any) => void;
     start: (startTime: Dayjs, blob: Blob) => void;
     append: (blob: Blob) => void;
 };
 
-export class MediaRecorderEx extends (EventEmitter as new () => TypedEventEmitter<MediaRecorderExEvents>) {
+export class StreamingRecorder extends (EventEmitter as new () => TypedEventEmitter<StreamingRecorderEvents>) {
     private logger: Logger;
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
