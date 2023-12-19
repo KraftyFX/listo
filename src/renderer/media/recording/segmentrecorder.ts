@@ -38,12 +38,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
-    private liveSegment: Segment = null!;
-    private startTime: Date = null!;
-
     start() {
-        this.liveSegment = this.segments.createSegment();
-
         try {
             this.startTimeout();
         } catch (err) {
@@ -58,6 +53,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private timeout: any;
+    private startTime: Date = null!;
 
     private startTimeout() {
         this.recorder.start();
@@ -80,7 +76,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     };
 
     private async finalizeSegment(chunk: Blob) {
-        const segment = this.liveSegment;
+        const segment = this.segments.createSegment();
 
         segment.chunks.push(chunk);
 

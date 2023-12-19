@@ -109,7 +109,7 @@ export class SegmentCollection extends EventEmitter {
     getNextPlayableSegment(segment: Segment) {
         const segments = this.segments;
 
-        if (segment.index >= segments.length - 1) {
+        if (segment.index >= segments.length) {
             return null;
         } else {
             return segments[segment.index + 1];
