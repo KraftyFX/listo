@@ -60,6 +60,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this._isLive;
     }
 
+    get recordingStartTime() {
+        return this.liveStreamRecorder.recordingStartTime;
+    }
+
     public get liveStreamDuration() {
         return this.liveStreamRecorder.duration;
     }
@@ -125,10 +129,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.logger.info('Playback is at the end.  Switching to Live.');
         await this.switchToLiveStream();
-    }
-
-    get recordingStartTime() {
-        return this.liveStreamRecorder.recordingStartTime;
     }
 
     get paused() {
