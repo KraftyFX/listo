@@ -98,7 +98,7 @@ export class SegmentCollection extends EventEmitter {
 
         const segments = this.segments;
 
-        if (segment.index >= segments.length) {
+        if (segment.index >= segments.length - 1) {
             return null;
         } else {
             return segments[segment.index + 1];
