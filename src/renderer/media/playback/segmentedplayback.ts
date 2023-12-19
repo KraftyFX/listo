@@ -51,7 +51,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     get currentTime() {
         this.assertIsActiveVideoSource();
 
-        return this.currentSegment!.startTime + this.videoElt.currentTime;
+        return this.currentSegment.startTime + this.videoElt.currentTime;
     }
 
     private _isVideoSource = false;
@@ -62,7 +62,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         await this.goToTimecode(timestamp);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
-        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
+        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
 
         this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
         this.controller.on('play', () => this.emitPlay());
@@ -78,8 +78,6 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     async releaseAsVideoSource() {
-        this.currentSegment = null;
-
         this.disableAutoPlayback();
         this.videoElt.ontimeupdate = null;
         this.videoElt.ondurationchange = null;
@@ -90,7 +88,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this._isVideoSource = false;
     }
 
-    private currentSegment: Segment | null = null;
+    private currentSegment: Segment = null!;
 
     async goToTimecode(timestamp: number) {
         const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
@@ -143,7 +141,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     private async playNextSegment() {
         this.assertAutoPlaybackIsEnabled();
 
-        const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment!);
+        const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment);
 
         if (nextSegment) {
             this.logger.log(`Playing next ${formatSegment(nextSegment)}`);
@@ -153,12 +151,6 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
             this.logger.info('No next segment available');
             await this.pause();
             this.emitEnded('end');
-        }
-    }
-
-    private assertAutoPlaybackIsEnabled() {
-        if (!this.videoElt.onended) {
-            throw new Error(`This function is meant to be used as part of auto playback.`);
         }
     }
 
@@ -233,7 +225,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     async fastForward() {
         if (this.isAtEnd) {
-            this.logger.info(`Can't fast fowrardAt playback end`);
+            this.logger.info(`Can't fast fowrard. At playback end`);
             return;
         }
 
@@ -253,16 +245,22 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     public get isAtBeginning() {
         return Boolean(
-            this.segments.isFirstPlayableSegment(this.currentSegment!) &&
+            this.segments.isFirstPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === 0
         );
     }
 
     public get isAtEnd() {
         return Boolean(
-            this.segments.isLastPlayableSegment(this.currentSegment!) &&
+            this.segments.isLastPlayableSegment(this.currentSegment) &&
                 this.videoElt.currentTime === this.videoElt.duration
         );
+    }
+
+    private assertAutoPlaybackIsEnabled() {
+        if (!this.videoElt.onended) {
+            throw new Error(`This function is meant to be used as part of auto playback.`);
+        }
     }
 
     private assertIsActiveVideoSource() {
