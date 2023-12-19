@@ -15,7 +15,7 @@ type SegmentedPlaybackEvents = {
     play: () => void;
     pause: () => void;
     ended: (where: 'start' | 'end') => void;
-    timeupdate: (currentTime: number, duration: number, speed: number) => void;
+    timeupdate: (currentTime: number, speed: number) => void;
 };
 
 export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentedPlaybackEvents>) {
@@ -49,17 +49,12 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         return this.currentSegment.startTime + this.videoElt.currentTime;
     }
 
-    get duration() {
-        return this.segments.duration;
-    }
-
     async setAsVideoSource(timestamp: number) {
         await this.renderSegmentAtTime(timestamp);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment!);
 
-        this.controller.on('timeupdate', (timestamp) => this.renderSegmentAtTime(timestamp));
         this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
         this.controller.on('play', () => this.emitPlay());
         this.controller.on('pause', () => this.emitPause());
@@ -162,6 +157,16 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this.videoElt.onended = null;
     }
 
+    async goToStart() {
+        await this.renderSegmentAtTime(0);
+    }
+
+    async goToEnd() {
+        const segment = this.segments.lastSegment;
+
+        await this.renderSegment(segment, segment.duration);
+    }
+
     async goToTimecode(timecode: number) {
         await this.renderSegmentAtTime(timecode);
     }
@@ -256,7 +261,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     private emitTimeUpdate() {
-        this.emit('timeupdate', this.currentTime, this.duration, this.controller.speed);
+        this.emit('timeupdate', this.currentTime, this.controller.speed);
     }
 
     private emitPlay() {

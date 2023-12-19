@@ -10,7 +10,6 @@ type PlaybackControllerEvents = {
     play: () => void;
     pause: () => void;
     ended: (where: 'start' | 'end') => void;
-    timeupdate: (time: number) => void;
 };
 
 export class PlaybackController extends (EventEmitter as new () => TypedEventEmitter<PlaybackControllerEvents>) {
@@ -110,15 +109,12 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async nextFrame() {
         this.stopInterval();
 
-        const nextTimestamp = Math.min(
-            this.playback.currentTime + SECONDS_PER_FRAME,
-            this.playback.duration
-        );
+        const nextTimestamp = this.playback.currentTime + SECONDS_PER_FRAME;
 
         this.mode = 'normal';
 
         this.logger.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
-        this.emitTimeUpdate(nextTimestamp);
+        this.playback.goToTimecode(nextTimestamp);
         this.emitPause();
     }
 
@@ -184,31 +180,31 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');
 
-                    this.emitTimeUpdate(this.playback.currentTime);
-
                     this.stopInterval();
+
+                    this.playback.goToTimecode(this.playback.currentTime);
                     this.emitPause();
                 } else if (nextTimestamp <= 0 && this.direction === 'backward') {
                     this.logger.info('Reached the beginning');
 
                     this.stopInterval();
 
-                    this.emitTimeUpdate(0);
+                    this.playback.goToStart();
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (
-                    nextTimestamp >= this.playback.duration &&
+                    nextTimestamp >= this.playback.segments.endOfTime &&
                     this.direction === 'forward'
                 ) {
                     this.logger.info('Reached the end');
 
                     this.stopInterval();
 
-                    this.emitTimeUpdate(this.playback.duration);
+                    this.playback.goToEnd();
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
-                    this.emitTimeUpdate(nextTimestamp);
+                    this.playback.goToTimecode(nextTimestamp);
                 }
             }, REFRESH_RATE_IN_MS);
     }
@@ -223,15 +219,6 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
             this._speed = 0;
             this.mode = 'normal';
         }
-    }
-
-    private emitTimeUpdate(timestamp: number) {
-        this.logger.log(
-            `Updating ${this.direction} to ${timestamp.toFixed(3)}. speed=${this.deltaInSec.toFixed(
-                3
-            )}, max=${this.playback.duration.toFixed(3)}`
-        );
-        this.emit('timeupdate', timestamp);
     }
 
     private emitEnded(where: 'start' | 'end') {

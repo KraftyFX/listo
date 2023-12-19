@@ -96,7 +96,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     async fillSegmentsToIncludeTimecode(timecode: number) {
         this.assertIsTimecodeWithinRecordingDuration(timecode);
 
-        if (timecode > this.segments.duration) {
+        if (timecode > this.segments.endOfTime) {
             await this.recorder.forceRender();
             this.assertHasSegmentToRender();
 

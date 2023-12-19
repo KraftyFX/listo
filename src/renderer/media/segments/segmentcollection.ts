@@ -19,10 +19,6 @@ export class SegmentCollection extends EventEmitter {
         return this._segments;
     }
 
-    get duration() {
-        return this._segments.reduce((p, c) => p + c.duration, 0);
-    }
-
     get isEmpty() {
         return this._segments.length === 0;
     }
@@ -31,7 +27,7 @@ export class SegmentCollection extends EventEmitter {
         const segment: Segment = {
             index: this._segments.length,
             url: '',
-            startTime: this.isEmpty ? 0 : this.duration,
+            startTime: this.isEmpty ? 0 : this.endOfTime,
             duration: 0,
             chunks: [],
         };
@@ -55,7 +51,7 @@ export class SegmentCollection extends EventEmitter {
             const segment = segments[0];
             this.logger.log(`Min ${formatSegmentSpan(segment, timestamp)}`);
             return { segment, offset: 0 };
-        } else if (timestamp >= this.duration) {
+        } else if (timestamp >= this.endOfTime) {
             const segment = segments[segments.length - 1];
             this.logger.log(`Max ${formatSegmentSpan(segment, timestamp)}`);
             return { segment, offset: segment.startTime + segment.duration };
@@ -94,7 +90,7 @@ export class SegmentCollection extends EventEmitter {
         }
 
         throw new Error(
-            `The timestamp ${timestamp} is in the bounds of this chunked recording ${this.duration} but a segment was not found. This likely means the segments array is corrupt.`
+            `The timestamp ${timestamp} is in the bounds of this segmented recording ${this.endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
         );
 
         function isInTheSegment(s: Segment) {
@@ -122,10 +118,24 @@ export class SegmentCollection extends EventEmitter {
         return segment && segment.index == 0;
     }
 
-    isLastPlayableSegment(segment: Segment | null) {
+    get lastSegment() {
         const segments = this.segments;
 
-        return segment && segment.index == segments[segments.length - 1].index;
+        return this.segments[segments.length - 1];
+    }
+
+    get endOfTime() {
+        if (this.isEmpty) {
+            return 0;
+        } else {
+            const segment = this.lastSegment;
+
+            return segment.startTime + segment.duration;
+        }
+    }
+
+    isLastPlayableSegment(segment: Segment | null) {
+        return segment && segment.index == this.lastSegment.index;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {

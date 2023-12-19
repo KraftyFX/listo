@@ -105,7 +105,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
 
-            this.playback.on('timeupdate', (currentTime, duration, speed) =>
+            this.playback.on('timeupdate', (currentTime, speed) =>
                 this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed)
             );
             this.playback.on('play', () => this.emitPlay());
