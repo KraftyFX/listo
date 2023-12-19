@@ -89,16 +89,19 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
         this.logger.log(`Requesting segment at ${timestamp.toFixed(2)}`);
 
-        this.renderSegment(segment, offset);
+        await this.renderSegment(segment, offset);
     }
 
-    private renderSegment(segment: Segment, offset: number) {
+    private async renderSegment(segment: Segment, offset: number) {
         let segmentChanged = false;
 
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
-            this.videoElt.src = segment.url;
+            const response = await fetch(segment.url);
+            const url = URL.createObjectURL(await response.blob());
+
+            this.videoElt.src = url;
             this.videoElt.srcObject = null;
 
             this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
@@ -129,18 +132,19 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
     }
 
-    private playNextSegment() {
+    private async playNextSegment() {
         this.assertAutoPlaybackIsEnabled();
 
         const nextSegment = this.segments.getNextPlayableSegment(this.currentSegment!);
 
         if (nextSegment) {
             this.logger.log(`Playing next ${formatSegment(nextSegment)}`);
-            this.renderSegment(nextSegment, 0);
-            this.play();
+            await this.renderSegment(nextSegment, 0);
+            await this.play();
         } else {
             this.logger.info('No next segment available');
-            this.pause().then(() => this.emitEnded('end'));
+            await this.pause();
+            this.emitEnded('end');
         }
     }
 

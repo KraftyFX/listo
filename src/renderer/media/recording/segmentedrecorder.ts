@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
+import fixWebmDuration from 'webm-duration-fix';
 import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Segment } from '~/renderer/media/interfaces';
@@ -9,6 +10,7 @@ import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
 import { LiveStreamRecorder } from './livestreamrecorder';
+// import ysFixWebmDuration from 'fix-webm-duration';
 
 type SegmentedRecorderEvents = {
     recordingerror: (error: any) => void;
@@ -79,17 +81,24 @@ export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    private async finalizeLiveSegment(blob: Blob) {
+    private async finalizeLiveSegment(chunk: Blob) {
         const segment = this.liveSegment;
 
-        segment.chunks.push(blob);
+        segment.chunks.push(chunk);
 
-        const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
+        // const blobs = new Blob(segment.chunks, { type: this.options.mimeType });
+        // segment.url = URL.createObjectURL(blobs);
 
-        segment.url = URL.createObjectURL(blobs);
         segment.duration = this.recordingDuration - segment.startTime;
 
-        await window.listoApi.saveRecording(dayjs().toISOString(), segment.duration, [blob]);
+        const blob = new Blob([...segment.chunks], { type: this.options.mimeType });
+        const durationPatchedBlob = [await fixWebmDuration(blob)];
+
+        segment.url = await window.listoApi.saveRecording(
+            dayjs().toISOString(),
+            segment.duration,
+            durationPatchedBlob
+        );
 
         this.segments.addSegment(segment);
     }

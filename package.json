@@ -49,6 +49,7 @@
     "events": "^3.3.0",
     "ffmpeg-ffprobe-static": "^6.0.0",
     "ffmpeg-static": "^5.2.0",
+    "fix-webm-duration": "^1.0.5",
     "fluent-ffmpeg": "^2.1.2",
     "fork-ts-checker-webpack-plugin": "^7.2.13",
     "jsdom": "^22.1.0",
@@ -65,7 +66,8 @@
     "ts-node": "^10.0.0",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.3.2",
-    "upath": "^2.0.1"
+    "upath": "^2.0.1",
+    "webm-duration-fix": "^1.0.4"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0"

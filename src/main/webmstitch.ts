@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import pathToFfmpeg from 'ffmpeg-ffprobe-static';
-import ffmpeg from 'fluent-ffmpeg';
+import ffmpeg, { ffprobe } from 'fluent-ffmpeg';
 import * as fs from 'node:fs';
 import { join } from 'upath';
 
@@ -15,11 +15,21 @@ ffmpeg.setFfprobePath(`/Users/rafikhan/kraftyfx/listo/node_modules/ffmpeg-ffprob
 
 console.log(pathToFfmpeg);
 
+export function log(filepath: string) {
+    ffprobe(filepath, (err, data) => {
+        console.log(data);
+    });
+}
+
 export function beginStitchingWebmFiles() {
     const webmFiles = fs
         .readdirSync(listoRootDir)
         .filter((file) => file.endsWith('._webm'))
         .map((file) => join(listoRootDir, file));
+
+    if (webmFiles.length === 1) {
+        log(join(listoRootDir, `joined.webm`));
+    }
 
     if (webmFiles.length === 3) {
         console.log('joining');
