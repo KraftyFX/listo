@@ -109,12 +109,6 @@ export class SegmentCollection extends EventEmitter {
         return segment && segment.index == 0;
     }
 
-    private assertHasSegments() {
-        if (this.isEmpty) {
-            throw new Error(`The segments collection is empty`);
-        }
-    }
-
     get lastSegment() {
         const segments = this.segments;
 
@@ -156,6 +150,8 @@ export class SegmentCollection extends EventEmitter {
     }
 
     private cleanAllStartTimes() {
+        this.assertHasSegments();
+
         const segments = this.segments;
 
         let prev = segments[0];
@@ -169,6 +165,12 @@ export class SegmentCollection extends EventEmitter {
 
             prev = curr;
         });
+    }
+
+    private assertHasSegments() {
+        if (this.isEmpty) {
+            throw new Error(`The segments collection is empty`);
+        }
     }
 
     private emitSegmentAdded(segment: Segment) {
