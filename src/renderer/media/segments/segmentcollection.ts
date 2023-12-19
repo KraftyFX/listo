@@ -66,12 +66,6 @@ export class SegmentCollection extends EventEmitter {
         }
     }
 
-    private assertHasSegments() {
-        if (this.isEmpty) {
-            throw new Error(`The segments collection is empty`);
-        }
-    }
-
     private findClosestSegmentForTimestamp(timestamp: number) {
         const segments = this.segments;
 
@@ -118,6 +112,12 @@ export class SegmentCollection extends EventEmitter {
         return segment && segment.index == 0;
     }
 
+    private assertHasSegments() {
+        if (this.isEmpty) {
+            throw new Error(`The segments collection is empty`);
+        }
+    }
+
     get lastSegment() {
         const segments = this.segments;
 
@@ -135,6 +135,8 @@ export class SegmentCollection extends EventEmitter {
     }
 
     isLastPlayableSegment(segment: Segment | null) {
+        this.assertHasSegments();
+
         return segment && segment.index == this.lastSegment.index;
     }
 
