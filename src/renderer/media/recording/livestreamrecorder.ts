@@ -10,7 +10,7 @@ import { SegmentRecorder } from './segmentrecorder';
 type LiveStreamRecorderEvents = {
     play: () => void;
     pause: () => void;
-    timeupdate: (currentTime: number, duration: number) => void;
+    timeupdate: (duration: number) => void;
     starttimeupdate: () => void;
 };
 
@@ -52,10 +52,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
                 throw new Error(`User denied access to the camera. Can't acquire live stream.`);
             }
         }
-    }
-
-    get currentTime() {
-        return this.videoElt.currentTime;
     }
 
     private _recordingStartTime: Date | null = null;
@@ -149,7 +145,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private emitTimeUpdate() {
-        this.emit('timeupdate', this.videoElt.currentTime, this.duration);
+        this.emit('timeupdate', this.duration);
     }
 
     private emitPlay() {

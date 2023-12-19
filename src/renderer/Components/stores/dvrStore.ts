@@ -12,7 +12,6 @@ export class DvrStore {
             | '_dvr'
             | '_recordingStartTime'
             | '_currentTime'
-            | '_duration'
             | '_liveStreamDuration'
             | '_speed'
             | '_isLive'
@@ -28,7 +27,6 @@ export class DvrStore {
 
             _recordingStartTime: observable.ref,
             _currentTime: observable,
-            _duration: observable,
             _liveStreamDuration: observable,
             _speed: observable,
 
@@ -51,7 +49,6 @@ export class DvrStore {
 
     private _recordingStartTime: Dayjs = dayjs();
     private _currentTime = 0;
-    private _duration = 0;
     private _liveStreamDuration = 0;
     private _speed = 1;
 
@@ -102,10 +99,6 @@ export class DvrStore {
 
     get liveStreamDuration() {
         return this._liveStreamDuration;
-    }
-
-    get duration() {
-        return this._duration;
     }
 
     get speed() {
@@ -195,9 +188,8 @@ export class DvrStore {
                 const testMultiplier = 1;
 
                 this._currentTime = currentTime * testMultiplier;
-                this._duration = duration * testMultiplier;
-                this._speed = speed;
                 this._liveStreamDuration = this.dvr.liveStreamDuration * testMultiplier;
+                this._speed = speed;
 
                 this.refreshControlAbilities();
             })

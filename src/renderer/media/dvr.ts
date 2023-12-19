@@ -76,8 +76,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
 
         this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
-        this.liveStreamRecorder.on('timeupdate', (currentTime, duration) =>
-            this.emitTimeUpdate(currentTime, this.liveStreamDuration, 1)
+        this.liveStreamRecorder.on('timeupdate', (duration) =>
+            this.emitTimeUpdate(this.liveStreamDuration, this.liveStreamDuration, 1)
         );
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
@@ -96,7 +96,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
             await this.playback.goToTimecode(timecode);
         } else {
-            timecode = timecode || this.liveStreamRecorder.currentTime;
+            timecode = timecode || this.liveStreamDuration;
 
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
