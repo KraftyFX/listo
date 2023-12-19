@@ -16,7 +16,7 @@ type SegmentedRecorderEvents = {
     recordingerror: (error: any) => void;
 };
 
-export class SegmentedRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
+export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
     private logger: Logger;
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;

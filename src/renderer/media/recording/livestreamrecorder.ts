@@ -5,7 +5,7 @@ import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackuti
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { secondsSince, subtractSecondsFromNow } from './dateutil';
-import { SegmentedRecorder } from './segmentedrecorder';
+import { SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
@@ -15,7 +15,7 @@ type LiveStreamRecorderEvents = {
 };
 
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
-    private readonly recorder: SegmentedRecorder;
+    private readonly recorder: SegmentRecorder;
     private logger: Logger;
 
     private constructor(
@@ -27,7 +27,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         super();
 
         this.logger = getLog('lsr', this.options);
-        this.recorder = new SegmentedRecorder(this, segments, options);
+        this.recorder = new SegmentRecorder(this, segments, options);
     }
 
     static async createFromUserCamera(
