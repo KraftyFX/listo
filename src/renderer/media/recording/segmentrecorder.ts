@@ -5,10 +5,8 @@ import fixWebmDuration from 'webm-duration-fix';
 import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { secondsSince } from './dateutil';
-import { LiveStreamRecorder } from './livestreamrecorder';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
 interface Recording {
@@ -26,18 +24,13 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private readonly recorder: MediaRecorder;
     public readonly options: RecordingOptions;
 
-    constructor(
-        private readonly liveStream: LiveStreamRecorder,
-        public readonly segments: SegmentCollection,
-        options?: Partial<RecordingOptions>
-    ) {
+    constructor(private readonly stream: MediaStream, options?: Partial<RecordingOptions>) {
         super();
 
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
-        this.liveStream = liveStream;
         this.logger = getLog('seg-rec', this.options);
 
-        this.recorder = new MediaRecorder(this.liveStream.stream, {
+        this.recorder = new MediaRecorder(this.stream, {
             mimeType: this.options.mimeType,
         });
         this.recorder.ondataavailable = this.onDataAvailable;
