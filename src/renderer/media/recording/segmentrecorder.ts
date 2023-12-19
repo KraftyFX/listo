@@ -75,13 +75,11 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private onDataAvailable = async (event: BlobEvent) => {
-        await this.finalizeLiveSegment(event.data);
+        await this.finalizeSegment(event.data);
         this.start();
-
-        this.resolveForceRenderDonePromise();
     };
 
-    private async finalizeLiveSegment(chunk: Blob) {
+    private async finalizeSegment(chunk: Blob) {
         const segment = this.liveSegment;
 
         segment.chunks.push(chunk);
@@ -98,24 +96,31 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         );
 
         this.segments.addSegment(segment);
+
+        this.resolveForceRenderPromise(segment);
     }
 
-    private forcedRenderDone: (() => void) | null = null;
+    private promise: Promise<Segment> | null = null;
+    private resolve: ((segment: Segment) => void) | null = null;
 
-    fillSegments() {
-        return new Promise<void>((resolve) => {
-            this.logger.info('Forcing segment rendering');
-            this.forcedRenderDone = resolve;
-            this.stop();
-        });
+    forceRender() {
+        return (
+            this.promise ||
+            (this.promise = new Promise<Segment>((resolve) => {
+                this.logger.info('Forcing segment rendering');
+                this.resolve = resolve;
+                this.stop();
+            }))
+        );
     }
 
-    private resolveForceRenderDonePromise() {
-        if (this.forcedRenderDone) {
+    private resolveForceRenderPromise(segment: Segment) {
+        if (this.resolve) {
             this.assertHasSegmentToRender();
 
-            this.forcedRenderDone();
-            this.forcedRenderDone = null;
+            this.resolve(segment);
+            this.resolve = null;
+            this.promise = null;
         }
     }
 
