@@ -27,7 +27,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         super();
 
         this.logger = getLog('lsr', this.options);
+
         this.recorder = new SegmentRecorder(this, segments, options);
+        this.recorder.onrecording = async ({ startTime, duration, blob }) => {
+            const segment = this.segments.createSegment();
+
+            segment.url = await window.listoApi.saveRecording(startTime.toISOString(), duration, [
+                blob,
+            ]);
+
+            segment.duration = duration;
+
+            this.segments.addSegment(segment);
+        };
     }
 
     static async createFromUserCamera(
