@@ -132,7 +132,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    tryGetActiveVideoDuration() {
+    private tryGetActiveVideoDuration() {
         const duration = this.videoElt.duration;
 
         return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
