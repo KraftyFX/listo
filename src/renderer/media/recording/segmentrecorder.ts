@@ -71,14 +71,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private onDataAvailable = async (event: BlobEvent) => {
-        await this.finalizeSegment(event.data);
-        this.start();
-    };
-
-    private async finalizeSegment(chunk: Blob) {
         const segment = this.segments.createSegment();
 
-        segment.chunks.push(chunk);
+        segment.chunks.push(event.data);
 
         segment.duration = secondsSince(this.startTime);
 
@@ -94,7 +89,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.segments.addSegment(segment);
 
         this.resolveForceRenderPromise(segment);
-    }
+        this.start();
+    };
 
     private promise: Promise<Segment> | null = null;
     private resolve: ((segment: Segment) => void) | null = null;
