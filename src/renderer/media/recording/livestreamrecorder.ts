@@ -86,9 +86,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
         if (timecode > this.segments.duration) {
             await this.recorder.forceRender();
+            this.assertHasSegmentToRender();
+
             return true;
         } else {
             return false;
+        }
+    }
+
+    private assertHasSegmentToRender() {
+        if (this.segments.isEmpty) {
+            throw new Error(
+                `The segmented recorder was told to force render everything. It did that but the segments array is somehow empty.`
+            );
         }
     }
 

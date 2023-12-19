@@ -116,19 +116,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     private resolveForceRenderPromise(segment: Segment) {
         if (this.resolve) {
-            this.assertHasSegmentToRender();
-
             this.resolve(segment);
             this.resolve = null;
             this.promise = null;
-        }
-    }
-
-    private assertHasSegmentToRender() {
-        if (this.segments.isEmpty) {
-            throw new Error(
-                `The chunked recorder was told to force render a segment. It did that but the segments array is somehow empty.`
-            );
         }
     }
 }
