@@ -43,11 +43,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     start() {
         this.liveSegment = this.segments.createSegment();
-        this.startTime = new Date();
 
         try {
-            this.recorder.start();
-
             this.startTimeout();
         } catch (err) {
             this.emit('recordingerror', err);
@@ -63,6 +60,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private timeout: any;
 
     private startTimeout() {
+        this.recorder.start();
+        this.startTime = new Date();
+
         if (!this.timeout) {
             const ms = this.options.minSegmentSizeInSec * 1000;
             this.timeout = setTimeout(() => this.recorder.stop(), ms);
