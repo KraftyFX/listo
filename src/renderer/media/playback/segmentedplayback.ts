@@ -51,7 +51,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     get currentTime() {
         this.assertIsActiveVideoSource();
 
-        return this.currentSegment.startTime + this.videoElt.currentTime;
+        return this.currentSegment.startOffset + this.videoElt.currentTime;
     }
 
     private _isVideoSource = false;

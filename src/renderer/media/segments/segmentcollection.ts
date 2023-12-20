@@ -23,11 +23,11 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(offset: number, url: string, duration: number) {
+    addSegment(startOffset: number, url: string, duration: number) {
         const segment: Segment = {
             index: this._segments.length,
             url,
-            startTime: offset,
+            startOffset,
             duration,
         };
 
@@ -51,13 +51,13 @@ export class SegmentCollection extends EventEmitter {
         } else if (timecode >= this.endOfTime) {
             const segment = segments[segments.length - 1];
             this.logger.log(`Max ${formatSegmentSpan(segment, timecode)}`);
-            return { segment, offset: segment.startTime + segment.duration };
+            return { segment, offset: segment.startOffset + segment.duration };
         } else {
             const segment = this.findClosestSegmentForTimecode(timecode);
 
             this.logger.log(`Mid ${formatSegmentSpan(segment, timecode)}`);
 
-            const offset = Math.max(0, timecode - segment.startTime);
+            const offset = Math.max(0, timecode - segment.startOffset);
 
             return { segment, offset };
         }
@@ -85,11 +85,11 @@ export class SegmentCollection extends EventEmitter {
         );
 
         function isInTheSegment(s: Segment) {
-            return s.startTime <= timecode && timecode < s.startTime + s.duration;
+            return s.startOffset <= timecode && timecode < s.startOffset + s.duration;
         }
 
         function isAtTheEndBoundary(s: Segment) {
-            return timecode === s.startTime + s.duration;
+            return timecode === s.startOffset + s.duration;
         }
     }
 
@@ -128,7 +128,7 @@ export class SegmentCollection extends EventEmitter {
     get endOfTime() {
         const segment = this.lastSegment;
 
-        return segment.startTime + segment.duration;
+        return segment.startOffset + segment.duration;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
@@ -157,7 +157,7 @@ export class SegmentCollection extends EventEmitter {
         let [prev, ...rest] = this.segments;
 
         rest.forEach((curr) => {
-            curr.startTime = prev.startTime + prev.duration + 0.0001;
+            curr.startOffset = prev.startOffset + prev.duration + 0.0001;
 
             prev = curr;
         });

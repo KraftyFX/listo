@@ -1,6 +1,6 @@
 export interface Segment {
     index: number;
     url: string;
-    startTime: number;
+    startOffset: number;
     duration: number;
 }
