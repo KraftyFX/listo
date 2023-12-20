@@ -38,7 +38,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this.controller = new PlaybackController(this, this.options);
     }
 
-    private get segments() {
+    get segments() {
         this.assertHasSegments();
 
         return this._segments;
