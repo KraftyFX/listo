@@ -58,8 +58,8 @@ export class SegmentCollection extends EventEmitter {
             return { segment, offset: 0 };
         } else if (timecode >= this.endOfTime) {
             const segment = segments[segments.length - 1];
-            this.logger.log(`Max ${formatSegmentSpan(segment, timecode)}`);
-            return { segment, offset: segment.startOffset + segment.duration };
+            this.logger.info(`Max ${formatSegmentSpan(segment, timecode)}`);
+            return { segment, offset: segment.duration };
         } else {
             const segment = this.findClosestSegmentForTimecode(timecode);
 
