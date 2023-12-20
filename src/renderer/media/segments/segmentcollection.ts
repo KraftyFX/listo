@@ -23,11 +23,11 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(url: string, duration: number) {
+    addSegment(offset: number, url: string, duration: number) {
         const segment: Segment = {
             index: this._segments.length,
             url,
-            startTime: this.isEmpty ? 0 : this.endOfTime,
+            startTime: offset,
             duration,
         };
 

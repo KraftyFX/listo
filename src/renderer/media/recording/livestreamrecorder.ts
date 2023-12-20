@@ -35,7 +35,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
                 blob,
             ]);
 
-            this.segments.addSegment(url, duration);
+            const milliseconds = startTime.diff(this.recordingStartTime);
+            const offset = dayjs.duration({ milliseconds });
+
+            this.segments.addSegment(offset.asSeconds(), url, duration);
         };
     }
 
