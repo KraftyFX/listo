@@ -99,7 +99,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             timecode = timecode || this.playback.currentTime;
 
             await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
-            await this.playback.goToTimecode(timecode);
+            const timecodeAsTime = this.segments.startOfTimeAsTime.add(timecode, 'seconds');
+            await this.playback.goToTime(timecodeAsTime);
         } else {
             timecode = timecode || this.liveStreamDuration;
 

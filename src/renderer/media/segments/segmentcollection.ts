@@ -44,7 +44,7 @@ export class SegmentCollection extends EventEmitter {
     }
 
     async getSegmentAtTime(time: Dayjs) {
-        const timecode = time.diff(this.segments[0].startTime) / 1000;
+        const timecode = time.diff(this.startOfTimeAsTime) / 1000;
 
         return this.getSegmentAtTimecode(timecode);
     }
@@ -139,6 +139,16 @@ export class SegmentCollection extends EventEmitter {
         return segment.startOffset + segment.duration;
     }
 
+    get startOfTimeAsTime() {
+        return this.segments[0].startTime;
+    }
+
+    get endOfTimeAsTime() {
+        const segment = this.lastSegment;
+
+        return segment.startTime.add(segment.duration, 'seconds');
+    }
+
     resetSegmentDuration(segment: Segment, duration: number) {
         this.assertIsSegmentDefined(segment);
 
@@ -166,6 +176,7 @@ export class SegmentCollection extends EventEmitter {
 
         rest.forEach((curr) => {
             curr.startOffset = prev.startOffset + prev.duration + 0.0001;
+            curr.startTime = prev.startTime.add(prev.duration + 0.0001, 'seconds');
 
             prev = curr;
         });

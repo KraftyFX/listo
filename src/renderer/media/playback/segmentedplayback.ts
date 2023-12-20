@@ -55,6 +55,12 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         return this.currentSegment.startOffset + this.videoElt.currentTime;
     }
 
+    get currentTimeAsTime() {
+        this.assertIsActiveVideoSource();
+
+        return this.currentSegment.startTime.add(this.videoElt.currentTime, 'seconds');
+    }
+
     private _isVideoSource = false;
 
     async setAsVideoSource(timecode: number) {
@@ -94,7 +100,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     async goToTime(time: Dayjs) {
         const { segment, offset } = await this.segments.getSegmentAtTime(time);
 
-        this.logger.log(`Requesting segment for ${time.format('hh:mm:ss.SSS')}`);
+        this.logger.log(`Requesting segment for ${time.format('mm:ss.SSS')}`);
 
         await this.renderSegment(segment, offset);
     }
