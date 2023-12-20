@@ -1,3 +1,4 @@
+import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatutil';
@@ -23,10 +24,11 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(startOffset: number, url: string, duration: number) {
+    addSegment(startTime: Dayjs, startOffset: number, url: string, duration: number) {
         const segment: Segment = {
             index: this._segments.length,
             url,
+            startTime,
             startOffset,
             duration,
         };
