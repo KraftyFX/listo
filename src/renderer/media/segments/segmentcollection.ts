@@ -41,29 +41,29 @@ export class SegmentCollection extends EventEmitter {
         return segment;
     }
 
-    async getSegmentAtTime(timestamp: number) {
+    async getSegmentAtTimecode(timecode: number) {
         const segments = this.segments;
 
-        if (timestamp <= 0) {
+        if (timecode <= 0) {
             const segment = segments[0];
-            this.logger.log(`Min ${formatSegmentSpan(segment, timestamp)}`);
+            this.logger.log(`Min ${formatSegmentSpan(segment, timecode)}`);
             return { segment, offset: 0 };
-        } else if (timestamp >= this.endOfTime) {
+        } else if (timecode >= this.endOfTime) {
             const segment = segments[segments.length - 1];
-            this.logger.log(`Max ${formatSegmentSpan(segment, timestamp)}`);
+            this.logger.log(`Max ${formatSegmentSpan(segment, timecode)}`);
             return { segment, offset: segment.startTime + segment.duration };
         } else {
-            const segment = this.findClosestSegmentForTimestamp(timestamp);
+            const segment = this.findClosestSegmentForTimecode(timecode);
 
-            this.logger.log(`Mid ${formatSegmentSpan(segment, timestamp)}`);
+            this.logger.log(`Mid ${formatSegmentSpan(segment, timecode)}`);
 
-            const offset = Math.max(0, timestamp - segment.startTime);
+            const offset = Math.max(0, timecode - segment.startTime);
 
             return { segment, offset };
         }
     }
 
-    private findClosestSegmentForTimestamp(timestamp: number) {
+    private findClosestSegmentForTimecode(timecode: number) {
         const segments = this.segments;
 
         for (let i = 0; i < segments.length; i++) {
@@ -81,15 +81,15 @@ export class SegmentCollection extends EventEmitter {
         }
 
         throw new Error(
-            `The timestamp ${timestamp} is in the bounds of this segmented recording ${this.endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
+            `The timecode ${timecode} is in the bounds of this segmented recording ${this.endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
         );
 
         function isInTheSegment(s: Segment) {
-            return s.startTime <= timestamp && timestamp < s.startTime + s.duration;
+            return s.startTime <= timecode && timecode < s.startTime + s.duration;
         }
 
         function isAtTheEndBoundary(s: Segment) {
-            return timestamp === s.startTime + s.duration;
+            return timecode === s.startTime + s.duration;
         }
     }
 
