@@ -1,14 +1,10 @@
 import { Dayjs } from 'dayjs';
 import { MarkerConfig } from '~/renderer/media';
 
-export function getPlayTime(currentTime: number, duration: number, speed: number) {
+export function getPlayTime(currentTimeAsTime: Dayjs, duration: number, speed: number) {
     const parts = [];
 
-    if (currentTime === duration) {
-        parts.push(getPlaytimeFormat(currentTime));
-    } else {
-        parts.push(getPlaytimeFormat(currentTime) + ' / ' + getPlaytimeFormat(duration));
-    }
+    parts.push(getPlaytimeFormat(currentTimeAsTime) + ' / ' + duration.toFixed(2));
 
     if (speed !== 1 && speed !== 0) {
         parts.push('@ ' + speed + 'x');
@@ -17,10 +13,8 @@ export function getPlayTime(currentTime: number, duration: number, speed: number
     return parts.join(' ');
 }
 
-export function getPlaytimeFormat(seconds: number) {
-    const date = new Date(0);
-    date.setSeconds(seconds);
-    const format = date.toISOString().substring(11, 19);
+export function getPlaytimeFormat(time: Dayjs) {
+    const format = time.toISOString().substring(11, 19);
 
     if (format.startsWith('00:00:')) {
         return format.substring(6);

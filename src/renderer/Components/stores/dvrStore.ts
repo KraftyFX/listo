@@ -26,7 +26,7 @@ export class DvrStore {
             _dvr: observable.ref,
 
             _recordingStartTime: observable.ref,
-            _currentTime: observable,
+            _currentTime: observable.ref,
             _liveStreamDuration: observable,
             _speed: observable,
 
@@ -48,7 +48,7 @@ export class DvrStore {
     private _dvr: DigitalVideoRecorder | null = null;
 
     private _recordingStartTime: Dayjs = dayjs();
-    private _currentTime = 0;
+    private _currentTime = dayjs();
     private _liveStreamDuration = 0;
     private _speed = 1;
 
@@ -95,6 +95,10 @@ export class DvrStore {
 
     get currentTime() {
         return this._currentTime;
+    }
+
+    set currentTime(time: Dayjs) {
+        this.dvr.goToPlaybackTime(time);
     }
 
     get liveStreamDuration() {
@@ -184,10 +188,10 @@ export class DvrStore {
     private listenForTimeUpdate() {
         this.dvr.on(
             'timeupdate',
-            action((currentTime, duration, speed) => {
+            action((currentTimeAsTime, duration, speed) => {
                 const testMultiplier = 1;
 
-                this._currentTime = currentTime * testMultiplier;
+                this._currentTime = currentTimeAsTime;
                 this._liveStreamDuration = this.dvr.liveStreamDuration * testMultiplier;
                 this._speed = speed;
 

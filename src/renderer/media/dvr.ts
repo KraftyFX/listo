@@ -14,7 +14,7 @@ type DvrEvents = {
     modechange: (isLive: boolean) => void;
     play: () => void;
     pause: () => void;
-    timeupdate: (currentTime: number, duration: number, speed: number) => void;
+    timeupdate: (currentTimeAsTime: Dayjs, duration: number, speed: number) => void;
     segmentrendered: (segment: Segment) => void;
     starttimeupdate: () => void;
 };
@@ -81,9 +81,14 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
 
         this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
-        this.liveStreamRecorder.on('timeupdate', (duration) =>
-            this.emitTimeUpdate(this.liveStreamDuration, this.liveStreamDuration, 1)
-        );
+        this.liveStreamRecorder.on('timeupdate', (duration) => {
+            const currentTimeAsTime = this.liveStreamRecorder.recordingStartTime.add(
+                this.liveStreamDuration,
+                'seconds'
+            );
+
+            this.emitTimeUpdate(currentTimeAsTime, this.liveStreamDuration, 1);
+        });
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
         await this.liveStreamRecorder.setAsVideoSource();
@@ -107,7 +112,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.liveStreamRecorder.releaseAsVideoSource();
 
             this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed)
+                this.emitTimeUpdate(this.playback.currentTimeAsTime, this.liveStreamDuration, speed)
             );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
@@ -137,7 +142,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.liveStreamRecorder.releaseAsVideoSource();
 
             this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed)
+                this.emitTimeUpdate(this.playback.currentTimeAsTime, this.liveStreamDuration, speed)
             );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
@@ -310,9 +315,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private raiseLatestTimeData() {
         if (!this.isLive) {
-            const { currentTime, speed } = this.playback;
+            const { currentTimeAsTime, speed } = this.playback;
 
-            this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed);
+            this.emitTimeUpdate(currentTimeAsTime, this.liveStreamDuration, speed);
         }
     }
 
@@ -324,8 +329,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private emitTimeUpdate(currentTime: number, duration: number, speed: number): void {
-        this.emit('timeupdate', currentTime, duration, speed);
+    private emitTimeUpdate(currentTimeAsTime: Dayjs, duration: number, speed: number): void {
+        this.emit('timeupdate', currentTimeAsTime, duration, speed);
     }
 
     private emitPlay() {

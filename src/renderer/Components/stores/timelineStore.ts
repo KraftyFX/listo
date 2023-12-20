@@ -48,13 +48,11 @@ export class TimelineStore {
     }
 
     get currentTime() {
-        const offset = dayjs.duration({ seconds: this.dvrStore.currentTime });
-
-        return this.firstRecording.startTime.add(offset.asSeconds(), 'seconds');
+        return this.dvrStore.currentTime;
     }
 
     set currentTime(time: Dayjs) {
-        this.dvrStore.dvr.goToPlaybackTime(time);
+        this.dvrStore.currentTime = time;
     }
 
     get startOfTimeline() {
