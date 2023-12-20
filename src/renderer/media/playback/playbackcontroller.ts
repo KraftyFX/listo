@@ -109,12 +109,12 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async nextFrame() {
         this.stopInterval();
 
-        const nextTimestamp = this.playback.currentTime + SECONDS_PER_FRAME;
+        const nextTimecode = this.playback.currentTime + SECONDS_PER_FRAME;
 
         this.mode = 'normal';
 
-        this.logger.info(`Next frame at ${nextTimestamp.toFixed(3)}`);
-        this.playback.goToTimecode(nextTimestamp);
+        this.logger.info(`Next frame at ${nextTimecode.toFixed(3)}`);
+        this.playback.goToTimecode(nextTimecode);
         this.emitPause();
     }
 
@@ -175,7 +175,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this._interval =
             this._interval ||
             setInterval(async () => {
-                const nextTimestamp = this.playback.currentTime + this.deltaInSec;
+                const nextTimecode = this.playback.currentTime + this.deltaInSec;
 
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');
@@ -184,7 +184,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
                     this.playback.goToTimecode(this.playback.currentTime);
                     this.emitPause();
-                } else if (nextTimestamp <= 0 && this.direction === 'backward') {
+                } else if (nextTimecode <= 0 && this.direction === 'backward') {
                     this.logger.info('Reached the beginning');
 
                     this.stopInterval();
@@ -193,7 +193,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (
-                    nextTimestamp >= this.playback.segments.endOfTime &&
+                    nextTimecode >= this.playback.segments.endOfTime &&
                     this.direction === 'forward'
                 ) {
                     this.logger.info('Reached the end');
@@ -204,7 +204,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
-                    this.playback.goToTimecode(nextTimestamp);
+                    this.playback.goToTimecode(nextTimecode);
                 }
             }, REFRESH_RATE_IN_MS);
     }
