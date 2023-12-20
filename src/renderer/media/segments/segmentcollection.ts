@@ -36,7 +36,7 @@ export class SegmentCollection extends EventEmitter {
         this.logger.log(`Adding ${formatSegment(segment)}`);
 
         this._segments.push(segment);
-        this.cleanAllStartTimes();
+        this.cleanAllStartOffsets();
 
         this.emitSegmentAdded(segment);
 
@@ -146,14 +146,14 @@ export class SegmentCollection extends EventEmitter {
 
         segment.duration = duration;
 
-        this.cleanAllStartTimes();
+        this.cleanAllStartOffsets();
 
         this.emitDurationChange(segment);
 
         return true;
     }
 
-    private cleanAllStartTimes() {
+    private cleanAllStartOffsets() {
         this.assertHasSegments();
 
         let [prev, ...rest] = this.segments;
