@@ -43,6 +43,12 @@ export class SegmentCollection extends EventEmitter {
         return segment;
     }
 
+    async getSegmentAtTime(time: Dayjs) {
+        const timecode = time.diff(this.segments[0].startTime) / 1000;
+
+        return this.findClosestSegmentForTimecode(timecode);
+    }
+
     async getSegmentAtTimecode(timecode: number) {
         const segments = this.segments;
 
