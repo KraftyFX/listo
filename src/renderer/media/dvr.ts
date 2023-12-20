@@ -145,11 +145,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (this.isLive) {
             await this.liveStreamRecorder.play();
         } else {
-            if (this.isNearEnd) {
-                await this.switchToLiveStream();
-            } else {
-                await this.playback.play();
-            }
+            await this.playback.play();
         }
     }
 
@@ -172,12 +168,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.assertIsInPlayback();
 
         return this.liveStreamDuration - this.playback.currentTime <= 1;
-    }
-
-    public get isNearEnd() {
-        this.assertIsInPlayback();
-
-        return this.liveStreamDuration - this.playback.currentTime <= 5;
     }
 
     async goToPlaybackTime(time: Dayjs) {
@@ -259,10 +249,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.logger.log(`Starting live duration polling. Reason=${reason}`);
             const pollTime = dayjs.duration(this.options.liveDurationPollingInterval);
 
-            this.interval = setInterval(
-                () => this.raiseLatestTimeData(),
-                pollTime.asMilliseconds()
-            );
+            // this.interval = setInterval(
+            //     () => this.raiseLatestTimeData(),
+            //     pollTime.asMilliseconds()
+            // );
         } else {
             this.logger.log(`(no-op) Polling live duration. Reason=${reason}`);
         }
