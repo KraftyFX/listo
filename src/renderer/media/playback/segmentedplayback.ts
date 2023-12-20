@@ -105,14 +105,6 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         await this.renderSegment(segment, offset);
     }
 
-    async goToTimecode(timecode: number) {
-        const { segment, offset } = await this.segments.getSegmentAtTimecode(timecode);
-
-        this.logger.log(`Requesting segment for ${timecode.toFixed(2)}`);
-
-        await this.renderSegment(segment, offset);
-    }
-
     private async renderSegment(segment: Segment, offset: number) {
         let segmentChanged = false;
 
@@ -178,7 +170,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     async goToStart() {
-        await this.goToTimecode(0);
+        await this.goToTime(this.segments.startOfTimeAsTime);
     }
 
     async goToEnd() {

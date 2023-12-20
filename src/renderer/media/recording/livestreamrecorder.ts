@@ -94,20 +94,9 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async fillSegmentsToIncludeTime(time: Dayjs) {
+        this.assertIsTimeWithinRecordingDuration(time);
+
         if (this.segments.isEmpty || this.segments.endOfTimeAsTime.isBefore(time)) {
-            await this.recorder.forceRender();
-            this.assertHasSegmentToRender();
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    async fillSegmentsToIncludeTimecode(timecode: number) {
-        this.assertIsTimecodeWithinRecordingDuration(timecode);
-
-        if (this.segments.isEmpty || this.segments.endOfTime < timecode) {
             await this.recorder.forceRender();
             this.assertHasSegmentToRender();
 
@@ -125,10 +114,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertIsTimecodeWithinRecordingDuration(timecode: number) {
-        const marginOfErrorAllowed = 1;
+    private assertIsTimeWithinRecordingDuration(time: Dayjs) {
+        const timecode = time.diff(this.recordingStartTime) / 1000;
 
-        if (timecode < 0 || timecode > this.duration + marginOfErrorAllowed) {
+        if (timecode < 0 || timecode > this.duration) {
             throw new Error(
                 `The requested time ${timecode} is outside the bounds of the recorded duration (${this.duration}).`
             );

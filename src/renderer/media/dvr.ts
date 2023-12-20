@@ -128,37 +128,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    async switchToPlayback(timecode?: number) {
-        if (!this._isLive) {
-            timecode = timecode || this.playback.currentTime;
-
-            await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
-            const timecodeAsTime = this.segments.startOfTimeAsTime.add(timecode, 'seconds');
-            await this.playback.goToTime(timecodeAsTime);
-        } else {
-            timecode = timecode || this.liveStreamDuration;
-
-            this.liveStreamRecorder.removeAllListeners();
-            this.liveStreamRecorder.releaseAsVideoSource();
-
-            this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitTimeUpdate(this.playback.currentTimeAsTime, this.liveStreamDuration, speed)
-            );
-            this.playback.on('play', () => this.emitPlay());
-            this.playback.on('pause', () => this.emitPause());
-            this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
-            this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
-
-            await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
-            const time = this.segments.startOfTimeAsTime.add(timecode, 'seconds');
-            await this.playback.setAsVideoSource(time);
-
-            this._isLive = false;
-
-            this.emitModeChange();
-        }
-    }
-
     private async onPlaybackEnded(where: 'start' | 'end') {
         if (where !== 'end') {
             return;
@@ -215,20 +184,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         const wasPlaying = !this.paused;
 
         await this.switchToPlaybackWithTime(time);
-
-        if (wasPlaying) {
-            try {
-                await this.play();
-            } catch (e) {
-                console.warn(e);
-            }
-        }
-    }
-
-    async goToPlaybackTimecode(timecode: number) {
-        const wasPlaying = !this.paused;
-
-        await this.switchToPlayback(timecode);
 
         if (wasPlaying) {
             try {
