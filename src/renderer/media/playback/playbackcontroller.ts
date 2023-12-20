@@ -113,7 +113,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
         this.mode = 'normal';
 
-        this.logger.info(`Next frame at ${nextTime.format('ss.SSS')}`);
+        this.logger.info(`Next frame at ${this.playback.segments.getAsTimecode(nextTime)}`);
         this.playback.goToTime(nextTime);
         this.emitPause();
     }

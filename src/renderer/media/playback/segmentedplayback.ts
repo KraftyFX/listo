@@ -100,7 +100,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     async goToTime(time: Dayjs) {
         const { segment, offset } = await this.segments.getSegmentAtTime(time);
 
-        this.logger.log(`Requesting segment for ${time.format('mm:ss.SSS')}`);
+        this.logger.log(`Requesting segment for ${this.segments.getAsTimecode(time)}`);
 
         await this.renderSegment(segment, offset);
     }

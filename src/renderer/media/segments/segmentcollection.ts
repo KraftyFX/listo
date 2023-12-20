@@ -139,6 +139,10 @@ export class SegmentCollection extends EventEmitter {
         return segment.startOffset + segment.duration;
     }
 
+    getAsTimecode(time: Dayjs) {
+        return time.diff(this.startOfTimeAsTime) / 1000;
+    }
+
     get startOfTimeAsTime() {
         return this.segments[0].startTime;
     }
