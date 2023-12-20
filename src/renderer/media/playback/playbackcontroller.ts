@@ -109,12 +109,12 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async nextFrame() {
         this.stopInterval();
 
-        const nextTimecode = this.playback.currentTimeAsTime.add(SECONDS_PER_FRAME, 'seconds');
+        const nextTime = this.playback.currentTimeAsTime.add(SECONDS_PER_FRAME, 'seconds');
 
         this.mode = 'normal';
 
-        this.logger.info(`Next frame at ${nextTimecode.format('ss.SSS')}`);
-        this.playback.goToTime(nextTimecode);
+        this.logger.info(`Next frame at ${nextTime.format('ss.SSS')}`);
+        this.playback.goToTime(nextTime);
         this.emitPause();
     }
 
