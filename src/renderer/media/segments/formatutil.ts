@@ -5,7 +5,8 @@ export function formatSegment({ index, startOffset, duration }: Segment) {
 }
 
 export function formaSegmentSpan(segment: Segment, timecode: number) {
-    return `${segment.index} = ${segment.startOffset} <= ${timecode} < ${
-        segment.startOffset + segment.duration
-    }`;
+    const start = segment.startOffset.toFixed(2);
+    const end = (segment.startOffset + segment.duration).toFixed(2);
+
+    return `${segment.index} = ${start} <= ${timecode} < ${end}`;
 }
