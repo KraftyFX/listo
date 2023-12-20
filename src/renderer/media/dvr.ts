@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_DVR_OPTIONS } from './constants';
@@ -94,6 +94,35 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.emitModeChange();
     }
 
+    async switchToPlaybackWithTime(time?: Dayjs) {
+        if (!this._isLive) {
+            time = time || this.playback.currentTimeAsTime;
+
+            await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
+            await this.playback.goToTime(time);
+        } else {
+            time = time || this.liveStreamRecorder.recordingStartTime.add(this.liveStreamDuration);
+
+            this.liveStreamRecorder.removeAllListeners();
+            this.liveStreamRecorder.releaseAsVideoSource();
+
+            this.playback.on('timeupdate', (currentTime, speed) =>
+                this.emitTimeUpdate(currentTime, this.liveStreamDuration, speed)
+            );
+            this.playback.on('play', () => this.emitPlay());
+            this.playback.on('pause', () => this.emitPause());
+            this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
+            this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
+
+            await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
+            await this.playback.setAsVideoSource(time);
+
+            this._isLive = false;
+
+            this.emitModeChange();
+        }
+    }
+
     async switchToPlayback(timecode?: number) {
         if (!this._isLive) {
             timecode = timecode || this.playback.currentTime;
@@ -116,7 +145,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
 
             await this.liveStreamRecorder.fillSegmentsToIncludeTimecode(timecode);
-            await this.playback.setAsVideoSource(timecode);
+            const time = this.segments.startOfTimeAsTime.add(timecode, 'seconds');
+            await this.playback.setAsVideoSource(time);
 
             this._isLive = false;
 
@@ -152,7 +182,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     async pause() {
         if (this.isLive) {
             await this.liveStreamRecorder.pause();
-            await this.switchToPlayback();
+            await this.switchToPlaybackWithTime();
         } else {
             await this.playback.pause();
         }
@@ -176,6 +206,20 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this.liveStreamDuration - this.playback.currentTime <= 5;
     }
 
+    async goToPlaybackTime(time: Dayjs) {
+        const wasPlaying = !this.paused;
+
+        await this.switchToPlaybackWithTime(time);
+
+        if (wasPlaying) {
+            try {
+                await this.play();
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+    }
+
     async goToPlaybackTimecode(timecode: number) {
         const wasPlaying = !this.paused;
 
@@ -197,7 +241,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     async rewind() {
-        await this.switchToPlayback();
+        await this.switchToPlaybackWithTime();
 
         await this.playback.rewind();
     }

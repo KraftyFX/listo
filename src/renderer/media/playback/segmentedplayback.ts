@@ -63,10 +63,10 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     private _isVideoSource = false;
 
-    async setAsVideoSource(timecode: number) {
+    async setAsVideoSource(time: Dayjs) {
         this.assertHasSegments();
 
-        await this.goToTimecode(timecode);
+        await this.goToTime(time);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
