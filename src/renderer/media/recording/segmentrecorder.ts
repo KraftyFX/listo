@@ -6,7 +6,7 @@ import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
-import { secondsSince } from './dateutil';
+import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
 interface Recording {
@@ -51,11 +51,11 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private timeout: any;
-    private startTime: Date = null!;
+    private startTime: Dayjs = null!;
 
     private startTimeout() {
         this.recorder.start();
-        this.startTime = new Date();
+        this.startTime = dayjs();
 
         if (!this.timeout) {
             const ms = this.options.minSegmentSizeInSec * 1000;
@@ -71,13 +71,12 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     onrecording: (recording: Recording) => Promise<void> = null!;
 
     private onDataAvailable = async (event: BlobEvent) => {
-        const duration = secondsSince(this.startTime);
-
         const rawBlob = new Blob([event.data], { type: this.options.mimeType });
         const fixedBlob = await fixWebmDuration(rawBlob);
+
         const recording: Recording = {
-            startTime: dayjs(this.startTime),
-            duration,
+            startTime: this.startTime,
+            duration: durationSince(this.startTime).asSeconds(),
             blob: fixedBlob,
         };
 

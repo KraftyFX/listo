@@ -1,10 +1,11 @@
+import dayjs, { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
-import { secondsSince, subtractSecondsFromNow } from './dateutil';
+import { durationSince } from './dateutil';
 import { SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
@@ -62,7 +63,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private _recordingStartTime: Date | null = null;
+    private _recordingStartTime: Dayjs = null!;
 
     public get recordingStartTime() {
         if (!this._recordingStartTime) {
@@ -83,9 +84,9 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         } else {
             this.logger.log('Using estimated duration of live feed.');
 
-            const estimatedDuration = secondsSince(this.recordingStartTime);
+            const estimatedDuration = durationSince(this.recordingStartTime);
 
-            return estimatedDuration;
+            return estimatedDuration.asSeconds();
         }
     }
 
@@ -121,9 +122,9 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private updateEstimatedRecordingStartTime() {
-        const recordingStartTime = subtractSecondsFromNow(this.videoElt.currentTime);
+        const recordingStartTime = dayjs().subtract(this.videoElt.currentTime, 'seconds');
 
-        if (recordingStartTime.getMilliseconds() < this._recordingStartTime!.getMilliseconds()) {
+        if (recordingStartTime.diff(this._recordingStartTime) < 0) {
             this.logger.log(`Updating recording start time ${recordingStartTime}`);
             this._recordingStartTime = recordingStartTime;
             this.emitStartTimeUpdate();
@@ -149,7 +150,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async startRecording() {
-        this._recordingStartTime = new Date();
+        this._recordingStartTime = dayjs();
         await this.recorder.start();
     }
 
