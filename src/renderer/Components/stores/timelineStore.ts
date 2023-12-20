@@ -56,7 +56,7 @@ export class TimelineStore {
     set currentTime(time: Dayjs) {
         const offset = dayjs.duration(time.diff(this.firstRecording.startTime));
 
-        this.dvrStore.dvr.goToPlaybackTime(offset.asMilliseconds() / 1000);
+        this.dvrStore.dvr.goToPlaybackTime(offset.asSeconds());
     }
 
     get startOfTimeline() {

@@ -57,8 +57,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getPixelsFromDuration(duration: Duration) {
-        const viewportSec = viewport.asMilliseconds() / 1000;
-        const durationSec = duration.asMilliseconds() / 1000;
+        const viewportSec = viewport.asSeconds();
+        const durationSec = duration.asSeconds();
 
         const pixelsPerSec = timelineWidthPx / viewportSec;
         const pixels = durationSec * pixelsPerSec;
@@ -67,7 +67,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getTimeFromPixels(x: number) {
-        const viewportSec = viewport.asMilliseconds() / 1000;
+        const viewportSec = viewport.asSeconds();
         const secPerPixel = viewportSec / timelineWidthPx;
 
         const duration = dayjs.duration({ seconds: x * secPerPixel });
