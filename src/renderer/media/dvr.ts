@@ -159,6 +159,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     public get isAtBeginning() {
         this.assertIsInPlayback();
+
         return this.playback.isAtBeginning;
     }
 
