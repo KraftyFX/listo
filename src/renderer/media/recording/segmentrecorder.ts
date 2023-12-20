@@ -59,7 +59,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
         if (!this.timeout) {
             const ms = this.options.minSegmentSizeInSec * 1000;
-            this.timeout = setTimeout(() => this.recorder.stop(), ms);
+            this.timeout = setTimeout(() => this.stop(), ms);
         }
     }
 
