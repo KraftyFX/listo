@@ -175,7 +175,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this.liveStreamDuration - this.playback.currentTime <= 5;
     }
 
-    async goToPlaybackTime(timecode: number) {
+    async goToPlaybackTimecode(timecode: number) {
         const wasPlaying = !this.paused;
 
         await this.switchToPlayback(timecode);
