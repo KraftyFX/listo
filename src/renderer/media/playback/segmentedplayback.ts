@@ -1,3 +1,4 @@
+import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { PlaybackOptions } from '~/renderer/media';
@@ -89,6 +90,14 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     private currentSegment: Segment = null!;
+
+    async goToTime(time: Dayjs) {
+        const { segment, offset } = await this.segments.getSegmentAtTime(time);
+
+        this.logger.log(`Requesting segment for ${time.format('hh:mm:ss.SSS')}`);
+
+        await this.renderSegment(segment, offset);
+    }
 
     async goToTimecode(timecode: number) {
         const { segment, offset } = await this.segments.getSegmentAtTimecode(timecode);
