@@ -56,10 +56,10 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     private _isVideoSource = false;
 
-    async setAsVideoSource(timestamp: number) {
+    async setAsVideoSource(timecode: number) {
         this.assertHasSegments();
 
-        await this.goToTimecode(timestamp);
+        await this.goToTimecode(timecode);
 
         this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
         this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
@@ -90,10 +90,10 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     private currentSegment: Segment = null!;
 
-    async goToTimecode(timestamp: number) {
-        const { segment, offset } = await this.segments.getSegmentAtTime(timestamp);
+    async goToTimecode(timecode: number) {
+        const { segment, offset } = await this.segments.getSegmentAtTimecode(timecode);
 
-        this.logger.log(`Requesting segment for ${timestamp.toFixed(2)}`);
+        this.logger.log(`Requesting segment for ${timecode.toFixed(2)}`);
 
         await this.renderSegment(segment, offset);
     }
