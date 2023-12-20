@@ -48,9 +48,9 @@ export class TimelineStore {
     }
 
     get currentTime() {
-        const ms = dayjs.duration({ seconds: this.dvrStore.currentTime }).asMilliseconds();
+        const offset = dayjs.duration({ seconds: this.dvrStore.currentTime });
 
-        return this.firstRecording.startTime.add(ms, 'milliseconds');
+        return this.firstRecording.startTime.add(offset.asSeconds(), 'seconds');
     }
 
     set currentTime(time: Dayjs) {
@@ -78,9 +78,8 @@ export class TimelineStore {
         const startOfDay = this.firstRecording.startTime.startOf('day');
         const durationInDay = dayjs.duration(time.diff(startOfDay));
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
-        const msSinceLastMarker =
-            durationInDay.asMilliseconds() % majorMarkerDuration.asMilliseconds();
+        const secSinceLastMarker = durationInDay.asSeconds() % majorMarkerDuration.asSeconds();
 
-        return time.subtract(msSinceLastMarker, 'milliseconds');
+        return time.subtract(secSinceLastMarker, 'seconds');
     }
 }
