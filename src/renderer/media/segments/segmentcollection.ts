@@ -126,13 +126,9 @@ export class SegmentCollection extends EventEmitter {
     }
 
     get endOfTime() {
-        if (this.isEmpty) {
-            return 0;
-        } else {
-            const segment = this.lastSegment;
+        const segment = this.lastSegment;
 
-            return segment.startTime + segment.duration;
-        }
+        return segment.startTime + segment.duration;
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
