@@ -74,6 +74,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             return;
         }
 
+        this.logger.info('Switching to live stream');
+
         if (this.playback) {
             await this.playback.pause();
             this.playback.removeAllListeners();
@@ -107,6 +109,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         } else {
             time = time || this.liveStreamRecorder.recordingEndTime;
 
+            this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
+
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
 
@@ -127,12 +131,20 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
+    private getAsTimecode(time: Dayjs) {
+        if (this.segments.isEmpty) {
+            return this.liveStreamRecorder.getAsTimecode(time);
+        } else {
+            return this.segments.getAsTimecode(time);
+        }
+    }
+
     private async onPlaybackEnded(where: 'start' | 'end') {
         if (where !== 'end') {
             return;
         }
 
-        this.logger.info('Playback is at the end.  Switching to Live.');
+        this.logger.info('Playback is at the end.');
         await this.switchToLiveStream();
     }
 
@@ -144,7 +156,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (this.isLive) {
             await this.liveStreamRecorder.play();
         } else {
-            await this.playback.play();
+            if (this.playback.isAtEnd) {
+                await this.switchToLiveStream();
+            } else {
+                await this.playback.play();
+            }
         }
     }
 

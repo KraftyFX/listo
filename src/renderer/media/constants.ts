@@ -8,7 +8,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     inMemory: true,
     source: 'default',
     mimeType: 'video/webm',
-    minSegmentSizeInSec: 3,
+    minSegmentSizeInSec: 60,
     logging: 'log',
 };
 
@@ -31,6 +31,6 @@ export const DEFAULT_DVR_OPTIONS: DvrOptions = {
     recording: DEFAULT_RECORDING_OPTIONS,
     playback: DEFAULT_PLAYBACK_OPTIONS,
     timeline: DEFAULT_TIMELINE_OPTIONS,
-    liveDurationPollingInterval: { milliseconds: 250 },
+    liveDurationPollingInterval: { milliseconds: 500 },
     logging: 'log',
 };
