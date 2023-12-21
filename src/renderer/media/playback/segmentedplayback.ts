@@ -198,7 +198,13 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         }
 
         this.enableAutoPlayNextSegmet();
-        await this.controller.play();
+
+        if (this.isAtCurrentSegmentEnd) {
+            this.logger.info('At the end of currentSegment. Starting play at the next one.');
+            await this.playNextSegment();
+        } else {
+            await this.controller.play();
+        }
     }
 
     async pause() {
@@ -266,9 +272,12 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
     public get isAtEnd() {
         return Boolean(
-            this.segments.isLastSegment(this.currentSegment) &&
-                this.videoElt.currentTime === this.videoElt.duration
+            this.segments.isLastSegment(this.currentSegment) && this.isAtCurrentSegmentEnd
         );
+    }
+
+    private get isAtCurrentSegmentEnd() {
+        return Boolean(this.videoElt.currentTime === this.videoElt.duration);
     }
 
     private assertAutoPlaybackIsEnabled() {
