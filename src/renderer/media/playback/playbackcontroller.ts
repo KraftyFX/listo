@@ -176,14 +176,18 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
             this._interval ||
             setInterval(async () => {
                 const currentTimeAsTime = this.playback.currentTimeAsTime;
-                const nextTime =
+                const nextTimeAsTime =
                     this.deltaInSec >= 0
                         ? currentTimeAsTime.add(this.deltaInSec, 'seconds')
                         : currentTimeAsTime.subtract(this.deltaInSec * -1, 'seconds');
 
-                console.log(
-                    this.deltaInSec + ' ' + (nextTime.diff(currentTimeAsTime) / 1000).toFixed(2)
-                );
+                // TODO: Remove this
+                // const { segments } = this.playback;
+                // const currentTime = segments.getAsTimecode(currentTimeAsTime);
+                // const nextTime = segments.getAsTimecode(nextTimeAsTime);
+
+                // console.log(currentTime + ' ' + nextTime);
+                // console.log(this.deltaInSec + ' ' + (nextTime - currentTime).toFixed(2));
 
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');
@@ -193,7 +197,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.playback.goToTime(currentTimeAsTime);
                     this.emitPause();
                 } else if (
-                    nextTime.isBefore(this.playback.segments.startOfTimeAsTime) &&
+                    nextTimeAsTime.isBefore(this.playback.segments.startOfTimeAsTime) &&
                     this.direction === 'backward'
                 ) {
                     this.logger.info('Reached the beginning');
@@ -204,7 +208,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (
-                    this.playback.segments.endOfTimeAsTime.diff(nextTime) <= 0 &&
+                    this.playback.segments.endOfTimeAsTime.diff(nextTimeAsTime) <= 0 &&
                     this.direction === 'forward'
                 ) {
                     this.logger.info('Reached the end');
@@ -215,7 +219,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
-                    this.playback.goToTime(nextTime);
+                    this.playback.goToTime(nextTimeAsTime);
                 }
             }, REFRESH_RATE_IN_MS);
     }
