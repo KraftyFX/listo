@@ -82,12 +82,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
         this.liveStreamRecorder.on('timeupdate', (duration) => {
-            const currentTimeAsTime = this.liveStreamRecorder.recordingStartTime.add(
-                this.liveStreamDuration,
-                'seconds'
-            );
+            const { recordingEndTime } = this.liveStreamRecorder;
 
-            this.emitTimeUpdate(currentTimeAsTime, this.liveStreamDuration, 1);
+            this.emitTimeUpdate(recordingEndTime, this.liveStreamDuration, 1);
         });
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
@@ -103,10 +100,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (!this._isLive) {
             time = time || this.playback.currentTimeAsTime;
 
+            // This fill segments call is needed b/c the user is in playback mode
+            // and might have jumped to a time that is still actively being recorded
             await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
             await this.playback.goToTime(time);
         } else {
-            time = time || this.liveStreamRecorder.recordingStartTime.add(this.liveStreamDuration);
+            time = time || this.liveStreamRecorder.recordingEndTime;
 
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
@@ -248,11 +247,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (this.interval === 0) {
             this.logger.log(`Starting live duration polling. Reason=${reason}`);
             const pollTime = dayjs.duration(this.options.liveDurationPollingInterval);
-
-            // this.interval = setInterval(
-            //     () => this.raiseLatestTimeData(),
-            //     pollTime.asMilliseconds()
-            // );
+            this.interval = setInterval(
+                () => this.raiseLatestTimeData(),
+                pollTime.asMilliseconds()
+            );
         } else {
             this.logger.log(`(no-op) Polling live duration. Reason=${reason}`);
         }

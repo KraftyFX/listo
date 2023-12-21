@@ -85,6 +85,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this._recordingStartTime;
     }
 
+    public get recordingEndTime() {
+        return this.recordingStartTime.add(this.duration, 'seconds');
+    }
+
     get duration() {
         if (this._isVideoSource && !this.videoElt.paused) {
             this.updateEstimatedRecordingStartTime();
