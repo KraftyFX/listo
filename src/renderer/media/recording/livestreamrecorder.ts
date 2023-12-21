@@ -73,6 +73,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
+    getAsTimecode(time: Dayjs) {
+        return time.diff(this.recordingStartTime) / 1000;
+    }
+
     private _recordingStartTime: Dayjs = null!;
 
     public get recordingStartTime() {
