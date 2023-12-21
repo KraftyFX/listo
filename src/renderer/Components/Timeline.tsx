@@ -71,7 +71,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const secPerPixel = viewportSec / timelineWidthPx;
 
         const duration = dayjs.duration({ seconds: x * secPerPixel });
-        const time = timeline.startOfTimeline.add(duration);
+        const time = timeline.startOfTimeline.add(duration.asSeconds(), 'seconds');
 
         return time;
     }
@@ -126,7 +126,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 </div>
             );
 
-            currTime = currTime.add(minorMarkerDuration);
+            currTime = currTime.add(minorMarkerDuration.asSeconds(), 'seconds');
         }
 
         return elts;

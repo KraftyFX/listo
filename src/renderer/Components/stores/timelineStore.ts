@@ -64,7 +64,7 @@ export class TimelineStore {
     get endOfTimeline() {
         const { startTime, duration } = this.lastRecording;
 
-        const endOfRecording = startTime.add(duration);
+        const endOfRecording = startTime.add(duration.asSeconds(), 'seconds');
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
 
         return this.getPrevMarkerStartTime(endOfRecording).add(majorMarkerDuration);
