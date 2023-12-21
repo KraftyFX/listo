@@ -9,7 +9,7 @@ import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
-interface Recording {
+export interface Recording {
     startTime: Dayjs;
     duration: number;
     blob: Blob;

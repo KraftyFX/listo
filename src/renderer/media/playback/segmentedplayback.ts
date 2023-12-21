@@ -111,10 +111,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
-            const response = await fetch(segment.url);
-            const url = URL.createObjectURL(await response.blob());
-
-            this.videoElt.src = url;
+            this.videoElt.src = await this.getSegmentUrl(segment);
             this.videoElt.srcObject = null;
 
             this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
@@ -127,6 +124,17 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
 
         if (segmentChanged) {
             this.emitSegmentRendered(segment);
+        }
+    }
+
+    private async getSegmentUrl(segment: Segment) {
+        if (segment.url.startsWith('listo://')) {
+            const response = await fetch(segment.url);
+            const url = URL.createObjectURL(await response.blob());
+
+            return url;
+        } else {
+            return segment.url;
         }
     }
 

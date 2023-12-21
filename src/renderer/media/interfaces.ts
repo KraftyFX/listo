@@ -11,6 +11,7 @@ export interface DvrOptions {
 }
 
 export interface RecordingOptions {
+    inMemory: boolean;
     source: 'default' | string;
     mimeType: string;
     minSegmentSizeInSec: number;

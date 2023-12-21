@@ -6,7 +6,7 @@ import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackuti
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
-import { SegmentRecorder } from './segmentrecorder';
+import { Recording, SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
@@ -30,16 +30,23 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.onrecording = async ({ startTime, duration, blob }) => {
-            const url = await window.listoApi.saveRecording(startTime.toISOString(), duration, [
-                blob,
-            ]);
+        this.recorder.onrecording = async (recording) => {
+            const { startTime, duration } = recording;
 
             const milliseconds = startTime.diff(this.recordingStartTime);
             const startOffset = dayjs.duration({ milliseconds });
+            const url = await this.saveBlob(recording);
 
             this.segments.addSegment(startTime, startOffset.asSeconds(), url, duration);
         };
+    }
+
+    private async saveBlob({ startTime, duration, blob }: Recording) {
+        if (this.options.inMemory) {
+            return URL.createObjectURL(blob);
+        } else {
+            return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
+        }
     }
 
     static async createFromUserCamera(
