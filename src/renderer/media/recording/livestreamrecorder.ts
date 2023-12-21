@@ -100,8 +100,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
             return actualDuration;
         } else {
-            // this.logger.log('Using estimated duration of live feed.');
-
             const estimatedDuration = durationSince(this.recordingStartTime);
 
             return estimatedDuration.asSeconds();
