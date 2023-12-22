@@ -91,10 +91,11 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getBars() {
-        return timeline.allRecordings.map(({ startTime, duration }, i, recordings) => {
+        return timeline.allRecordings.map(({ isForced, startTime, duration }, i, recordings) => {
             const style: React.CSSProperties = {
+                backgroundColor: isForced ? 'yellow' : '',
                 left: `${getPixelsFromTime(startTime)}px`,
-                width: `${getPixelsFromDuration(duration)}px`,
+                width: `${getPixelsFromDuration(duration) - 1}px`,
             };
 
             const isLiveBar = dvrStore.isLive && i === recordings.length - 1;

@@ -231,7 +231,8 @@ export class DvrStore {
 
                 // TODO: Normalize on dayjs.duration?
                 this.timeline.pastRecordings = this.dvr.allSegments.map(
-                    ({ startTime, duration }) => ({
+                    ({ isForced, startTime, duration }) => ({
+                        isForced,
                         startTime,
                         duration: dayjs.duration(duration, 'seconds'),
                     })

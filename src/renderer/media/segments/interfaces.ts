@@ -6,4 +6,5 @@ export interface Segment {
     startTime: Dayjs;
     startOffset: number;
     duration: number;
+    isForced: boolean;
 }
