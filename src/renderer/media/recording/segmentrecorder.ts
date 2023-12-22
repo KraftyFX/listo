@@ -13,11 +13,11 @@ export interface Recording {
     estimatedStartTime: Dayjs;
     estimatedDuration: number;
     blob: Blob;
+    isForced: boolean;
 }
 
 type SegmentedRecorderEvents = {
     onstart: (estimatedStartTime: Dayjs) => void;
-    recordingerror: (error: any) => void;
 };
 
 export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
@@ -37,77 +37,84 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.recorder.ondataavailable = this.onDataAvailable;
     }
 
-    start() {
-        try {
-            this.startTimeout();
-        } catch (err) {
-            this.emit('recordingerror', err);
-        }
+    startRecording() {
+        this.startTimeout();
     }
 
-    async stop() {
-        this.stopTimeout();
-
-        this.recorder.stop();
+    stopRecording() {
+        this.clearTimeout();
+        this.chunks = [];
     }
 
     private timeout: any;
     private estimatedStartTime: Dayjs = null!;
 
     private startTimeout() {
-        this.recorder.start();
+        this.chunks = [];
+
+        this.recorder.start(1000);
         this.estimatedStartTime = dayjs();
         this.emitOnStart();
 
-        if (!this.timeout) {
-            const ms = this.options.minSegmentSizeInSec * 1000;
-            this.timeout = setTimeout(() => this.stop(), ms);
-        }
+        const ms = this.options.minSegmentSizeInSec * 1000;
+        this.timeout = setTimeout(() => this.onTimeout(), ms);
     }
 
-    private stopTimeout() {
+    private clearTimeout() {
         clearTimeout(this.timeout);
         this.timeout = 0;
     }
 
+    private async onTimeout() {
+        this.clearTimeout();
+
+        await this.stopAndEnsureLastVideoChunk();
+
+        await this.raiseRecording(false);
+
+        this.startTimeout();
+    }
+
+    private chunks: Blob[] = [];
+
+    private onDataAvailable = (event: BlobEvent) => {
+        this.chunks.push(event.data);
+    };
+
     onrecording: (recording: Recording) => Promise<void> = null!;
 
-    private onDataAvailable = async (event: BlobEvent) => {
-        const rawBlob = new Blob([event.data], { type: this.options.mimeType });
+    private async raiseRecording(isForced: boolean) {
+        const blobs = [...this.chunks];
+
+        const rawBlob = new Blob(blobs, { type: this.options.mimeType });
         const fixedBlob = await fixWebmDuration(rawBlob);
 
         const recording: Recording = {
             estimatedStartTime: this.estimatedStartTime,
             estimatedDuration: durationSince(this.estimatedStartTime).asSeconds(),
             blob: fixedBlob,
+            isForced,
         };
 
         await this.onrecording(recording);
 
-        this.resolveForceRenderPromise(recording);
-        this.start();
-    };
-
-    private promise: Promise<Recording> | null = null;
-    private resolve: ((recording: Recording) => void) | null = null;
-
-    forceRender() {
-        return (
-            this.promise ||
-            (this.promise = new Promise<Recording>((resolve) => {
-                this.logger.info('Forcing recording rendering');
-                this.resolve = resolve;
-                this.stop();
-            }))
-        );
+        return recording;
     }
 
-    private resolveForceRenderPromise(recording: Recording) {
-        if (this.resolve) {
-            this.resolve(recording);
-            this.resolve = null;
-            this.promise = null;
-        }
+    forceRender() {
+        return this.raiseRecording(true);
+    }
+
+    private stopAndEnsureLastVideoChunk() {
+        return new Promise<void>((resolve) => {
+            this.recorder.ondataavailable = (event) => {
+                this.onDataAvailable(event);
+                this.recorder.ondataavailable = this.onDataAvailable;
+                resolve();
+            };
+
+            this.recorder.stop();
+        });
     }
 
     private emitOnStart() {
