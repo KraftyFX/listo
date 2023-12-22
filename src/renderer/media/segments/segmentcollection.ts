@@ -2,7 +2,7 @@ import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
-import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatutil';
+import { formatSegment } from './formatutil';
 import { Segment } from './interfaces';
 
 type SegmentedCollectionEvents = {
@@ -44,9 +44,9 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
 
         this.logger.log(`Adding ${formatSegment(segment)}`);
 
-        // if (!this.isEmpty && this.lastSegment.isForced) {
-        //     this._segments.pop();
-        // }
+        if (!this.isEmpty && this.lastSegment.isForced) {
+            this._segments.pop();
+        }
 
         this._segments.push(segment);
         this.cleanAllStartOffsets();
@@ -57,37 +57,29 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     async getSegmentAtTime(time: Dayjs) {
-        const timecode = time.diff(this.startOfTimeAsTime) / 1000;
-
-        return this.getSegmentAtTimecode(timecode);
+        return this.getSegmentAtTimecode(time);
     }
 
-    async getSegmentAtTimecode(timecode: number) {
+    async getSegmentAtTimecode(time: Dayjs) {
         const segments = this.segments;
-        const endOfTime = this.getAsTimecode(this.endOfTimeAsTime);
 
-        if (timecode <= 0) {
+        if (time.isBefore(this.startOfTimeAsTime)) {
             const segment = segments[0];
-            this.logger.log(`Min ${formatSegmentSpan(segment, timecode)}`);
             return { segment, offset: 0 };
-        } else if (timecode >= endOfTime) {
-            const segment = segments[segments.length - 1];
-            this.logger.info(`Max ${formatSegmentSpan(segment, timecode)}`);
-            return { segment, offset: segment.duration };
-        } else {
-            const segment = this.findClosestSegmentForTimecode(timecode);
-
-            this.logger.log(`Mid ${formatSegmentSpan(segment, timecode)}`);
-
-            const offset = Math.max(0, timecode - segment.startOffset);
-
-            return { segment, offset };
         }
+
+        if (time.isAfter(this.endOfTimeAsTime)) {
+            const segment = this.lastSegment;
+            return { segment, offset: segment.duration };
+        }
+
+        const segment = this.findClosestSegmentForTimecode(time);
+        const offset = time.diff(segment.startTime) / 1000;
+
+        return { segment, offset };
     }
 
-    private findClosestSegmentForTimecode(timecode: number) {
-        const endOfTime = this.getAsTimecode(this.endOfTimeAsTime);
-
+    private findClosestSegmentForTimecode(time: Dayjs) {
         const segments = this.segments;
 
         for (let i = 0; i < segments.length; i++) {
@@ -99,21 +91,27 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
                 if (i < segments.length - 2) {
                     return segments[i + 1];
                 } else {
-                    return segments[segments.length - 1];
+                    return this.lastSegment;
                 }
             }
         }
 
         throw new Error(
-            `The timecode ${timecode} is in the bounds of this segmented recording ${endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
+            `The timecode ${this.getAsTimecode(time)} is in the bounds of this segmented ` +
+                `recording ${this.getAsTimecode(this.endOfTimeAsTime)} but ` +
+                `a segment was not found. This likely means the segments ` +
+                `array is corrupt.`
         );
 
         function isInTheSegment(s: Segment) {
-            return s.startOffset <= timecode && timecode < s.startOffset + s.duration;
+            const isAfterStart = time.isAfter(s.startTime) || time.isSame(s.startTime);
+            const isBeforeEnd = time.isBefore(s.startTime.add(s.duration, 'seconds'));
+
+            return isAfterStart && isBeforeEnd;
         }
 
         function isAtTheEndBoundary(s: Segment) {
-            return timecode === s.startOffset + s.duration;
+            return time.isSame(s.startTime.add(s.duration, 'seconds'));
         }
     }
 
