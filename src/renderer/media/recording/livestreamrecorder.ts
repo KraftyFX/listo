@@ -6,13 +6,12 @@ import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackuti
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
-import { Recording, SegmentRecorder } from './segmentrecorder';
+import { SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
     pause: () => void;
-    timeupdate: (duration: number) => void;
-    starttimeupdate: () => void;
+    update: () => void;
 };
 
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
@@ -30,18 +29,27 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
+        this.recorder.on('onstart', (startTime) => {
+            this._startTime = this.segments.isEmpty ? startTime : this.segments.endOfTimeAsTime;
+        });
         this.recorder.onrecording = async (recording) => {
-            const { startTime, duration } = recording;
+            const { estimatedDuration: duration, blob } = recording;
+            const startTime = this._startTime;
+            const endTime = startTime.add(duration, 'seconds');
 
-            const milliseconds = startTime.diff(this.recordingStartTime);
-            const startOffset = dayjs.duration({ milliseconds });
-            const url = await this.saveBlob(recording);
+            const url = await this.saveBlob(startTime, duration, blob);
 
-            this.segments.addSegment(startTime, startOffset.asSeconds(), url, duration);
+            console.log(
+                `${startTime.format('mm:ss')} + ${duration.toFixed(2)}s = ${endTime.format(
+                    'mm:ss'
+                )}`
+            );
+
+            this.segments.addSegment(startTime, url, duration);
         };
     }
 
-    private async saveBlob({ startTime, duration, blob }: Recording) {
+    private async saveBlob(startTime: Dayjs, duration: number, blob: Blob) {
         if (this.options.inMemory) {
             return URL.createObjectURL(blob);
         } else {
@@ -74,40 +82,41 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     getAsTimecode(time: Dayjs) {
-        return time.diff(this.recordingStartTime) / 1000;
+        return time.diff(this.startTime) / 1000;
     }
 
-    private _recordingStartTime: Dayjs = null!;
+    public get recording() {
+        return {
+            startTime: this.startTime,
+            duration: this.duration,
+            endTime: this.startTime.add(this.duration, 'seconds'),
+        };
+    }
 
-    public get recordingStartTime() {
-        if (!this._recordingStartTime) {
+    private _startTime: Dayjs = null!;
+
+    private get startTime() {
+        this.assertHasReliableStartTime();
+
+        return this._startTime;
+    }
+
+    private assertHasReliableStartTime() {
+        if (!this._startTime) {
             throw new Error(
                 `The recording start time is only available after startRecording() is called.`
             );
         }
-
-        return this._recordingStartTime;
-    }
-
-    public get recordingEndTime() {
-        return this.recordingStartTime.add(this.duration, 'seconds');
     }
 
     get duration() {
-        if (this._isVideoSource && !this.videoElt.paused) {
-            this.updateEstimatedRecordingStartTime();
-            const actualDuration = this.videoElt.currentTime;
+        const duration = durationSince(this.startTime);
 
-            return actualDuration;
-        } else {
-            const estimatedDuration = durationSince(this.recordingStartTime);
-
-            return estimatedDuration.asSeconds();
-        }
+        return duration.asSeconds();
     }
 
     async fillSegmentsToIncludeTime(time: Dayjs) {
-        this.assertIsTimeWithinRecordingDuration(time);
+        this.assertFillIsPossible(time);
 
         if (this.segments.isEmpty || this.segments.endOfTimeAsTime.isBefore(time)) {
             await this.recorder.forceRender();
@@ -127,23 +136,15 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertIsTimeWithinRecordingDuration(time: Dayjs) {
-        const timecode = time.diff(this.recordingStartTime) / 1000;
+    private assertFillIsPossible(time: Dayjs) {
+        const { startTime, endTime } = this.recording;
 
-        if (timecode < 0 || timecode > this.duration) {
+        if (time.isAfter(endTime)) {
+            const timecode = time.diff(startTime) / 1000;
+
             throw new Error(
                 `The requested time ${timecode} is outside the bounds of the recorded duration (${this.duration}).`
             );
-        }
-    }
-
-    private updateEstimatedRecordingStartTime() {
-        const recordingStartTime = dayjs().subtract(this.videoElt.currentTime, 'seconds');
-
-        if (recordingStartTime.diff(this._recordingStartTime) < 0) {
-            this.logger.log(`Updating recording start time ${recordingStartTime}`);
-            this._recordingStartTime = recordingStartTime;
-            this.emitStartTimeUpdate();
         }
     }
 
@@ -152,7 +153,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     async setAsVideoSource() {
         this.videoElt.src = '';
         this.videoElt.srcObject = this.stream;
-        this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
+        this.videoElt.ontimeupdate = () => this.emitUpdate();
         this._isVideoSource = true;
     }
 
@@ -166,7 +167,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async startRecording() {
-        this._recordingStartTime = dayjs();
+        this._startTime = dayjs();
         await this.recorder.start();
     }
 
@@ -184,10 +185,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.emitPause();
     }
 
-    private emitTimeUpdate() {
-        this.emit('timeupdate', this.duration);
-    }
-
     private emitPlay() {
         this.emit('play');
     }
@@ -196,7 +193,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.emit('pause');
     }
 
-    private emitStartTimeUpdate() {
-        this.emit('starttimeupdate');
+    private emitUpdate() {
+        this.emit('update');
     }
 }

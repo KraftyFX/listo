@@ -14,7 +14,7 @@ export class SegmentCollection extends EventEmitter {
         this.logger = getLog('seg-coll', { logging: 'info' });
     }
 
-    private get segments() {
+    get segments() {
         this.assertHasSegments();
 
         return this._segments;
@@ -24,7 +24,9 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(startTime: Dayjs, startOffset: number, url: string, duration: number) {
+    addSegment(startTime: Dayjs, url: string, duration: number) {
+        const startOffset = this.isEmpty ? 0 : this.getAsTimecode(startTime);
+
         const segment: Segment = {
             index: this._segments.length,
             url,

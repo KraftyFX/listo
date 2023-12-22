@@ -94,7 +94,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         return timeline.allRecordings.map(({ startTime, duration }, i, recordings) => {
             const style: React.CSSProperties = {
                 left: `${getPixelsFromTime(startTime)}px`,
-                width: `${getPixelsFromDuration(duration) - 1}px`,
+                width: `${getPixelsFromDuration(duration)}px`,
             };
 
             const isLiveBar = dvrStore.isLive && i === recordings.length - 1;

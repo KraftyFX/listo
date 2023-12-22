@@ -10,12 +10,13 @@ import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
 export interface Recording {
-    startTime: Dayjs;
-    duration: number;
+    estimatedStartTime: Dayjs;
+    estimatedDuration: number;
     blob: Blob;
 }
 
 type SegmentedRecorderEvents = {
+    onstart: (startTime: Dayjs) => void;
     recordingerror: (error: any) => void;
 };
 
@@ -56,6 +57,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private startTimeout() {
         this.recorder.start();
         this.startTime = dayjs();
+        this.emitOnStart();
 
         if (!this.timeout) {
             const ms = this.options.minSegmentSizeInSec * 1000;
@@ -75,8 +77,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         const fixedBlob = await fixWebmDuration(rawBlob);
 
         const recording: Recording = {
-            startTime: this.startTime,
-            duration: durationSince(this.startTime).asSeconds(),
+            estimatedStartTime: this.startTime,
+            estimatedDuration: durationSince(this.startTime).asSeconds(),
             blob: fixedBlob,
         };
 
@@ -106,5 +108,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             this.resolve = null;
             this.promise = null;
         }
+    }
+
+    private emitOnStart() {
+        this.emit('onstart', this.startTime);
     }
 }

@@ -12,7 +12,7 @@ export class DvrStore {
             | '_dvr'
             | '_recordingStartTime'
             | '_currentTime'
-            | '_liveStreamDuration'
+            | '_recordingDuration'
             | '_speed'
             | '_isLive'
             | '_isPaused'
@@ -27,7 +27,7 @@ export class DvrStore {
 
             _recordingStartTime: observable.ref,
             _currentTime: observable.ref,
-            _liveStreamDuration: observable,
+            _recordingDuration: observable,
             _speed: observable,
 
             _isLive: observable,
@@ -48,8 +48,8 @@ export class DvrStore {
     private _dvr: DigitalVideoRecorder | null = null;
 
     private _recordingStartTime: Dayjs = dayjs();
+    private _recordingDuration = 0;
     private _currentTime = dayjs();
-    private _liveStreamDuration = 0;
     private _speed = 1;
 
     private _isLive = true;
@@ -85,8 +85,9 @@ export class DvrStore {
 
         this.listenForModeChange();
         this.listenForPlayPauseChange();
-        this.listenForStartTimeUpdate();
-        this.listenForTimeUpdate();
+        this.listenForLiveUpdates();
+        this.listenForPlaybackUpdate();
+        this.listenForSegmentAdded();
     }
 
     get recordingStartTime() {
@@ -102,7 +103,7 @@ export class DvrStore {
     }
 
     get liveStreamDuration() {
-        return this._liveStreamDuration;
+        return this._recordingDuration;
     }
 
     get speed() {
@@ -163,15 +164,6 @@ export class DvrStore {
         );
     }
 
-    private listenForStartTimeUpdate() {
-        this._recordingStartTime = dayjs(this.dvr.recordingStartTime);
-
-        this.dvr.on(
-            'starttimeupdate',
-            action(() => (this._recordingStartTime = this.dvr.recordingStartTime))
-        );
-    }
-
     private listenForPlayPauseChange() {
         this._isPaused = this.dvr.paused;
 
@@ -185,17 +177,65 @@ export class DvrStore {
         );
     }
 
-    private listenForTimeUpdate() {
+    private listenForLiveUpdates() {
         this.dvr.on(
-            'timeupdate',
-            action((currentTimeAsTime, duration, speed) => {
-                const testMultiplier = 1;
+            'liveupdate',
+            action(() => {
+                this.updateLiveRecordingStats();
+
+                // When the app is in playback mode we're still getting live data
+                // but the user might be paused or scrubbing. As a result we only
+                // want to update the current time if we're actually in live mode.
+                if (this.isLive) {
+                    this._currentTime = this._recordingStartTime.add(
+                        this._recordingDuration,
+                        'seconds'
+                    );
+                }
+            })
+        );
+    }
+
+    private listenForPlaybackUpdate() {
+        this.dvr.on(
+            'playbackupdate',
+            action((currentTimeAsTime, speed) => {
+                this.updateLiveRecordingStats();
 
                 this._currentTime = currentTimeAsTime;
-                this._liveStreamDuration = this.dvr.liveStreamDuration * testMultiplier;
                 this._speed = speed;
 
                 this.refreshControlAbilities();
+            })
+        );
+    }
+
+    private updateLiveRecordingStats() {
+        const { startTime, duration } = this.dvr.recording;
+
+        this._recordingStartTime = startTime;
+        this._recordingDuration = duration;
+    }
+
+    private listenForSegmentAdded() {
+        this.dvr.on(
+            'segmentadded',
+            action(() => {
+                // We're in a limbo state where the old recording is done but the new one
+                // hasn't started. This makes the recording startTime and duration unreliable.
+                // Rather than do gymnastics in lower level components to guarantee
+                // consistency we're going to paper over it here b/c the data will be correct
+                // before the user notices.
+                this._recordingStartTime = dayjs();
+                this._recordingDuration = 0;
+
+                // TODO: Normalize on dayjs.duration?
+                this.timeline.pastRecordings = this.dvr.allSegments.map(
+                    ({ startTime, duration }) => ({
+                        startTime,
+                        duration: dayjs.duration(duration, 'seconds'),
+                    })
+                );
             })
         );
     }

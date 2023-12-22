@@ -14,9 +14,10 @@ type DvrEvents = {
     modechange: (isLive: boolean) => void;
     play: () => void;
     pause: () => void;
-    timeupdate: (currentTimeAsTime: Dayjs, duration: number, speed: number) => void;
+    playbackupdate: (currentTimeAsTime: Dayjs, speed: number) => void;
+    liveupdate: () => void;
+    segmentadded: () => void;
     segmentrendered: (segment: Segment) => void;
-    starttimeupdate: () => void;
 };
 
 export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventEmitter<DvrEvents>) {
@@ -41,7 +42,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async showLiveStreamAndStartRecording() {
         this.segments = new SegmentCollection();
-        this.segments.on('segmentadded', (segment) => this.raiseLatestTimeData());
+        this.segments.on('segmentadded', (segment) => this.raiseSegmentAdded());
 
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
             this.videoElt,
@@ -57,16 +58,17 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private _isLive = false;
 
+    // TODO: Remove public acess modifier
     public get isLive() {
         return this._isLive;
     }
 
-    get recordingStartTime() {
-        return this.liveStreamRecorder.recordingStartTime;
+    get allSegments() {
+        return this.segments.segments;
     }
 
-    public get liveStreamDuration() {
-        return this.liveStreamRecorder.duration;
+    get recording() {
+        return this.liveStreamRecorder.recording;
     }
 
     async switchToLiveStream() {
@@ -82,12 +84,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             await this.playback.releaseAsVideoSource();
         }
 
-        this.liveStreamRecorder.on('starttimeupdate', () => this.emitStartTimeUpdate());
-        this.liveStreamRecorder.on('timeupdate', (duration) => {
-            const { recordingEndTime } = this.liveStreamRecorder;
-
-            this.emitTimeUpdate(recordingEndTime, this.liveStreamDuration, 1);
-        });
+        this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
         await this.liveStreamRecorder.setAsVideoSource();
@@ -107,7 +104,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
             await this.playback.goToTime(time);
         } else {
-            time = time || this.liveStreamRecorder.recordingEndTime;
+            time = time || this.liveStreamRecorder.recording.endTime;
 
             this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
 
@@ -115,7 +112,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.liveStreamRecorder.releaseAsVideoSource();
 
             this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitTimeUpdate(this.playback.currentTimeAsTime, this.liveStreamDuration, speed)
+                this.emitPlaybackUpdate(this.playback.currentTimeAsTime, speed)
             );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
@@ -182,7 +179,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     public get isAtEnd() {
         this.assertIsInPlayback();
 
-        return this.liveStreamDuration - this.playback.currentTime <= 1;
+        return this.recording.endTime.diff(this.playback.currentTime) <= 1000;
     }
 
     async goToPlaybackTime(time: Dayjs) {
@@ -263,21 +260,14 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (this.interval === 0) {
             this.logger.log(`Starting live duration polling. Reason=${reason}`);
             const pollTime = dayjs.duration(this.options.liveDurationPollingInterval);
-            this.interval = setInterval(
-                () => this.raiseLatestTimeData(),
-                pollTime.asMilliseconds()
-            );
+            this.interval = setInterval(() => this.emitLiveUpdate(), pollTime.asMilliseconds());
         } else {
             this.logger.log(`(no-op) Polling live duration. Reason=${reason}`);
         }
     }
 
-    private raiseLatestTimeData() {
-        if (!this.isLive) {
-            const { currentTimeAsTime, speed } = this.playback;
-
-            this.emitTimeUpdate(currentTimeAsTime, this.liveStreamDuration, speed);
-        }
+    private raiseSegmentAdded() {
+        this.emit('segmentadded');
     }
 
     private stopPollingLiveStreamRecordingDuration() {
@@ -288,8 +278,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private emitTimeUpdate(currentTimeAsTime: Dayjs, duration: number, speed: number): void {
-        this.emit('timeupdate', currentTimeAsTime, duration, speed);
+    private emitPlaybackUpdate(currentTimeAsTime: Dayjs, speed: number): void {
+        this.emit('playbackupdate', currentTimeAsTime, speed);
     }
 
     private emitPlay() {
@@ -310,7 +300,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.emit('segmentrendered', segment);
     }
 
-    private emitStartTimeUpdate() {
-        this.emit('starttimeupdate');
+    private emitLiveUpdate() {
+        this.emit('liveupdate');
     }
 }
