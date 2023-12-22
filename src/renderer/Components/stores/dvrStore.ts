@@ -168,7 +168,7 @@ export class DvrStore {
 
         this.dvr.on(
             'starttimeupdate',
-            action(() => (this._recordingStartTime = dayjs(this.dvr.recordingStartTime)))
+            action(() => (this._recordingStartTime = this.dvr.recordingStartTime))
         );
     }
 
