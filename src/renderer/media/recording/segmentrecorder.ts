@@ -16,7 +16,7 @@ export interface Recording {
 }
 
 type SegmentedRecorderEvents = {
-    onstart: (startTime: Dayjs) => void;
+    onstart: (estimatedStartTime: Dayjs) => void;
     recordingerror: (error: any) => void;
 };
 
@@ -52,11 +52,11 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private timeout: any;
-    private startTime: Dayjs = null!;
+    private estimatedStartTime: Dayjs = null!;
 
     private startTimeout() {
         this.recorder.start();
-        this.startTime = dayjs();
+        this.estimatedStartTime = dayjs();
         this.emitOnStart();
 
         if (!this.timeout) {
@@ -77,8 +77,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         const fixedBlob = await fixWebmDuration(rawBlob);
 
         const recording: Recording = {
-            estimatedStartTime: this.startTime,
-            estimatedDuration: durationSince(this.startTime).asSeconds(),
+            estimatedStartTime: this.estimatedStartTime,
+            estimatedDuration: durationSince(this.estimatedStartTime).asSeconds(),
             blob: fixedBlob,
         };
 
@@ -111,6 +111,6 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private emitOnStart() {
-        this.emit('onstart', this.startTime);
+        this.emit('onstart', this.estimatedStartTime);
     }
 }

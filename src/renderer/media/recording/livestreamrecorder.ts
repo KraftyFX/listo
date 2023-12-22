@@ -29,8 +29,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (startTime) => {
-            this._startTime = this.segments.isEmpty ? startTime : this.segments.endOfTimeAsTime;
+        this.recorder.on('onstart', (estimatedStartTime) => {
+            this._startTime = this.segments.isEmpty
+                ? estimatedStartTime
+                : this.segments.endOfTimeAsTime;
         });
         this.recorder.onrecording = async (recording) => {
             const { estimatedDuration: duration, blob } = recording;
