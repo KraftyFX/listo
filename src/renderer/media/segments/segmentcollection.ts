@@ -1,10 +1,16 @@
 import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import TypedEventEmitter from '../eventemitter';
 import { formatSegment, formaSegmentSpan as formatSegmentSpan } from './formatutil';
 import { Segment } from './interfaces';
 
-export class SegmentCollection extends EventEmitter {
+type SegmentedCollectionEvents = {
+    reset: (segment: Segment) => void;
+    segmentadded: (segment: Segment) => void;
+};
+
+export class SegmentCollection extends (EventEmitter as new () => TypedEventEmitter<SegmentedCollectionEvents>) {
     private logger: Logger;
     private readonly _segments: Segment[] = [];
 
@@ -24,7 +30,7 @@ export class SegmentCollection extends EventEmitter {
         return this._segments.length === 0;
     }
 
-    addSegment(startTime: Dayjs, url: string, duration: number) {
+    addSegment(startTime: Dayjs, url: string, duration: number, isForced: boolean) {
         const startOffset = this.isEmpty ? 0 : this.getAsTimecode(startTime);
 
         const segment: Segment = {
@@ -33,9 +39,14 @@ export class SegmentCollection extends EventEmitter {
             startTime,
             startOffset,
             duration,
+            isForced,
         };
 
         this.logger.log(`Adding ${formatSegment(segment)}`);
+
+        // if (!this.isEmpty && this.lastSegment.isForced) {
+        //     this._segments.pop();
+        // }
 
         this._segments.push(segment);
         this.cleanAllStartOffsets();
@@ -170,7 +181,7 @@ export class SegmentCollection extends EventEmitter {
 
         this.cleanAllStartOffsets();
 
-        this.emitDurationChange(segment);
+        this.emitReset(segment);
 
         return true;
     }
@@ -204,7 +215,7 @@ export class SegmentCollection extends EventEmitter {
         this.emit('segmentadded', segment);
     }
 
-    private emitDurationChange(segment: Segment) {
-        this.emit('durationchange', segment);
+    private emitReset(segment: Segment) {
+        this.emit('reset', segment);
     }
 }
