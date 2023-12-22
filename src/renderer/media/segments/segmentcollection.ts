@@ -64,12 +64,13 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
 
     async getSegmentAtTimecode(timecode: number) {
         const segments = this.segments;
+        const endOfTime = this.getAsTimecode(this.endOfTimeAsTime);
 
         if (timecode <= 0) {
             const segment = segments[0];
             this.logger.log(`Min ${formatSegmentSpan(segment, timecode)}`);
             return { segment, offset: 0 };
-        } else if (timecode >= this.endOfTime) {
+        } else if (timecode >= endOfTime) {
             const segment = segments[segments.length - 1];
             this.logger.info(`Max ${formatSegmentSpan(segment, timecode)}`);
             return { segment, offset: segment.duration };
@@ -85,6 +86,8 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     private findClosestSegmentForTimecode(timecode: number) {
+        const endOfTime = this.getAsTimecode(this.endOfTimeAsTime);
+
         const segments = this.segments;
 
         for (let i = 0; i < segments.length; i++) {
@@ -102,7 +105,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
 
         throw new Error(
-            `The timecode ${timecode} is in the bounds of this segmented recording ${this.endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
+            `The timecode ${timecode} is in the bounds of this segmented recording ${endOfTime} but a segment was not found. This likely means the segments array is corrupt.`
         );
 
         function isInTheSegment(s: Segment) {
@@ -144,12 +147,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         const segments = this.segments;
 
         return this.segments[segments.length - 1];
-    }
-
-    get endOfTime() {
-        const segment = this.lastSegment;
-
-        return segment.startOffset + segment.duration;
     }
 
     getAsTimecode(time: Dayjs) {

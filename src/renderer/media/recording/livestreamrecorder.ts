@@ -29,25 +29,14 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (estimatedStartTime) => {
-            this._startTime = this.segments.isEmpty
-                ? estimatedStartTime
-                : this.segments.endOfTimeAsTime;
-        });
         this.recorder.onrecording = async (recording) => {
             const { estimatedDuration: duration, blob } = recording;
-            const startTime = this._startTime;
-            const endTime = startTime.add(duration, 'seconds');
 
-            const url = await this.saveBlob(startTime, duration, blob);
+            const url = recording.isForced
+                ? URL.createObjectURL(blob)
+                : await this.saveBlob(this.startTime, duration, blob);
 
-            console.log(
-                `${startTime.format('mm:ss')} + ${duration.toFixed(2)}s = ${endTime.format(
-                    'mm:ss'
-                )}`
-            );
-
-            this.segments.addSegment(startTime, url, duration);
+            this.segments.addSegment(this.startTime, url, duration, recording.isForced);
         };
     }
 
@@ -95,15 +84,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         };
     }
 
-    private _startTime: Dayjs = null!;
+    private _startTime: Dayjs | null = null;
 
     private get startTime() {
-        this.assertHasReliableStartTime();
+        this.assertIsRecording();
 
-        return this._startTime;
+        if (this.segments.isEmpty) {
+            return this._startTime!.add(0.5, 'seconds');
+        } else {
+            return this.segments.endOfTimeAsTime;
+        }
     }
 
-    private assertHasReliableStartTime() {
+    private assertIsRecording() {
         if (!this._startTime) {
             throw new Error(
                 `The recording start time is only available after startRecording() is called.`
@@ -112,9 +105,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     get duration() {
-        const duration = durationSince(this.startTime);
-
-        return duration.asSeconds();
+        if (this.segments.isEmpty) {
+            return durationSince(this.startTime).subtract(500, 'milliseconds').asSeconds();
+        } else {
+            return durationSince(this.startTime).asSeconds();
+        }
     }
 
     async fillSegmentsToIncludeTime(time: Dayjs) {
@@ -170,11 +165,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     async startRecording() {
         this._startTime = dayjs();
-        await this.recorder.start();
+        await this.recorder.startRecording();
     }
 
     async stopRecording() {
-        await this.recorder.stop();
+        this._startTime = null;
+        await this.recorder.stopRecording();
     }
 
     async play() {
