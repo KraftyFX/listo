@@ -26,7 +26,21 @@ export const ListoApp = observer(function ListoApp() {
                 },
             } as DvrOptions;
 
-            dvr = new DigitalVideoRecorder(videoRef.current, options);
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: options.recording.source,
+                },
+            });
+
+            assertLiveStreamAcquired();
+
+            function assertLiveStreamAcquired() {
+                if (!stream) {
+                    throw new Error(`User denied access to the camera. Can't acquire live stream.`);
+                }
+            }
+
+            dvr = new DigitalVideoRecorder(videoRef.current, stream, options);
             window.dvr = dvr;
 
             dvrStore.cameraStore.startWatchingCameraList();

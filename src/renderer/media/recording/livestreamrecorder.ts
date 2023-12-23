@@ -18,7 +18,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private readonly recorder: SegmentRecorder;
     private logger: Logger;
 
-    private constructor(
+    constructor(
         public readonly videoElt: HTMLVideoElement,
         public readonly stream: MediaStream,
         public readonly segments: SegmentCollection,
@@ -29,9 +29,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (estimatedStartTime) => {
-            this._startTime = estimatedStartTime;
-        });
+        this.recorder.on('onstart', (estimatedStartTime) => (this._startTime = estimatedStartTime));
         this.recorder.onrecording = async (recording) => {
             const { estimatedStartTime: startTime, estimatedDuration: duration, blob } = recording;
 
@@ -51,30 +49,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             return URL.createObjectURL(blob);
         } else {
             return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
-        }
-    }
-
-    static async createFromUserCamera(
-        videoElt: HTMLVideoElement,
-        segments: SegmentCollection,
-        options: RecordingOptions
-    ) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                deviceId: options.source,
-            },
-        });
-
-        assertLiveStreamAcquired();
-
-        const recorder = new LiveStreamRecorder(videoElt, stream, segments, options);
-
-        return recorder;
-
-        function assertLiveStreamAcquired() {
-            if (!stream) {
-                throw new Error(`User denied access to the camera. Can't acquire live stream.`);
-            }
         }
     }
 

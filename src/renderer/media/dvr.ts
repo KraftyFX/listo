@@ -29,7 +29,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     readonly options: DvrOptions;
 
-    constructor(public readonly videoElt: HTMLVideoElement, options?: Partial<DvrOptions>) {
+    constructor(
+        public readonly videoElt: HTMLVideoElement,
+        public readonly stream: MediaStream,
+        options?: Partial<DvrOptions>
+    ) {
         super();
 
         this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
@@ -40,6 +44,13 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
 
         this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
+
+        this.liveStreamRecorder = new LiveStreamRecorder(
+            this.videoElt,
+            this.stream,
+            this.segments,
+            this.options.recording
+        );
     }
 
     dispose() {
@@ -49,12 +60,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     async showLiveStreamAndStartRecording() {
-        this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
-            this.videoElt,
-            this.segments,
-            this.options.recording
-        );
-
         await this.startRecording();
         await this.switchToLiveStream();
     }
