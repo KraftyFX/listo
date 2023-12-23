@@ -94,7 +94,6 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         return timeline.allRecordings.map(
             ({ isPartial: isPartial, startTime, duration }, i, recordings) => {
                 const style: React.CSSProperties = {
-                    backgroundColor: isPartial ? 'yellow' : '',
                     left: `${getPixelsFromTime(startTime)}px`,
                     width: `${getPixelsFromDuration(duration)}px`,
                 };
