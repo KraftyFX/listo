@@ -43,6 +43,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     dispose() {
+        this.stopRecording();
         this.removeAllListeners();
         this.stopPollingLiveStreamRecordingDuration();
     }
