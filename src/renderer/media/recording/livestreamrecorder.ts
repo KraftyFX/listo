@@ -118,7 +118,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     containsTime(time: Dayjs) {
-        return this.isRecording && this.recording.endTime.isBefore(time);
+        return this.isRecording && time.isSameOrBefore(this.recording.endTime);
     }
 
     private _isVideoSource = false;
@@ -156,7 +156,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private assertHasSegmentForTime(time: Dayjs) {
-        if (this.segments.containsTime(time)) {
+        if (!this.segments.containsTime(time)) {
             const timecode = this.getAsTimecode(time);
 
             throw new Error(

@@ -147,10 +147,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         const start = this.firstSegmentStartTime;
         const end = this.lastSegmentEndTime;
 
-        const isAfterStart = time.isAfter(start) || start.isSame(time);
-        const isBeforeEnd = time.isBefore(end) || time.isSame(end);
-
-        return isAfterStart && isBeforeEnd;
+        return time.isBetween(start, end, 'seconds', '[]');
     }
 
     resetSegmentDuration(segment: Segment, duration: number) {
