@@ -31,6 +31,10 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     addSegment(startTime: Dayjs, url: string, duration: number, isForced: boolean) {
+        if (!this.isEmpty && this.lastSegment.isForced) {
+            this._segments.pop();
+        }
+
         const startOffset = this.isEmpty ? 0 : this.getAsTimecode(startTime);
 
         const segment: Segment = {
@@ -43,10 +47,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         };
 
         this.logger.log(`Adding ${formatSegment(segment)}`);
-
-        if (!this.isEmpty && this.lastSegment.isForced) {
-            this._segments.pop();
-        }
 
         this._segments.push(segment);
 
