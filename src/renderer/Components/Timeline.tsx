@@ -95,12 +95,20 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             const style: React.CSSProperties = {
                 backgroundColor: isForced ? 'yellow' : '',
                 left: `${getPixelsFromTime(startTime)}px`,
-                width: `${getPixelsFromDuration(duration) - 1}px`,
+                width: `${getPixelsFromDuration(duration)}px`,
             };
 
-            const isLiveBar = dvrStore.isLive && i === recordings.length - 1;
+            const classNames = [`bar`];
 
-            return <div key={i} className={isLiveBar ? `bar live` : `bar`} style={style} />;
+            if (isForced) {
+                classNames.push(`forced`);
+            }
+
+            if (dvrStore.isLive && i === recordings.length - 1) {
+                classNames.push('live');
+            }
+
+            return <div key={i} className={classNames.join(' ')} style={style} />;
         });
     }
 
