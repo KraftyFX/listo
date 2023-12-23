@@ -264,13 +264,13 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         await this.controller.nextFrame();
     }
 
-    public get isAtBeginning() {
+    get isAtBeginning() {
         return Boolean(
             this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
         );
     }
 
-    public get isAtEnd() {
+    get isAtEnd() {
         return Boolean(
             this.segments.isLastSegment(this.currentSegment) && this.isAtCurrentSegmentEnd
         );

@@ -23,7 +23,7 @@ type SegmentedRecorderEvents = {
 export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
     private logger: Logger;
     private readonly recorder: MediaRecorder;
-    public readonly options: RecordingOptions;
+    readonly options: RecordingOptions;
 
     constructor(private readonly stream: MediaStream, options?: Partial<RecordingOptions>) {
         super();

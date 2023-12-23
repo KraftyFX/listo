@@ -43,7 +43,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         return this.playback.videoElt;
     }
 
-    public get paused() {
+    get paused() {
         if (this.mode === 'normal') {
             return this.videoElt.paused;
         } else {
@@ -75,7 +75,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this.emitPause();
     }
 
-    public get speed() {
+    get speed() {
         return this._speed;
     }
     private _speed = 0;
@@ -164,7 +164,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         return this._speed >= this.options.maxPlaySpeedFactor;
     }
 
-    public get isActive() {
+    get isActive() {
         return this._interval !== 0;
     }
     private _interval: any = 0;
@@ -180,14 +180,6 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.deltaInSec >= 0
                         ? currentTimeAsTime.add(this.deltaInSec, 'seconds')
                         : currentTimeAsTime.subtract(this.deltaInSec * -1, 'seconds');
-
-                // TODO: Remove this
-                // const { segments } = this.playback;
-                // const currentTime = segments.getAsTimecode(currentTimeAsTime);
-                // const nextTime = segments.getAsTimecode(nextTimeAsTime);
-
-                // console.log(currentTime + ' ' + nextTime);
-                // console.log(this.deltaInSec + ' ' + (nextTime - currentTime).toFixed(2));
 
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');

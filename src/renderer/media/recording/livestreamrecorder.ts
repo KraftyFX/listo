@@ -79,7 +79,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return time.diff(this.startTime) / 1000;
     }
 
-    public get recording() {
+    get recording() {
         return {
             startTime: this.startTime,
             duration: this.duration,

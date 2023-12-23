@@ -26,7 +26,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     private playback!: SegmentedPlayback;
     private segments!: SegmentCollection;
 
-    public readonly options: DvrOptions;
+    readonly options: DvrOptions;
 
     constructor(public readonly videoElt: HTMLVideoElement, options?: Partial<DvrOptions>) {
         super();
@@ -58,8 +58,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private _isLive = false;
 
-    // TODO: Remove public acess modifier
-    public get isLive() {
+    get isLive() {
         return this._isLive;
     }
 
@@ -170,13 +169,13 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    public get isAtBeginning() {
+    get isAtBeginning() {
         this.assertIsInPlayback();
 
         return this.playback.isAtBeginning;
     }
 
-    public get isAtEnd() {
+    get isAtEnd() {
         this.assertIsInPlayback();
 
         return this.recording.endTime.diff(this.playback.currentTime) <= 1000;
