@@ -137,7 +137,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             // This fill segments call is needed b/c the user is in playback mode
             // and might have jumped to a time that is still actively being recorded
-            await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
+            await this.liveStreamRecorder.tryFillSegmentsToIncludeTime(time);
             await this.playback.goToTime(time);
         } else {
             time = time || this.recording.endTime.subtract(1, 'second');
@@ -155,7 +155,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
             this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
 
-            await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
+            await this.liveStreamRecorder.tryFillSegmentsToIncludeTime(time);
             await this.playback.setAsVideoSource(time);
 
             this._isLive = false;

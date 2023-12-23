@@ -107,10 +107,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return durationSince(this.startTime).asSeconds();
     }
 
-    async fillSegmentsToIncludeTime(time: Dayjs) {
-        this.assertFillIsPossible(time);
-
+    async tryFillSegmentsToIncludeTime(time: Dayjs) {
         if (this.segments.isEmpty || this.segments.lastSegmentEndTime.isBefore(time)) {
+            this.assertIsBeforeEndOfRecording(time);
+
             await this.recorder.forceRender();
             this.assertHasSegmentToRender();
 
@@ -128,7 +128,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertFillIsPossible(time: Dayjs) {
+    private assertIsBeforeEndOfRecording(time: Dayjs) {
         if (this.isRecording && this.recording.endTime.isBefore(time)) {
             const timecode = this.getAsTimecode(time);
 
