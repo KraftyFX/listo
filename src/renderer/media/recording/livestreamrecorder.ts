@@ -6,7 +6,7 @@ import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackuti
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
-import { SegmentRecorder } from './segmentrecorder';
+import { Recording, SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
@@ -29,23 +29,42 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (estimatedStartTime) => (this._startTime = estimatedStartTime));
-        this.recorder.onrecording = async (recording) => {
-            const { estimatedStartTime: startTime, estimatedDuration: duration, blob } = recording;
-
-            const url = recording.isPartial
-                ? URL.createObjectURL(blob)
-                : await this.saveBlob(startTime, duration, blob);
-
-            this.logger.log(
-                `Recording yielded ${startTime.format('mm:ss.SS')} partial=${recording.isPartial}`
-            );
-            this.segments.addSegment(startTime, url, duration, recording.isPartial);
-        };
+        this.recorder.on('onstart', (startTime) => (this._startTime = startTime));
+        this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 
-    private async saveBlob(startTime: Dayjs, duration: number, blob: Blob) {
-        if (this.options.inMemory) {
+    /**
+     * The onRecording method saves whatever blob we got from the segmented recorder.
+     *
+     * If a user wants to scrub through something super recent that's still being recorded then
+     * the DVR will call to `forceRender()` ensure playable video data is available. This will
+     * yield a partial segment (i.e. a segment with less data than normally expected). We want
+     * to keep this around temorarily and treat it like a normal segment until its full version
+     * comes in to replace it.
+     */
+    private async onRecording(recording: Recording) {
+        const { startTime, duration, isPartial } = recording;
+
+        this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
+
+        const url = await this.saveRecording(recording);
+
+        this.clearAnyPreviousPartialSegments();
+
+        this.segments.addSegment(startTime, url, duration, isPartial);
+    }
+
+    private clearAnyPreviousPartialSegments() {
+        if (!this.segments.isEmpty && this.segments.lastSegment.isPartial) {
+            URL.revokeObjectURL(this.segments.lastSegment.url);
+            this.segments.removeLastSegment();
+        }
+    }
+
+    private async saveRecording(recording: Recording) {
+        const { startTime, duration, blob, isPartial } = recording;
+
+        if (isPartial || this.options.inMemory) {
             return URL.createObjectURL(blob);
         } else {
             return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);

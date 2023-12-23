@@ -31,15 +31,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     addSegment(startTime: Dayjs, url: string, duration: number, isPartial: boolean) {
-        // If a user wants to scrub through something super recent but it isn't big enough
-        // to warrant being saved to disk we'll yield a partial recording, mark it as such
-        // and add it to the segments array.  We assume the very next segment yielded is
-        // the complete version of the same one and therefore should replace it hence, why
-        // we pop the last partial segment during add.
-        if (!this.isEmpty && this.lastSegment.isPartial) {
-            this._segments.pop();
-        }
-
         const segment: Segment = {
             index: this._segments.length,
             url,
@@ -55,6 +46,12 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         this.emitSegmentAdded(segment);
 
         return segment;
+    }
+
+    removeLastSegment() {
+        if (!this.isEmpty) {
+            this._segments.pop();
+        }
     }
 
     async getSegmentAtTime(time: Dayjs) {
