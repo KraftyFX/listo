@@ -107,6 +107,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         } catch (e) {
             if (!this.isRecording) {
                 console.warn(e);
+                return null!;
             } else {
                 console.error(e);
                 throw new Error(`fixWebDuration error most likely. See above.`);
