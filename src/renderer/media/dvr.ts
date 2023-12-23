@@ -17,6 +17,7 @@ type DvrEvents = {
     playbackupdate: (currentTimeAsTime: Dayjs, speed: number) => void;
     liveupdate: () => void;
     segmentadded: () => void;
+    segmentupdated: () => void;
     segmentrendered: (segment: Segment) => void;
 };
 
@@ -42,7 +43,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async showLiveStreamAndStartRecording() {
         this.segments = new SegmentCollection();
-        this.segments.on('segmentadded', (segment) => this.raiseSegmentAdded());
+        this.segments.on('reset', (segment) => this.emitSegmentUpdated());
+        this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
 
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
             this.videoElt,
@@ -56,6 +58,15 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
     }
 
+    async stopRecording() {
+        if (this.isLive) {
+            await this.switchToPlaybackWithTime();
+        }
+
+        await this.liveStreamRecorder.stopRecording();
+        this.stopPollingLiveStreamRecordingDuration();
+    }
+
     private _isLive = false;
 
     get isLive() {
@@ -67,13 +78,25 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     get recording() {
-        return this.liveStreamRecorder.recording;
+        if (this.liveStreamRecorder.isRecording) {
+            return this.liveStreamRecorder.recording;
+        } else {
+            const endTime = this.segments.lastSegmentEndTime;
+
+            return {
+                startTime: endTime,
+                duration: 0,
+                endTime: endTime,
+            };
+        }
     }
 
     async switchToLiveStream() {
         if (this._isLive) {
             return;
         }
+
+        this.stopPollingLiveStreamRecordingDuration();
 
         this.logger.info('Switching to live stream');
 
@@ -103,7 +126,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             await this.liveStreamRecorder.fillSegmentsToIncludeTime(time);
             await this.playback.goToTime(time);
         } else {
-            time = time || this.liveStreamRecorder.recording.endTime;
+            time = time || this.recording.endTime.subtract(1, 'second');
 
             this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
 
@@ -124,6 +147,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this._isLive = false;
 
             this.emitModeChange();
+            this.startPollingLiveStreamRecordingDuration('playback');
         }
     }
 
@@ -140,8 +164,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             return;
         }
 
-        this.logger.info('Playback is at the end.');
-        await this.switchToLiveStream();
+        if (this.isRecording) {
+            this.logger.info('Playback is at the end.');
+            await this.switchToLiveStream();
+        } else {
+            this.logger.info(`There is no recording happening. Doing nothing.`);
+        }
     }
 
     get paused() {
@@ -169,6 +197,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
+    get isRecording() {
+        return this.liveStreamRecorder.isRecording;
+    }
+
     get isAtBeginning() {
         this.assertIsInPlayback();
 
@@ -178,7 +210,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     get isAtEnd() {
         this.assertIsInPlayback();
 
-        return this.recording.endTime.diff(this.playback.currentTime) <= 1000;
+        return this.recording.endTime.diff(this.playback.currentTimeAsTime) <= 1000;
     }
 
     async goToPlaybackTime(time: Dayjs) {
@@ -244,12 +276,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     private emitModeChange() {
-        if (this.isLive) {
-            this.stopPollingLiveStreamRecordingDuration();
-        } else {
-            this.startPollingLiveStreamRecordingDuration('playback');
-        }
-
         this.emit('modechange', this.isLive);
     }
 
@@ -265,7 +291,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private raiseSegmentAdded() {
+    private emitSegmentUpdated() {
+        this.emit('segmentupdated');
+    }
+
+    private emitSegmentAdded() {
         this.emit('segmentadded');
     }
 
@@ -288,10 +318,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     private emitPause() {
-        if (!this.isLive) {
-            this.startPollingLiveStreamRecordingDuration('pause');
-        }
-
         this.emit('pause');
     }
 

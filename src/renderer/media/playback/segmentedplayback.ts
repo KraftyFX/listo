@@ -16,7 +16,7 @@ type SegmentedPlaybackEvents = {
     play: () => void;
     pause: () => void;
     ended: (where: 'start' | 'end') => void;
-    timeupdate: (currentTime: number, speed: number) => void;
+    timeupdate: (currentTime: Dayjs, speed: number) => void;
 };
 
 export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentedPlaybackEvents>) {
@@ -49,16 +49,15 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         return this.controller.speed;
     }
 
-    get currentTime() {
-        this.assertIsActiveVideoSource();
-
-        return this.currentSegment.startOffset + this.videoElt.currentTime;
-    }
-
     get currentTimeAsTime() {
         this.assertIsActiveVideoSource();
 
-        return this.currentSegment.startTime.add(this.videoElt.currentTime, 'seconds');
+        if (this.isLostInTime()) {
+            this.logger.warn(`Shit. We don't know when we are. Compensating...`);
+            return this.currentSegment.startTime;
+        } else {
+            return this.currentSegment.startTime.add(this.videoElt.currentTime, 'seconds');
+        }
     }
 
     private _isVideoSource = false;
@@ -280,6 +279,10 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         return Boolean(this.videoElt.currentTime === this.videoElt.duration);
     }
 
+    private isLostInTime() {
+        return this.videoElt.currentTime > 0 && this.videoElt.duration === Number.POSITIVE_INFINITY;
+    }
+
     private assertAutoPlaybackIsEnabled() {
         if (!this.videoElt.onended) {
             throw new Error(`This function is meant to be used as part of auto playback.`);
@@ -309,7 +312,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     private emitTimeUpdate() {
-        this.emit('timeupdate', this.currentTime, this.controller.speed);
+        this.emit('timeupdate', this.currentTimeAsTime, this.speed);
     }
 
     private emitPlay() {
