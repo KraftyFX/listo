@@ -231,9 +231,10 @@ export class DvrStore {
             action(() => {
                 // We're in a limbo state where the old recording is done but the new one
                 // hasn't started. This makes the recording startTime and duration unreliable.
-                // Rather than do gymnastics in lower level components to guarantee
-                // consistency we're going to paper over it here b/c the data will be correct
-                // before the user notices.
+                // Rather than do gymnastics in lower level components to guarantee accurate
+                // values we'll use dummy values that are close enough to the real thing.
+                // We can get away with this b/c one of the live/playback update events will
+                // get raised in a split second.
                 this._recordingStartTime = dayjs();
                 this._recordingDuration = 0;
 
