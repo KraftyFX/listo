@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
@@ -45,6 +46,14 @@ export const ListoApp = observer(function ListoApp() {
         };
     }, []);
 
+    const handleStartRecording = action(() => {
+        dvrStore.dvr.startRecording();
+    });
+
+    const handleStopRecording = action(() => {
+        dvrStore.dvr.stopRecording();
+    });
+
     return (
         <>
             <CameraList
@@ -65,6 +74,8 @@ export const ListoApp = observer(function ListoApp() {
                         viewport={dayjs.duration(dvr.options.timeline.viewport)}
                         marker={dvr.options.timeline.marker}
                     />
+                    <button onClick={handleStopRecording}>Stop Recording</button>
+                    <button onClick={handleStartRecording}>Start Recording</button>
                 </>
             )}
         </>
