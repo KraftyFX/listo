@@ -178,7 +178,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     async goToStart() {
-        await this.goToTime(this.segments.startOfTimeAsTime);
+        await this.goToTime(this.segments.firstSegmentStartTime);
     }
 
     async goToEnd() {

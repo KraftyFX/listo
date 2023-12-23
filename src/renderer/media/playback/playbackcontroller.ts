@@ -197,7 +197,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.playback.goToTime(currentTimeAsTime);
                     this.emitPause();
                 } else if (
-                    nextTimeAsTime.isBefore(this.playback.segments.startOfTimeAsTime) &&
+                    nextTimeAsTime.isBefore(this.playback.segments.firstSegmentStartTime) &&
                     this.direction === 'backward'
                 ) {
                     this.logger.info('Reached the beginning');
@@ -208,7 +208,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (
-                    this.playback.segments.endOfTimeAsTime.diff(nextTimeAsTime) <= 0 &&
+                    this.playback.segments.lastSegmentEndTime.diff(nextTimeAsTime) <= 0 &&
                     this.direction === 'forward'
                 ) {
                     this.logger.info('Reached the end');

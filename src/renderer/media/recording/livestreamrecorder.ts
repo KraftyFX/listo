@@ -29,14 +29,17 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
+        this.recorder.on('onstart', (estimatedStartTime) => {
+            this._startTime = estimatedStartTime;
+        });
         this.recorder.onrecording = async (recording) => {
-            const { estimatedDuration: duration, blob } = recording;
+            const { estimatedStartTime: startTime, estimatedDuration: duration, blob } = recording;
 
             const url = recording.isForced
                 ? URL.createObjectURL(blob)
-                : await this.saveBlob(this.startTime, duration, blob);
+                : await this.saveBlob(startTime, duration, blob);
 
-            this.segments.addSegment(this.startTime, url, duration, recording.isForced);
+            this.segments.addSegment(startTime, url, duration, recording.isForced);
         };
     }
 
@@ -89,11 +92,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private get startTime() {
         this.assertIsRecording();
 
-        if (this.segments.isEmpty) {
-            return this._startTime!.add(0.5, 'seconds');
-        } else {
-            return this.segments.endOfTimeAsTime;
-        }
+        return this._startTime!;
     }
 
     private assertIsRecording() {
@@ -105,17 +104,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     get duration() {
-        if (this.segments.isEmpty) {
-            return durationSince(this.startTime).subtract(500, 'milliseconds').asSeconds();
-        } else {
-            return durationSince(this.startTime).asSeconds();
-        }
+        return durationSince(this.startTime).asSeconds();
     }
 
     async fillSegmentsToIncludeTime(time: Dayjs) {
         this.assertFillIsPossible(time);
 
-        if (this.segments.isEmpty || this.segments.endOfTimeAsTime.isBefore(time)) {
+        if (this.segments.isEmpty || this.segments.lastSegmentEndTime.isBefore(time)) {
             await this.recorder.forceRender();
             this.assertHasSegmentToRender();
 

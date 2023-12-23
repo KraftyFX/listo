@@ -49,7 +49,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
 
         this._segments.push(segment);
-        this.cleanAllStartOffsets();
 
         this.emitSegmentAdded(segment);
 
@@ -63,56 +62,40 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     async getSegmentAtTimecode(time: Dayjs) {
         const segments = this.segments;
 
-        if (time.isBefore(this.startOfTimeAsTime)) {
+        if (time.isBefore(this.firstSegmentStartTime)) {
             const segment = segments[0];
             return { segment, offset: 0 };
         }
 
-        if (time.isAfter(this.endOfTimeAsTime)) {
+        if (time.isAfter(this.lastSegmentEndTime)) {
             const segment = this.lastSegment;
             return { segment, offset: segment.duration };
         }
 
-        const segment = this.findClosestSegmentForTimecode(time);
+        const segment = this.findClosestSegmentForTime(time);
         const offset = time.diff(segment.startTime) / 1000;
 
         return { segment, offset };
     }
 
-    private findClosestSegmentForTimecode(time: Dayjs) {
+    private findClosestSegmentForTime(time: Dayjs) {
         const segments = this.segments;
 
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
+            const end = segment.startTime.add(segment.duration, 'seconds');
 
-            if (isInTheSegment(segment)) {
+            if (end.isAfter(time)) {
                 return segment;
-            } else if (isAtTheEndBoundary(segment)) {
-                if (i < segments.length - 2) {
-                    return segments[i + 1];
-                } else {
-                    return this.lastSegment;
-                }
             }
         }
 
-        throw new Error(
-            `The timecode ${this.getAsTimecode(time)} is in the bounds of this segmented ` +
-                `recording ${this.getAsTimecode(this.endOfTimeAsTime)} but ` +
-                `a segment was not found. This likely means the segments ` +
-                `array is corrupt.`
-        );
+        const timecode = this.getAsTimecode(time);
+        const max = this.getAsTimecode(this.lastSegmentEndTime);
 
-        function isInTheSegment(s: Segment) {
-            const isAfterStart = time.isAfter(s.startTime) || time.isSame(s.startTime);
-            const isBeforeEnd = time.isBefore(s.startTime.add(s.duration, 'seconds'));
+        console.warn(`Segment for time was not found. time=${timecode} ${max}`);
 
-            return isAfterStart && isBeforeEnd;
-        }
-
-        function isAtTheEndBoundary(s: Segment) {
-            return time.isSame(s.startTime.add(s.duration, 'seconds'));
-        }
+        return this.lastSegment;
     }
 
     getNextSegment(segment: Segment) {
@@ -148,14 +131,14 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     getAsTimecode(time: Dayjs) {
-        return time.diff(this.startOfTimeAsTime) / 1000;
+        return time.diff(this.firstSegmentStartTime) / 1000;
     }
 
-    get startOfTimeAsTime() {
+    get firstSegmentStartTime() {
         return this.segments[0].startTime;
     }
 
-    get endOfTimeAsTime() {
+    get lastSegmentEndTime() {
         const segment = this.lastSegment;
 
         return segment.startTime.add(segment.duration, 'seconds');
@@ -164,7 +147,9 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     resetSegmentDuration(segment: Segment, duration: number) {
         this.assertIsSegmentDefined(segment);
 
-        if (segment.duration === duration) {
+        const delta = segment.duration - duration;
+
+        if (segment.duration === duration || delta < 0.1) {
             return false;
         }
 
@@ -172,26 +157,19 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             `Resetting duration of ${formatSegment(segment)} to ${duration.toFixed(2)}`
         );
 
-        segment.duration = duration;
+        if (delta > 1) {
+            this.logger.warn(
+                `Segment ${segment.index} had a big delta ${delta.toFixed(2)}s. Adjust start time.`
+            );
+            segment.startTime = segment.startTime.add(delta, 'seconds');
+            segment.startOffset = this.getAsTimecode(segment.startTime);
+        }
 
-        this.cleanAllStartOffsets();
+        segment.duration = duration;
 
         this.emitReset(segment);
 
         return true;
-    }
-
-    private cleanAllStartOffsets() {
-        this.assertHasSegments();
-
-        let [prev, ...rest] = this.segments;
-
-        rest.forEach((curr) => {
-            curr.startOffset = prev.startOffset + prev.duration + 0.0001;
-            curr.startTime = prev.startTime.add(prev.duration + 0.0001, 'seconds');
-
-            prev = curr;
-        });
     }
 
     private assertHasSegments() {
