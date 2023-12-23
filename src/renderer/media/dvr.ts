@@ -34,6 +34,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
         this.logger = getLog('dvr', this.options);
+
+        this.segments = new SegmentCollection();
+        this.segments.on('reset', (segment) => this.emitSegmentUpdated());
+        this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
+
+        this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
     }
 
     dispose() {
@@ -42,20 +48,18 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     async showLiveStreamAndStartRecording() {
-        this.segments = new SegmentCollection();
-        this.segments.on('reset', (segment) => this.emitSegmentUpdated());
-        this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
-
         this.liveStreamRecorder = await LiveStreamRecorder.createFromUserCamera(
             this.videoElt,
             this.segments,
             this.options.recording
         );
 
-        await this.liveStreamRecorder.startRecording();
+        await this.startRecording();
         await this.switchToLiveStream();
+    }
 
-        this.playback = new SegmentedPlayback(this.videoElt, this.segments, this.options.playback);
+    async startRecording() {
+        await this.liveStreamRecorder.startRecording();
     }
 
     async stopRecording() {
