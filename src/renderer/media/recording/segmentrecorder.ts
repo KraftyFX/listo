@@ -41,17 +41,22 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.startTimeout();
     }
 
-    stopRecording() {
+    async stopRecording() {
         this.clearTimeout();
+
+        await this.stopAndEnsureLastVideoChunk();
+        await this.raiseRecording(false);
         this.chunks = [];
+    }
+
+    get isRecording() {
+        return this.timeout !== 0;
     }
 
     private timeout: any;
     private estimatedStartTime: Dayjs = null!;
 
     private startTimeout() {
-        this.chunks = [];
-
         this.recorder.start(1000);
         this.estimatedStartTime = dayjs();
         this.emitOnStart();
@@ -66,13 +71,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private async onTimeout() {
-        this.clearTimeout();
-
-        await this.stopAndEnsureLastVideoChunk();
-
-        await this.raiseRecording(false);
-
-        this.startTimeout();
+        await this.stopRecording();
+        this.startRecording();
     }
 
     private chunks: Blob[] = [];
@@ -84,21 +84,34 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     onrecording: (recording: Recording) => Promise<void> = null!;
 
     private async raiseRecording(isForced: boolean) {
-        const blobs = [...this.chunks];
+        try {
+            if (this.chunks.length === 0) {
+                return;
+            }
 
-        const rawBlob = new Blob(blobs, { type: this.options.mimeType });
-        const fixedBlob = await fixWebmDuration(rawBlob);
+            const blobs = [...this.chunks];
 
-        const recording: Recording = {
-            estimatedStartTime: this.estimatedStartTime,
-            estimatedDuration: durationSince(this.estimatedStartTime).asSeconds(),
-            blob: fixedBlob,
-            isForced,
-        };
+            const rawBlob = new Blob(blobs, { type: this.options.mimeType });
+            const fixedBlob = await fixWebmDuration(rawBlob);
 
-        await this.onrecording(recording);
+            const recording: Recording = {
+                estimatedStartTime: this.estimatedStartTime,
+                estimatedDuration: durationSince(this.estimatedStartTime).asSeconds(),
+                blob: fixedBlob,
+                isForced,
+            };
 
-        return recording;
+            await this.onrecording(recording);
+
+            return recording;
+        } catch (e) {
+            if (!this.isRecording) {
+                console.warn(e);
+            } else {
+                console.error(e);
+                throw new Error(`fixWebDuration error most likely. See above.`);
+            }
+        }
     }
 
     forceRender() {
