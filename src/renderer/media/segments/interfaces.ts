@@ -5,5 +5,5 @@ export interface Segment {
     url: string;
     startTime: Dayjs;
     duration: number;
-    isForced: boolean;
+    isPartial: boolean;
 }

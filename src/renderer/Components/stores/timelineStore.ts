@@ -7,7 +7,7 @@ import { DvrStore } from './dvrStore';
 export interface Bar {
     startTime: dayjs.Dayjs;
     duration: Duration;
-    isForced: boolean;
+    isPartial: boolean;
 }
 
 export class TimelineStore {
@@ -43,7 +43,7 @@ export class TimelineStore {
         const durationInSec = this.dvrStore.liveStreamDuration * this.multiplierToMakeTestingEasier;
 
         return {
-            isForced: false,
+            isPartial: false,
             startTime: this.dvrStore.recordingStartTime,
             duration: dayjs.duration({ seconds: durationInSec }),
         };

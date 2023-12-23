@@ -35,11 +35,14 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.recorder.onrecording = async (recording) => {
             const { estimatedStartTime: startTime, estimatedDuration: duration, blob } = recording;
 
-            const url = recording.isForced
+            const url = recording.isPartial
                 ? URL.createObjectURL(blob)
                 : await this.saveBlob(startTime, duration, blob);
 
-            this.segments.addSegment(startTime, url, duration, recording.isForced);
+            this.logger.log(
+                `Recording yielded ${startTime.format('mm:ss.SS')} partial=${recording.isPartial}`
+            );
+            this.segments.addSegment(startTime, url, duration, recording.isPartial);
         };
     }
 

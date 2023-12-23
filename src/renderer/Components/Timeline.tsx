@@ -91,25 +91,27 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getBars() {
-        return timeline.allRecordings.map(({ isForced, startTime, duration }, i, recordings) => {
-            const style: React.CSSProperties = {
-                backgroundColor: isForced ? 'yellow' : '',
-                left: `${getPixelsFromTime(startTime)}px`,
-                width: `${getPixelsFromDuration(duration)}px`,
-            };
+        return timeline.allRecordings.map(
+            ({ isPartial: isPartial, startTime, duration }, i, recordings) => {
+                const style: React.CSSProperties = {
+                    backgroundColor: isPartial ? 'yellow' : '',
+                    left: `${getPixelsFromTime(startTime)}px`,
+                    width: `${getPixelsFromDuration(duration)}px`,
+                };
 
-            const classNames = [`bar`];
+                const classNames = [`bar`];
 
-            if (isForced) {
-                classNames.push(`forced`);
+                if (isPartial) {
+                    classNames.push(`partial`);
+                }
+
+                if (dvrStore.isLive && i === recordings.length - 1) {
+                    classNames.push('live');
+                }
+
+                return <div key={i} className={classNames.join(' ')} style={style} />;
             }
-
-            if (dvrStore.isLive && i === recordings.length - 1) {
-                classNames.push('live');
-            }
-
-            return <div key={i} className={classNames.join(' ')} style={style} />;
-        });
+        );
     }
 
     function getMarkers() {

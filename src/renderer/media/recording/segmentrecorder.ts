@@ -13,7 +13,7 @@ export interface Recording {
     estimatedStartTime: Dayjs;
     estimatedDuration: number;
     blob: Blob;
-    isForced: boolean;
+    isPartial: boolean;
 }
 
 type SegmentedRecorderEvents = {
@@ -38,10 +38,12 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     startRecording() {
+        this.logger.log('start recording');
         this.startTimeout();
     }
 
     async stopRecording() {
+        this.logger.log('stop recording');
         this.clearTimeout();
 
         await this.stopAndEnsureLastVideoChunk();
@@ -83,7 +85,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     onrecording: (recording: Recording) => Promise<void> = null!;
 
-    private async raiseRecording(isForced: boolean) {
+    private async raiseRecording(isPartial: boolean) {
         try {
             if (this.chunks.length === 0) {
                 return;
@@ -98,7 +100,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
                 estimatedStartTime: this.estimatedStartTime,
                 estimatedDuration: durationSince(this.estimatedStartTime).asSeconds(),
                 blob: fixedBlob,
-                isForced,
+                isPartial,
             };
 
             await this.onrecording(recording);
@@ -116,6 +118,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     forceRender() {
+        this.logger.info('force rendering');
         return this.raiseRecording(true);
     }
 
