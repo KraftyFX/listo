@@ -74,7 +74,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async stopRecording() {
         if (this.isLive) {
-            await this.switchToPlaybackWithTime();
+            await this.switchToPlayback();
         }
 
         await this.liveStreamRecorder.stopRecording();
@@ -131,7 +131,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.emitModeChange();
     }
 
-    async switchToPlaybackWithTime(time?: Dayjs) {
+    async switchToPlayback(time?: Dayjs) {
         if (!this._isLive) {
             time = time || this.playback.currentTimeAsTime;
 
@@ -205,7 +205,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     async pause() {
         if (this.isLive) {
             await this.liveStreamRecorder.pause();
-            await this.switchToPlaybackWithTime();
+            await this.switchToPlayback();
         } else {
             await this.playback.pause();
         }
@@ -230,7 +230,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     async goToPlaybackTime(time: Dayjs) {
         const wasPlaying = !this.paused;
 
-        await this.switchToPlaybackWithTime(time);
+        await this.switchToPlayback(time);
 
         if (wasPlaying) {
             try {
@@ -248,7 +248,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     async rewind() {
-        await this.switchToPlaybackWithTime();
+        await this.switchToPlayback();
 
         await this.playback.rewind();
     }
