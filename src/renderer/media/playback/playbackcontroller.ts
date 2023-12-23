@@ -176,7 +176,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
             this._interval ||
             setInterval(async () => {
                 const currentTimeAsTime = this.playback.currentTimeAsTime;
-                const nextTimeAsTime =
+                const nextTime =
                     this.deltaInSec >= 0
                         ? currentTimeAsTime.add(this.deltaInSec, 'seconds')
                         : currentTimeAsTime.subtract(this.deltaInSec * -1, 'seconds');
@@ -188,10 +188,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
                     this.playback.goToTime(currentTimeAsTime);
                     this.emitPause();
-                } else if (
-                    nextTimeAsTime.isBefore(this.playback.segments.firstSegmentStartTime) &&
-                    this.direction === 'backward'
-                ) {
+                } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
                     this.logger.info('Reached the beginning');
 
                     this.stopInterval();
@@ -199,10 +196,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.playback.goToStart();
                     this.emitPause();
                     this.emitEnded('start');
-                } else if (
-                    this.playback.segments.lastSegmentEndTime.diff(nextTimeAsTime) <= 0 &&
-                    this.direction === 'forward'
-                ) {
+                } else if (this.playback.isAfterEnd(nextTime) && this.direction === 'forward') {
                     this.logger.info('Reached the end');
 
                     this.stopInterval();
@@ -211,7 +205,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
-                    this.playback.goToTime(nextTimeAsTime);
+                    this.playback.goToTime(nextTime);
                 }
             }, REFRESH_RATE_IN_MS);
     }

@@ -176,8 +176,16 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this.videoElt.onended = null;
     }
 
+    isBeforeStart(time: Dayjs) {
+        return time.isBefore(this.segments.firstSegmentStartTime);
+    }
+
     async goToStart() {
         await this.goToTime(this.segments.firstSegmentStartTime);
+    }
+
+    isAfterEnd(time: Dayjs) {
+        return time.isAfter(this.segments.lastSegmentEndTime);
     }
 
     async goToEnd() {
