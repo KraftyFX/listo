@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
+import _throttle from 'lodash.throttle';
 import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -20,7 +21,15 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const [timelineWidthPx, setTimelineWidthPx] = useState(1);
 
     const timelineRef = useRef<HTMLDivElement>(null!);
-    const thumbRef = useRef<HTMLDivElement>(null);
+    const markerUnderThumbRef = useRef<HTMLDivElement>(null);
+
+    const animateMarkerUnderThumbIntoView = _throttle(() => {
+        markerUnderThumbRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: dvrStore.speed < 0 ? 'start' : 'end',
+            inline: dvrStore.speed < 0 ? 'start' : 'end',
+        });
+    }, 250);
 
     useEffect(
         action(function mount() {
@@ -32,12 +41,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
                 () => dvrStore.currentTime,
                 () => {
                     if (timeline.autoscroll) {
-                        // TODO: This is janky for a bunch of reasons.  Need to think how to do this.
-                        // thumbRef.current?.scrollIntoView({
-                        //     behavior: 'smooth',
-                        //     block: dvrStore.speed < 0 ? 'start' : 'end',
-                        //     inline: dvrStore.speed < 0 ? 'start' : 'end',
-                        // });
+                        animateMarkerUnderThumbIntoView();
                     }
                 }
             );
@@ -84,8 +88,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         };
 
         return (
-            <div ref={thumbRef} className="thumb" style={style}>
-                <div></div>
+            <div className="thumb" style={style}>
+                <div>.</div>
             </div>
         );
     }
@@ -114,6 +118,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getMarkers() {
+        const thumbTime = timeline.currentTime;
         let currTime = timeline.startOfTimeline;
 
         const endOfTimeline = timeline.endOfTimeline;
@@ -129,9 +134,16 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
         while (currTime.isBefore(endTime) || currTime.isSame(endTime)) {
             const { type, format } = getMarkerFormat(timeline.markerSize, currTime);
+            const isMarkerUnderThumb =
+                currTime.isBefore(thumbTime) &&
+                thumbTime.isBefore(currTime.add(minorMarkerDuration.asSeconds(), 'seconds'));
 
             elts.push(
-                <div key={elts.length} className={`marker ${type}`} style={style}>
+                <div
+                    ref={isMarkerUnderThumb ? markerUnderThumbRef : undefined}
+                    key={elts.length}
+                    className={`marker ${type}`}
+                    style={style}>
                     <span>{format}</span>
                 </div>
             );

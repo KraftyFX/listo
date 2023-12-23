@@ -19,10 +19,10 @@ export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
 };
 
 export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
-    viewport: { minutes: 5 },
+    viewport: { seconds: 20 },
     marker: {
-        major: { minutes: 5 },
-        minor: { minutes: 1 },
+        major: { minutes: 10 },
+        minor: { seconds: 10 },
     },
     logging: 'info',
 };
