@@ -103,7 +103,7 @@ export class DvrStore {
         this.dvr.goToPlaybackTime(time);
     }
 
-    get liveStreamDuration() {
+    get recordingDuration() {
         return this._recordingDuration;
     }
 

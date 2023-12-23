@@ -18,7 +18,7 @@ export interface PlaybackControlsProps {
 
 export const PlaybackControls = observer(function PlaybackControls(props: PlaybackControlsProps) {
     const { dvrStore } = props;
-    const { currentTime, liveStreamDuration, speed } = dvrStore;
+    const { currentTime, speed } = dvrStore;
 
     const onCommand = action((command: PlaybackCommands) => {
         switch (command) {
@@ -90,9 +90,7 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
                 Live
             </button>
             <div>
-                <span className="elapsed">
-                    {getPlayTime(currentTime, liveStreamDuration, speed)}
-                </span>
+                <span className="elapsed">{getPlayTime(currentTime, speed)}</span>
             </div>
         </div>
     );

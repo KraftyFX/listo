@@ -11,8 +11,6 @@ export interface Bar {
 }
 
 export class TimelineStore {
-    private readonly multiplierToMakeTestingEasier = 1;
-
     autoscroll = true;
 
     pastRecordings: Bar[] = [];
@@ -40,12 +38,10 @@ export class TimelineStore {
     }
 
     get liveRecording(): Bar {
-        const durationInSec = this.dvrStore.liveStreamDuration * this.multiplierToMakeTestingEasier;
-
         return {
             isPartial: false,
             startTime: this.dvrStore.recordingStartTime,
-            duration: dayjs.duration({ seconds: durationInSec }),
+            duration: dayjs.duration(this.dvrStore.recordingDuration, 'seconds'),
         };
     }
 
