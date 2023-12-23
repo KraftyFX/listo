@@ -106,39 +106,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async tryFillSegmentsToIncludeTime(time: Dayjs) {
-        if (this.segments.containsTime(time)) {
-            // We already have segment data for the requested time so there's no work to do.
+        if (this.containsTime(time)) {
+            await this.recorder.forceRender();
+
+            this.assertHasSegmentForTime(time);
+
+            return true;
+        } else {
             return false;
-        }
-
-        this.assertActiveRecordingContainsTime(time);
-
-        await this.recorder.forceRender();
-        this.assertHasSegmentToRender();
-
-        return true;
-    }
-
-    private assertHasSegmentToRender() {
-        if (this.segments.isEmpty) {
-            throw new Error(
-                `The segmented recorder was told to force render everything. It did that but the segments array is somehow empty.`
-            );
         }
     }
 
     containsTime(time: Dayjs) {
         return this.isRecording && this.recording.endTime.isBefore(time);
-    }
-
-    private assertActiveRecordingContainsTime(time: Dayjs) {
-        if (this.containsTime(time)) {
-            const timecode = this.getAsTimecode(time);
-
-            throw new Error(
-                `The requested time ${timecode} is outside the bounds of the recorded duration (${this.duration}).`
-            );
-        }
     }
 
     private _isVideoSource = false;
@@ -172,6 +152,16 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private assertIsRecording() {
         if (!this._startTime) {
             throw new Error(`There is no recording currently active.`);
+        }
+    }
+
+    private assertHasSegmentForTime(time: Dayjs) {
+        if (this.segments.containsTime(time)) {
+            const timecode = this.getAsTimecode(time);
+
+            throw new Error(
+                `The segmented recorder was told to force render everything but didn't produce data for time ${timecode}`
+            );
         }
     }
 
