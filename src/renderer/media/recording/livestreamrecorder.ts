@@ -79,7 +79,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return time.diff(this.startTime) / 1000;
     }
 
+    get isRecording() {
+        return !!this._startTime;
+    }
+
     get recording() {
+        this.assertIsRecording();
+
         return {
             startTime: this.startTime,
             duration: this.duration,
@@ -97,9 +103,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     private assertIsRecording() {
         if (!this._startTime) {
-            throw new Error(
-                `The recording start time is only available after startRecording() is called.`
-            );
+            throw new Error(`There is no recording currently active.`);
         }
     }
 
@@ -129,10 +133,8 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private assertFillIsPossible(time: Dayjs) {
-        const { startTime, endTime } = this.recording;
-
-        if (time.isAfter(endTime)) {
-            const timecode = time.diff(startTime) / 1000;
+        if (this.isRecording && this.recording.endTime.isBefore(time)) {
+            const timecode = this.getAsTimecode(time);
 
             throw new Error(
                 `The requested time ${timecode} is outside the bounds of the recorded duration (${this.duration}).`
@@ -187,6 +189,8 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private emitUpdate() {
-        this.emit('update');
+        if (this.isRecording) {
+            this.emit('update');
+        }
     }
 }
