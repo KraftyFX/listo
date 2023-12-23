@@ -139,7 +139,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return segment.startTime.add(segment.duration, 'seconds');
     }
 
-    contains(time: Dayjs) {
+    containsTime(time: Dayjs) {
         if (this.isEmpty) {
             return false;
         }

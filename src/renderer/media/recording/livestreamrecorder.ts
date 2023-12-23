@@ -72,11 +72,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     getAsTimecode(time: Dayjs) {
+        this.assertIsRecording();
+
         return time.diff(this.startTime) / 1000;
     }
 
     get isRecording() {
-        return !!this._startTime;
+        return this.recorder.isRecording;
     }
 
     get recording() {
@@ -97,27 +99,24 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this._startTime!;
     }
 
-    private assertIsRecording() {
-        if (!this._startTime) {
-            throw new Error(`There is no recording currently active.`);
-        }
-    }
-
     get duration() {
+        this.assertIsRecording();
+
         return durationSince(this.startTime).asSeconds();
     }
 
     async tryFillSegmentsToIncludeTime(time: Dayjs) {
-        if (this.segments.isEmpty || this.segments.lastSegmentEndTime.isBefore(time)) {
-            this.assertIsBeforeEndOfRecording(time);
-
-            await this.recorder.forceRender();
-            this.assertHasSegmentToRender();
-
-            return true;
-        } else {
+        if (this.segments.containsTime(time)) {
+            // We already have segment data for the requested time so there's no work to do.
             return false;
         }
+
+        this.assertActiveRecordingContainsTime(time);
+
+        await this.recorder.forceRender();
+        this.assertHasSegmentToRender();
+
+        return true;
     }
 
     private assertHasSegmentToRender() {
@@ -128,8 +127,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertIsBeforeEndOfRecording(time: Dayjs) {
-        if (this.isRecording && this.recording.endTime.isBefore(time)) {
+    containsTime(time: Dayjs) {
+        return this.isRecording && this.recording.endTime.isBefore(time);
+    }
+
+    private assertActiveRecordingContainsTime(time: Dayjs) {
+        if (this.containsTime(time)) {
             const timecode = this.getAsTimecode(time);
 
             throw new Error(
@@ -164,6 +167,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     async stopRecording() {
         this._startTime = null;
         await this.recorder.stopRecording();
+    }
+
+    private assertIsRecording() {
+        if (!this._startTime) {
+            throw new Error(`There is no recording currently active.`);
+        }
     }
 
     async play() {
