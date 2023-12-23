@@ -82,7 +82,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     get recording() {
-        if (this.liveStreamRecorder.isRecording) {
+        if (this.isRecording) {
             return this.liveStreamRecorder.recording;
         } else {
             const endTime = this.segments.lastSegmentEndTime;
