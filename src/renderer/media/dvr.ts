@@ -60,6 +60,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async startRecording() {
         await this.liveStreamRecorder.startRecording();
+
+        if (!this.isLive) {
+            this.startPollingLiveStreamRecordingDuration('playback');
+        }
     }
 
     async stopRecording() {
