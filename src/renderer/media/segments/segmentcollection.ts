@@ -139,6 +139,20 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return segment.startTime.add(segment.duration, 'seconds');
     }
 
+    contains(time: Dayjs) {
+        if (this.isEmpty) {
+            return false;
+        }
+
+        const start = this.firstSegmentStartTime;
+        const end = this.lastSegmentEndTime;
+
+        const isAfterStart = time.isAfter(start) || start.isSame(time);
+        const isBeforeEnd = time.isBefore(end) || time.isSame(end);
+
+        return isAfterStart && isBeforeEnd;
+    }
+
     resetSegmentDuration(segment: Segment, duration: number) {
         this.assertIsSegmentDefined(segment);
 
