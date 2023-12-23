@@ -48,7 +48,6 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
         await this.stopAndEnsureLastVideoChunk();
         await this.raiseRecording(false);
-        this.chunks = [];
     }
 
     get isRecording() {
@@ -56,7 +55,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private timeout: any;
-    private startTime: Dayjs = null!;
+    private startTime: Dayjs | null = null;
 
     private startTimeout() {
         this.recorder.start(1000);
@@ -97,13 +96,17 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             const fixedBlob = await fixWebmDuration(rawBlob);
 
             const recording: Recording = {
-                startTime: this.startTime,
-                duration: durationSince(this.startTime).asSeconds(),
+                startTime: this.startTime!,
+                duration: durationSince(this.startTime!).asSeconds(),
                 blob: fixedBlob,
                 isPartial,
             };
 
             await this.onrecording(recording);
+
+            if (!isPartial) {
+                this.chunks = [];
+            }
 
             return recording;
         } catch (e) {
@@ -135,6 +138,6 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private emitOnStart() {
-        this.emit('onstart', this.startTime);
+        this.emit('onstart', this.startTime!);
     }
 }
