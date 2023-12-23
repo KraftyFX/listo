@@ -35,13 +35,10 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             this._segments.pop();
         }
 
-        const startOffset = this.isEmpty ? 0 : this.getAsTimecode(startTime);
-
         const segment: Segment = {
             index: this._segments.length,
             url,
             startTime,
-            startOffset,
             duration,
             isForced,
         };
@@ -158,7 +155,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
                 `Segment ${segment.index} had a big delta ${delta.toFixed(2)}s. Adjust start time.`
             );
             segment.startTime = segment.startTime.add(delta, 'seconds');
-            segment.startOffset = this.getAsTimecode(segment.startTime);
         }
 
         segment.duration = duration;
