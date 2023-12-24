@@ -79,7 +79,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private chunks: Blob[] = [];
 
     private onDataAvailable = (event: BlobEvent) => {
-        this.chunks.push(event.data);
+        if (event.data && event.data.size > 0) {
+            this.chunks.push(event.data);
+        }
     };
 
     onrecording: (recording: Recording) => Promise<void> = null!;
@@ -111,8 +113,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             return recording;
         } catch (e) {
             if (!this.isRecording) {
-                console.warn(e);
-                return null!;
+                // We're not recording right now
+                return;
             } else {
                 console.error(e);
                 throw new Error(`fixWebDuration error most likely. See above.`);

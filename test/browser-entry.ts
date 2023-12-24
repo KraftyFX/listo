@@ -17,4 +17,4 @@ window.onload = () => {
     mocha.run();
 };
 
-import './foo.spec';
+import './segmentrecorder.spec';
