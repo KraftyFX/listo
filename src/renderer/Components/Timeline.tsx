@@ -1,6 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
-import _throttle from 'lodash.throttle';
 import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
@@ -23,13 +22,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     const timelineRef = useRef<HTMLDivElement>(null!);
     const markerUnderThumbRef = useRef<HTMLDivElement>(null);
 
-    const animateMarkerUnderThumbIntoView = _throttle(() => {
+    const animateMarkerUnderThumbIntoView = () => {
         markerUnderThumbRef.current?.scrollIntoView({
             behavior: 'smooth',
             block: dvrStore.speed < 0 ? 'start' : 'end',
             inline: dvrStore.speed < 0 ? 'start' : 'end',
         });
-    }, 250);
+    };
 
     useEffect(
         action(function mount() {
