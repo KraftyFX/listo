@@ -22,8 +22,8 @@ if (require('electron-squirrel-startup')) {
 const createWindow = (): void => {
     registerApiHandlers();
 
-    // initMainWindow();
-    initIntegrationTests();
+    initMainWindow();
+    // initIntegrationTests();
 };
 
 registerProtocolSchemes();

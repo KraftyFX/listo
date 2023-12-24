@@ -124,15 +124,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private _isVideoSource = false;
 
     async setAsVideoSource() {
-        this.videoElt.src = '';
-        this.videoElt.srcObject = this.stream;
-        this.videoElt.ontimeupdate = () => this.emitUpdate();
-        this._isVideoSource = true;
+        if (!this._isVideoSource) {
+            this.videoElt.src = '';
+            this.videoElt.srcObject = this.stream;
+            this.videoElt.ontimeupdate = () => this.emitUpdate();
+            this._isVideoSource = true;
+        }
     }
 
     releaseAsVideoSource() {
-        this.videoElt.ontimeupdate = null;
-        this._isVideoSource = false;
+        if (this._isVideoSource) {
+            this.videoElt.ontimeupdate = null;
+            this._isVideoSource = false;
+        }
     }
 
     get paused() {
@@ -140,11 +144,15 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async startRecording() {
+        this.assertIsActiveVideoSource();
+
         this._startTime = dayjs();
         await this.recorder.startRecording();
     }
 
     async stopRecording() {
+        this.assertIsActiveVideoSource();
+
         this._startTime = null;
         await this.recorder.stopRecording();
     }
@@ -166,15 +174,26 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async play() {
+        this.assertIsActiveVideoSource();
+
         await playAndWait(this.videoElt);
         this.emitPlay();
     }
 
     async pause() {
+        this.assertIsActiveVideoSource();
+
         await pauseAndWait(this.videoElt);
         this.emitPause();
     }
 
+    private assertIsActiveVideoSource() {
+        if (!this._isVideoSource) {
+            throw new Error(
+                `This is only available when playback the active source on the video element`
+            );
+        }
+    }
     private emitPlay() {
         this.emit('play');
     }

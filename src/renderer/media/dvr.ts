@@ -60,8 +60,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     async showLiveStreamAndStartRecording() {
-        await this.startRecording();
         await this.switchToLiveStream();
+        await this.startRecording();
     }
 
     async startRecording() {
@@ -112,8 +112,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.stopPollingLiveStreamRecordingDuration();
 
-        this.logger.info('Switching to live stream');
-
         if (this.playback) {
             await this.playback.pause();
             this.playback.removeAllListeners();
@@ -123,6 +121,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
         this.liveStreamRecorder.on('play', () => this.emitPlay());
         this.liveStreamRecorder.on('pause', () => this.emitPause());
+
+        this.logger.info('Switching to live stream');
         await this.liveStreamRecorder.setAsVideoSource();
 
         this._isLive = true;
@@ -142,9 +142,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         } else {
             this.assertWillHaveVideoDataToPlay();
 
-            this.liveStreamRecorder.removeAllListeners();
-            this.liveStreamRecorder.releaseAsVideoSource();
-
             this.playback.on('timeupdate', (currentTime, speed) =>
                 this.emitPlaybackUpdate(this.playback.currentTimeAsTime, speed)
             );
@@ -159,9 +156,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
                 time = time || this.segments.lastSegmentEndTime.subtract(1, 'second');
             }
 
-            this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
-
             await this.liveStreamRecorder.tryFillSegments(time);
+            this.liveStreamRecorder.removeAllListeners();
+            this.liveStreamRecorder.releaseAsVideoSource();
+
+            this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
             await this.playback.setAsVideoSource(time);
 
             this._isLive = false;
