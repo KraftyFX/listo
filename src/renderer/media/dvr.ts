@@ -140,6 +140,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             await this.liveStreamRecorder.tryFillSegments(time);
             await this.playback.goToTime(time);
         } else {
+            this.assertWillHaveVideoDataToPlay();
+
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
 
@@ -154,8 +156,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             if (this.isRecording) {
                 time = time || this.recording.endTime.subtract(1, 'second');
             } else {
-                this.assertHasSegments();
-
                 time = time || this.segments.lastSegmentEndTime.subtract(1, 'second');
             }
 
@@ -171,9 +171,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private assertHasSegments() {
-        if (this.segments.isEmpty) {
-            throw new Error(`Playback mode without any existing recorded data is not supported.`);
+    private assertWillHaveVideoDataToPlay() {
+        if (!this.isRecording && this.segments.isEmpty) {
+            throw new Error(`Playback without existing/anticipated video data is not supported.`);
         }
     }
 
