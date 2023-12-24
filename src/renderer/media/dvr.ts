@@ -23,9 +23,9 @@ type DvrEvents = {
 
 export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventEmitter<DvrEvents>) {
     private logger: Logger;
-    private liveStreamRecorder!: LiveStreamRecorder;
-    private playback!: SegmentPlayback;
-    private segments!: SegmentCollection;
+    private liveStreamRecorder: LiveStreamRecorder;
+    private playback: SegmentPlayback;
+    private segments: SegmentCollection;
 
     readonly options: DvrOptions;
 
@@ -103,11 +103,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.stopPollingLiveStreamRecordingDuration();
 
-        if (this.playback) {
-            await this.playback.pause();
-            this.playback.removeAllListeners();
-            await this.playback.releaseAsVideoSource();
-        }
+        await this.playback.pause();
+        this.playback.removeAllListeners();
+        await this.playback.releaseAsVideoSource();
 
         this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
         this.liveStreamRecorder.on('play', () => this.emitPlay());
