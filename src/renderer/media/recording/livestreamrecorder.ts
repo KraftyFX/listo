@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
@@ -29,7 +29,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (startTime) => (this._startTime = startTime));
         this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 
@@ -91,12 +90,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         };
     }
 
-    private _startTime: Dayjs | null = null;
-
     private get startTime() {
         this.assertIsRecording();
 
-        return this._startTime!;
+        return this.recorder.startTime!;
     }
 
     get duration() {
@@ -148,7 +145,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             return;
         }
 
-        this._startTime = dayjs();
         await this.recorder.startRecording();
     }
 
@@ -157,12 +153,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             return;
         }
 
-        this._startTime = null;
         await this.recorder.stopRecording();
     }
 
     private assertIsRecording() {
-        if (!this._startTime) {
+        if (!this.isRecording) {
             throw new Error(`There is no recording currently active.`);
         }
     }

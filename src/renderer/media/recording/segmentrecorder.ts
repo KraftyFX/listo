@@ -38,30 +38,44 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     startRecording() {
+        if (this.isRecording) {
+            return;
+        }
+
         this.logger.log('start recording');
+
+        this.recorder.start(1000);
+        this._startTime = dayjs();
+
         this.startTimeout();
     }
 
     async stopRecording() {
+        if (!this.isRecording) {
+            return;
+        }
+
         this.logger.log('stop recording');
         this.clearTimeout();
 
         await this.stopAndEnsureLastVideoChunk();
         await this.raiseRecording(false);
+
+        this._startTime = null;
     }
 
     get isRecording() {
-        return this.timeout !== 0;
+        return this._startTime !== null;
     }
 
     private timeout: any;
-    private startTime: Dayjs | null = null;
+    private _startTime: Dayjs | null = null;
+
+    get startTime() {
+        return this._startTime;
+    }
 
     private startTimeout() {
-        this.recorder.start(1000);
-        this.startTime = dayjs();
-        this.emitOnStart();
-
         const ms = this.options.minSegmentSizeInSec * 1000;
         this.timeout = setTimeout(() => this.onTimeout(), ms);
     }
@@ -98,8 +112,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             const fixedBlob = await fixWebmDuration(rawBlob);
 
             const recording: Recording = {
-                startTime: this.startTime!,
-                duration: durationSince(this.startTime!).asSeconds(),
+                startTime: this._startTime!,
+                duration: durationSince(this._startTime!).asSeconds(),
                 blob: fixedBlob,
                 isPartial,
             };
@@ -137,9 +151,5 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
             this.recorder.stop();
         });
-    }
-
-    private emitOnStart() {
-        this.emit('onstart', this.startTime!);
     }
 }
