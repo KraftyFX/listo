@@ -105,11 +105,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return durationSince(this.startTime).asSeconds();
     }
 
-    async tryFillSegmentsToIncludeTime(time: Dayjs) {
+    async tryFillSegments(time: Dayjs) {
         if (this.containsTime(time)) {
             await this.recorder.forceRender();
 
-            this.assertHasSegmentForTime(time);
+            this.assertHasSegment(time);
 
             return true;
         } else {
@@ -155,12 +155,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertHasSegmentForTime(time: Dayjs) {
+    private assertHasSegment(time: Dayjs) {
         if (!this.segments.containsTime(time)) {
             const timecode = this.getAsTimecode(time);
 
             throw new Error(
-                `The segmented recorder was told to force render everything but didn't produce data for time ${timecode}`
+                `The segmented recorder was told to force render everything but didn't produce data at ${timecode}`
             );
         }
     }
