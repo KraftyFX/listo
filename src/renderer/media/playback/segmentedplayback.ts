@@ -91,6 +91,7 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         this.controller.removeAllListeners();
         this.controller.stop();
 
+        this.currentSegment = null!;
         this._isVideoSource = false;
     }
 
@@ -110,8 +111,8 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
-            this.videoElt.src = await this.getSegmentUrl(segment);
             this.videoElt.srcObject = null;
+            this.videoElt.src = await this.getSegmentUrl(segment);
 
             this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
 
