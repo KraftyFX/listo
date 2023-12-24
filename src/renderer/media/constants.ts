@@ -8,7 +8,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     inMemory: true,
     source: 'default',
     mimeType: 'video/webm',
-    minSegmentSizeInSec: 30,
+    minSegmentSizeInSec: 5,
     logging: 'info',
 };
 
