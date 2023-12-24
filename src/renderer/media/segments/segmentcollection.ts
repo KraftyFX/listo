@@ -5,12 +5,12 @@ import TypedEventEmitter from '../eventemitter';
 import { formatSegment } from './formatutil';
 import { Segment } from './interfaces';
 
-type SegmentedCollectionEvents = {
+type SegmentCollectionEvents = {
     reset: (segment: Segment) => void;
     segmentadded: (segment: Segment) => void;
 };
 
-export class SegmentCollection extends (EventEmitter as new () => TypedEventEmitter<SegmentedCollectionEvents>) {
+export class SegmentCollection extends (EventEmitter as new () => TypedEventEmitter<SegmentCollectionEvents>) {
     private logger: Logger;
     private readonly _segments: Segment[] = [];
 

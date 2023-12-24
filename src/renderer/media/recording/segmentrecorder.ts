@@ -16,11 +16,11 @@ export interface Recording {
     isPartial: boolean;
 }
 
-type SegmentedRecorderEvents = {
+type SegmentRecorderEvents = {
     onstart: (startTime: Dayjs) => void;
 };
 
-export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentedRecorderEvents>) {
+export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
     private logger: Logger;
     private readonly recorder: MediaRecorder;
     readonly options: RecordingOptions;

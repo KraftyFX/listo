@@ -34,7 +34,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     /**
-     * The onRecording method saves whatever blob we got from the segmented recorder.
+     * The onRecording method saves whatever blob we got from the segment recorder.
      *
      * If a user wants to scrub through something super recent that's still being recorded then
      * the DVR will call to `forceRender()` ensure playable video data is available. This will
@@ -160,7 +160,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             const timecode = this.getAsTimecode(time);
 
             throw new Error(
-                `The segmented recorder was told to force render everything but didn't produce data at ${timecode}`
+                `The segment recorder was told to force render everything but didn't produce data at ${timecode}`
             );
         }
     }

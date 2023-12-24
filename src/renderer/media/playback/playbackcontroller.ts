@@ -4,7 +4,7 @@ import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constant
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
 import { pauseAndWait, playAndWait } from './playbackutil';
-import { SegmentedPlayback } from './segmentplayback';
+import { SegmentPlayback } from './segmentplayback';
 
 type PlaybackControllerEvents = {
     play: () => void;
@@ -14,9 +14,9 @@ type PlaybackControllerEvents = {
 
 export class PlaybackController extends (EventEmitter as new () => TypedEventEmitter<PlaybackControllerEvents>) {
     private logger: Logger;
-    private playback: SegmentedPlayback;
+    private playback: SegmentPlayback;
 
-    constructor(playback: SegmentedPlayback, public readonly options: PlaybackOptions) {
+    constructor(playback: SegmentPlayback, public readonly options: PlaybackOptions) {
         super();
 
         this.logger = getLog('pbk-cntr', this.options);

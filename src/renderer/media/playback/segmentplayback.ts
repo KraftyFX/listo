@@ -10,7 +10,7 @@ import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
 import { PlaybackController } from './playbackcontroller';
 
-type SegmentedPlaybackEvents = {
+type SegmentPlaybackEvents = {
     segmentrendered: (segment: Segment) => void;
 
     play: () => void;
@@ -19,7 +19,7 @@ type SegmentedPlaybackEvents = {
     timeupdate: (currentTime: Dayjs, speed: number) => void;
 };
 
-export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentedPlaybackEvents>) {
+export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
     private logger: Logger;
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
