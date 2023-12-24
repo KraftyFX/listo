@@ -125,6 +125,12 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return this.segments[segments.length - 1];
     }
 
+    /**
+     * Converts a time to a timecode relative to the start time of the first segment
+     * in the collection.
+     * @param time time to convert
+     * @returns timecode
+     */
     getAsTimecode(time: Dayjs) {
         return time.diff(this.firstSegmentStartTime) / 1000;
     }

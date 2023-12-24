@@ -70,6 +70,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
+    /**
+     * Converts a time to a timecode relative to the start time of the most recent recording
+     * @param time time to convert
+     * @returns timecode
+     */
     getAsTimecode(time: Dayjs) {
         this.assertIsRecording();
 
