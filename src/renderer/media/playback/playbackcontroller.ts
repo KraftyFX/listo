@@ -109,7 +109,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async nextFrame() {
         this.stopInterval();
 
-        const nextTime = this.playback.currentTimeAsTime.add(SECONDS_PER_FRAME, 'seconds');
+        const nextTime = this.playback.currentTime.add(SECONDS_PER_FRAME, 'seconds');
 
         this.mode = 'normal';
 
@@ -175,7 +175,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this._interval =
             this._interval ||
             setInterval(async () => {
-                const currentTimeAsTime = this.playback.currentTimeAsTime;
+                const currentTimeAsTime = this.playback.currentTime;
                 const nextTime =
                     this.deltaInSec >= 0
                         ? currentTimeAsTime.add(this.deltaInSec, 'seconds')

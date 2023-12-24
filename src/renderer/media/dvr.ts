@@ -122,7 +122,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async switchToPlayback(time?: Dayjs) {
         if (!this._isLive) {
-            time = time || this.playback.currentTimeAsTime;
+            time = time || this.playback.currentTime;
 
             // This fill segments call is needed b/c the user is in playback mode
             // and might have jumped to a time that is still actively being recorded
@@ -132,7 +132,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.assertWillHaveVideoDataToPlay();
 
             this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitPlaybackUpdate(this.playback.currentTimeAsTime, speed)
+                this.emitPlaybackUpdate(this.playback.currentTime, speed)
             );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
@@ -224,7 +224,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     get isAtEnd() {
         this.assertIsInPlayback();
 
-        return this.recording.endTime.diff(this.playback.currentTimeAsTime) <= 1000;
+        return this.recording.endTime.diff(this.playback.currentTime) <= 1000;
     }
 
     async goToPlaybackTime(time: Dayjs) {
