@@ -144,14 +144,18 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async startRecording() {
-        this.assertIsActiveVideoSource();
+        if (this.isRecording) {
+            return;
+        }
 
         this._startTime = dayjs();
         await this.recorder.startRecording();
     }
 
     async stopRecording() {
-        this.assertIsActiveVideoSource();
+        if (!this.isRecording) {
+            return;
+        }
 
         this._startTime = null;
         await this.recorder.stopRecording();
