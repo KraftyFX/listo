@@ -66,19 +66,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     async startRecording() {
         await this.liveStreamRecorder.startRecording();
-
-        if (!this.isLive) {
-            this.startPollingLiveStreamRecordingDuration('playback');
-        }
     }
 
     async stopRecording() {
-        if (this.isLive) {
-            await this.switchToPlayback();
-        }
-
         await this.liveStreamRecorder.stopRecording();
-        this.stopPollingLiveStreamRecordingDuration();
     }
 
     private _isLive = false;
