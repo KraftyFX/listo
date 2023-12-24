@@ -178,18 +178,26 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     isBeforeStart(time: Dayjs) {
+        this.assertHasSegments();
+
         return time.isBefore(this.segments.firstSegmentStartTime);
     }
 
     async goToStart() {
+        this.assertHasSegments();
+
         await this.goToTime(this.segments.firstSegmentStartTime);
     }
 
     isAfterEnd(time: Dayjs) {
+        this.assertHasSegments();
+
         return time.isAfter(this.segments.lastSegmentEndTime);
     }
 
     async goToEnd() {
+        this.assertHasSegments();
+
         const segment = this.segments.lastSegment;
 
         await this.renderSegment(segment, segment.duration);
@@ -273,12 +281,16 @@ export class SegmentedPlayback extends (EventEmitter as new () => TypedEventEmit
     }
 
     get isAtBeginning() {
+        this.assertHasSegments();
+
         return Boolean(
             this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
         );
     }
 
     get isAtEnd() {
+        this.assertHasSegments();
+
         return Boolean(
             this.segments.isLastSegment(this.currentSegment) && this.isAtCurrentSegmentEnd
         );
