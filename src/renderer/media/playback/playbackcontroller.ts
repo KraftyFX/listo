@@ -4,7 +4,7 @@ import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constant
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
 import { pauseAndWait, playAndWait } from './playbackutil';
-import { SegmentedPlayback } from './segmentedplayback';
+import { SegmentedPlayback } from './segmentplayback';
 
 type PlaybackControllerEvents = {
     play: () => void;

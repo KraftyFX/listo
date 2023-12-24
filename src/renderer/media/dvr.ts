@@ -5,7 +5,7 @@ import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
 import { DvrOptions } from './interfaces';
 import { Logger, getLog } from './logutil';
-import { SegmentedPlayback } from './playback/segmentedplayback';
+import { SegmentedPlayback } from './playback/segmentplayback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { Segment } from './segments/interfaces';
 import { SegmentCollection } from './segments/segmentcollection';
