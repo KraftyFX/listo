@@ -153,9 +153,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     resetSegmentDuration(segment: Segment, duration: number) {
         this.assertIsSegmentDefined(segment);
 
-        const delta = segment.duration - duration;
-
-        if (segment.duration === duration || delta < 0.1) {
+        if (segment.duration === duration) {
             return false;
         }
 
@@ -163,9 +161,13 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             `Resetting duration of ${formatSegment(segment)} to ${duration.toFixed(2)}`
         );
 
+        const delta = segment.duration - duration;
+
         if (delta > 1) {
             this.logger.warn(
-                `Segment ${segment.index} had a big delta ${delta.toFixed(2)}s. Adjust start time.`
+                `Segment ${segment.index} had a big delta ${delta.toFixed(
+                    2
+                )}s. Adjusting start time.`
             );
             segment.startTime = segment.startTime.add(delta, 'seconds');
         }
