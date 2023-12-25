@@ -72,7 +72,15 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private _startTime: Dayjs | null = null;
 
     get startTime() {
-        return this._startTime;
+        this.assertIsRecording();
+
+        return this._startTime!;
+    }
+
+    get duration() {
+        this.assertIsRecording();
+
+        return durationSince(this.startTime).asSeconds();
     }
 
     private startTimeout() {
@@ -112,8 +120,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             const fixedBlob = await fixWebmDuration(rawBlob);
 
             const recording: Recording = {
-                startTime: this._startTime!,
-                duration: durationSince(this._startTime!).asSeconds(),
+                startTime: this.startTime,
+                duration: this.duration,
                 blob: fixedBlob,
                 isPartial,
             };
@@ -151,5 +159,11 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
             this.recorder.stop();
         });
+    }
+
+    private assertIsRecording() {
+        if (!this.isRecording) {
+            throw new Error(`Start time is only available during a recording`);
+        }
     }
 }

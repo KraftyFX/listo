@@ -5,7 +5,6 @@ import { Logger, getLog } from '~/renderer/media/logutil';
 import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
-import { durationSince } from './dateutil';
 import { Recording, SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
@@ -98,13 +97,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private get startTime() {
         this.assertIsRecording();
 
-        return this.recorder.startTime!;
+        return this.recorder.startTime;
     }
 
     get duration() {
         this.assertIsRecording();
 
-        return durationSince(this.startTime).asSeconds();
+        return this.recorder.duration;
     }
 
     async tryFillSegments(time: Dayjs) {
