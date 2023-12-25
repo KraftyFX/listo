@@ -1,8 +1,8 @@
-import { IMediaRecorder } from './interfaces';
+import { IStreamRecorder } from './interfaces';
 
-export type OnDataAvailableEvent = ((this: IMediaRecorder, ev: BlobEvent) => any) | null;
+export type OnDataAvailableEvent = ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
 
-export class MediaRecorderService implements IMediaRecorder {
+export class StreamRecorder implements IStreamRecorder {
     private readonly recorder: MediaRecorder;
 
     constructor(public readonly stream: MediaStream, public readonly mimeType: string) {

@@ -14,8 +14,10 @@ export interface IVideoPlayer {
     ondurationchange: ((this: IVideoPlayer) => any) | null;
 }
 
-export interface IMediaRecorder {
+export interface IStreamRecorder {
+    readonly stream: any;
+
     start(timeslice?: number): void;
     stop(): void;
-    ondataavailable: ((this: MediaRecorder, ev: BlobEvent) => any) | null;
+    ondataavailable: ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
 }

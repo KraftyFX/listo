@@ -1,8 +1,8 @@
-import { IMediaRecorder, IVideoPlayer } from './interfaces';
+import { IStreamRecorder, IVideoPlayer } from './interfaces';
 
 export class ServiceLocator {
     videoElt: IVideoPlayer | null = null;
-    recorder: IMediaRecorder | null = null;
+    recorder: IStreamRecorder | null = null;
 
     constructor() {}
 }

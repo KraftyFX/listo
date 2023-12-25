@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
-import { IVideoPlayer } from '../services';
+import { IStreamRecorder, IVideoPlayer } from '../services';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
 import { DvrOptions } from './interfaces';
@@ -32,7 +32,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     constructor(
         public readonly player: IVideoPlayer,
-        public readonly stream: MediaStream,
+        recorder: IStreamRecorder,
         options?: Partial<DvrOptions>
     ) {
         super();
@@ -48,7 +48,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.liveStreamRecorder = new LiveStreamRecorder(
             this.player,
-            this.stream,
+            recorder,
             this.segments,
             this.options.recording
         );
