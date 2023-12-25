@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
-import { IStreamRecorder, IVideoPlayer } from '~/renderer/services';
+import { IServiceLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Recording, SegmentRecorder } from './segmentrecorder';
 
@@ -18,8 +18,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private logger: Logger;
 
     constructor(
-        public readonly player: IVideoPlayer,
-        recorder: IStreamRecorder,
+        private readonly locator: IServiceLocator,
         public readonly segments: SegmentCollection,
         public readonly options: RecordingOptions
     ) {
@@ -27,8 +26,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
         this.logger = getLog('lsr', this.options);
 
-        this.recorder = new SegmentRecorder(recorder, options);
+        this.recorder = new SegmentRecorder(locator, options);
         this.recorder.onrecording = (recording) => this.onRecording(recording);
+    }
+
+    private get player() {
+        return this.locator.player;
     }
 
     /**

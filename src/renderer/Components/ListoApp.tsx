@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { DvrOptions } from '~/renderer/media';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
+import { ServiceLocator } from '../services';
 import { StreamRecorder } from '../services/streamrecorder';
 import { VideoPlayer as Player } from '../services/videoelement';
 import { CameraList } from './CameraList';
@@ -42,10 +43,12 @@ export const ListoApp = observer(function ListoApp() {
                 }
             }
 
-            const player = new Player(videoRef.current);
-            const recorder = new StreamRecorder(stream, options.recording.mimeType);
+            const locator = new ServiceLocator(
+                new Player(videoRef.current),
+                new StreamRecorder(stream, options.recording.mimeType)
+            );
 
-            dvr = new DigitalVideoRecorder(player, recorder, options);
+            dvr = new DigitalVideoRecorder(locator, options);
             window.dvr = dvr;
 
             dvrStore.cameraStore.startWatchingCameraList();

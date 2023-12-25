@@ -21,3 +21,8 @@ export interface IStreamRecorder {
     stop(): void;
     ondataavailable: ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
 }
+
+export interface IServiceLocator {
+    player: IVideoPlayer;
+    recorder: IStreamRecorder;
+}

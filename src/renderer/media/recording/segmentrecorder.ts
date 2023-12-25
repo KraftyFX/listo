@@ -5,7 +5,7 @@ import fixWebmDuration from 'webm-duration-fix';
 import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { IStreamRecorder } from '~/renderer/services';
+import { IServiceLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
@@ -23,13 +23,17 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private logger: Logger;
     readonly options: RecordingOptions;
 
-    constructor(private readonly recorder: IStreamRecorder, options?: Partial<RecordingOptions>) {
+    constructor(private readonly locator: IServiceLocator, options?: Partial<RecordingOptions>) {
         super();
 
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('seg-rec', this.options);
 
         this.recorder.ondataavailable = this.onDataAvailable;
+    }
+
+    private get recorder() {
+        return this.locator.recorder;
     }
 
     get stream() {
