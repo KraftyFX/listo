@@ -281,6 +281,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get isAtBeginning() {
+        this.assertIsActiveVideoSource();
         this.assertHasSegments();
 
         return Boolean(
@@ -289,6 +290,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get isAtEnd() {
+        this.assertIsActiveVideoSource();
         this.assertHasSegments();
 
         return Boolean(

@@ -78,7 +78,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this._isLive;
     }
 
-    get allSegments() {
+    get playableRecordings() {
         return this.segments.segments;
     }
 
@@ -224,7 +224,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     get isAtEnd() {
         this.assertIsInPlayback();
 
-        return this.recording.endTime.diff(this.playback.currentTime) <= 1000;
+        return this.playback.isAtEnd;
     }
 
     async goToPlaybackTime(time: Dayjs) {

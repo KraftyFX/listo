@@ -245,7 +245,7 @@ export class DvrStore {
 
     private refreshRecordings() {
         // TODO: Normalize on dayjs.duration?
-        this.timeline.pastRecordings = this.dvr.allSegments.map(
+        this.timeline.pastRecordings = this.dvr.playableRecordings.map(
             ({ isPartial, startTime, duration }) => ({
                 isPartial,
                 startTime,
