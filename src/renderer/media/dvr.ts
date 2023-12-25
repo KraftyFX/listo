@@ -14,7 +14,7 @@ type DvrEvents = {
     modechange: (isLive: boolean) => void;
     play: () => void;
     pause: () => void;
-    playbackupdate: (currentTimeAsTime: Dayjs, speed: number) => void;
+    playbackupdate: (currentTime: Dayjs, speed: number) => void;
     liveupdate: () => void;
     segmentadded: () => void;
     segmentupdated: () => void;
@@ -321,8 +321,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private emitPlaybackUpdate(currentTimeAsTime: Dayjs, speed: number): void {
-        this.emit('playbackupdate', currentTimeAsTime, speed);
+    private emitPlaybackUpdate(currentTime: Dayjs, speed: number): void {
+        this.emit('playbackupdate', currentTime, speed);
     }
 
     private emitPlay() {

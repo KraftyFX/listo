@@ -200,10 +200,10 @@ export class DvrStore {
     private listenForPlaybackUpdate() {
         this.dvr.on(
             'playbackupdate',
-            action((currentTimeAsTime, speed) => {
+            action((currentTime, speed) => {
                 this.updateLiveRecordingStats();
 
-                this._currentTime = currentTimeAsTime;
+                this._currentTime = currentTime;
                 this._speed = speed;
 
                 this.refreshControlAbilities();

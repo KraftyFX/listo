@@ -175,18 +175,18 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this._interval =
             this._interval ||
             setInterval(async () => {
-                const currentTimeAsTime = this.playback.currentTime;
+                const currentTime = this.playback.currentTime;
                 const nextTime =
                     this.deltaInSec >= 0
-                        ? currentTimeAsTime.add(this.deltaInSec, 'seconds')
-                        : currentTimeAsTime.subtract(this.deltaInSec * -1, 'seconds');
+                        ? currentTime.add(this.deltaInSec, 'seconds')
+                        : currentTime.subtract(this.deltaInSec * -1, 'seconds');
 
                 if (this.deltaInSec === 0) {
                     this.logger.info('Unexpected Stop');
 
                     this.stopInterval();
 
-                    this.playback.goToTime(currentTimeAsTime);
+                    this.playback.goToTime(currentTime);
                     this.emitPause();
                 } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
                     this.logger.info('Reached the beginning');
