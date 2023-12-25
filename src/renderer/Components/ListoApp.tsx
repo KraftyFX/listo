@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { DvrOptions } from '~/renderer/media';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
+import { VideoPlayer as Player } from '../services/videoelement';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
@@ -40,7 +41,9 @@ export const ListoApp = observer(function ListoApp() {
                 }
             }
 
-            dvr = new DigitalVideoRecorder(videoRef.current, stream, options);
+            const player = new Player(videoRef.current);
+
+            dvr = new DigitalVideoRecorder(player, stream, options);
             window.dvr = dvr;
 
             dvrStore.cameraStore.startWatchingCameraList();

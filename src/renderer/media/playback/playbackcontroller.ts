@@ -3,7 +3,6 @@ import { PlaybackOptions } from '~/renderer/media';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
-import { pauseAndWait, playAndWait } from './playbackutil';
 import { SegmentPlayback } from './segmentplayback';
 
 type PlaybackControllerEvents = {
@@ -39,13 +38,13 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private get videoElt() {
-        return this.playback.videoElt;
+    private get player() {
+        return this.playback.player;
     }
 
     get paused() {
         if (this.mode === 'normal') {
-            return this.videoElt.paused;
+            return this.player.paused;
         } else {
             return false;
         }
@@ -56,7 +55,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async play() {
         this.stopInterval();
 
-        await playAndWait(this.videoElt);
+        await this.player.play();
 
         this._speed = 1;
         this.mode = 'normal';
@@ -67,7 +66,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     async pause() {
         this.stopInterval();
 
-        await pauseAndWait(this.videoElt);
+        await this.player.pause();
 
         this._speed = 0;
         this.mode = 'normal';

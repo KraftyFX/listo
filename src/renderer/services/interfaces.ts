@@ -1,4 +1,4 @@
-export interface IVideoElement {
+export interface IVideoPlayer {
     setVideoSource(src: any): void;
 
     currentTime: number;
@@ -9,9 +9,9 @@ export interface IVideoElement {
     play(): Promise<void>;
     pause(): Promise<void>;
 
-    onended: ((this: IVideoElement) => any) | null;
-    ontimeupdate: ((this: IVideoElement) => any) | null;
-    ondurationchange: ((this: IVideoElement) => any) | null;
+    onended: ((this: IVideoPlayer) => any) | null;
+    ontimeupdate: ((this: IVideoPlayer) => any) | null;
+    ondurationchange: ((this: IVideoPlayer) => any) | null;
 }
 
 export interface IMediaRecorder {

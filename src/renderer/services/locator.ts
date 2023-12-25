@@ -1,7 +1,7 @@
-import { IMediaRecorder, IVideoElement } from './interfaces';
+import { IMediaRecorder, IVideoPlayer } from './interfaces';
 
 export class ServiceLocator {
-    videoElt: IVideoElement | null = null;
+    videoElt: IVideoPlayer | null = null;
     recorder: IMediaRecorder | null = null;
 
     constructor() {}

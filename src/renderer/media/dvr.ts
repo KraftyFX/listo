@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
+import { IVideoPlayer } from '../services';
 import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
 import { DvrOptions } from './interfaces';
@@ -30,7 +31,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     readonly options: DvrOptions;
 
     constructor(
-        public readonly videoElt: HTMLVideoElement,
+        public readonly player: IVideoPlayer,
         public readonly stream: MediaStream,
         options?: Partial<DvrOptions>
     ) {
@@ -43,10 +44,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.segments.on('reset', (segment) => this.emitSegmentUpdated());
         this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
 
-        this.playback = new SegmentPlayback(this.videoElt, this.segments, this.options.playback);
+        this.playback = new SegmentPlayback(this.player, this.segments, this.options.playback);
 
         this.liveStreamRecorder = new LiveStreamRecorder(
-            this.videoElt,
+            this.player,
             this.stream,
             this.segments,
             this.options.recording

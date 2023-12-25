@@ -2,8 +2,8 @@ import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { IVideoPlayer } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Recording, SegmentRecorder } from './segmentrecorder';
 
@@ -18,7 +18,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private logger: Logger;
 
     constructor(
-        public readonly videoElt: HTMLVideoElement,
+        public readonly player: IVideoPlayer,
         public readonly stream: MediaStream,
         public readonly segments: SegmentCollection,
         public readonly options: RecordingOptions
@@ -126,22 +126,23 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     async setAsVideoSource() {
         if (!this._isVideoSource) {
-            this.videoElt.src = '';
-            this.videoElt.srcObject = this.stream;
-            this.videoElt.ontimeupdate = () => this.emitUpdate();
+            this.player.setVideoSource(this.stream);
+            this.player.ontimeupdate = () => this.emitUpdate();
             this._isVideoSource = true;
         }
     }
 
     releaseAsVideoSource() {
         if (this._isVideoSource) {
-            this.videoElt.ontimeupdate = null;
+            // TODO: Release video source
+
+            this.player.ontimeupdate = null;
             this._isVideoSource = false;
         }
     }
 
     get paused() {
-        return this.videoElt.paused;
+        return this.player.paused;
     }
 
     async startRecording() {
@@ -179,14 +180,14 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     async play() {
         this.assertIsActiveVideoSource();
 
-        await playAndWait(this.videoElt);
+        await this.player.play();
         this.emitPlay();
     }
 
     async pause() {
         this.assertIsActiveVideoSource();
 
-        await pauseAndWait(this.videoElt);
+        await this.player.play();
         this.emitPause();
     }
 
