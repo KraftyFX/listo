@@ -11,6 +11,8 @@ dayjs.extend(duration);
 // whether you're running in development or production).
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+declare const TEST_WINDOW_WEBPACK_ENTRY: string;
+declare const TEST_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -18,22 +20,10 @@ if (require('electron-squirrel-startup')) {
 }
 
 const createWindow = (): void => {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        height: 768,
-        width: 1024,
-        webPreferences: {
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-        },
-    });
-
     registerApiHandlers();
 
-    // and load the index.html of the app.
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    initMainWindow();
+    // initIntegrationTests();
 };
 
 registerProtocolSchemes();
@@ -60,6 +50,31 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+function initMainWindow() {
+    const mainWindow = new BrowserWindow({
+        height: 768,
+        width: 1024,
+        webPreferences: {
+            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        },
+    });
+
+    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    mainWindow.webContents.openDevTools();
+}
+
+function initIntegrationTests() {
+    const testWindow = new BrowserWindow({
+        height: 768,
+        width: 1024,
+        webPreferences: {
+            preload: TEST_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        },
+    });
+
+    testWindow.loadURL(TEST_WINDOW_WEBPACK_ENTRY);
+}
 
 function registerApiHandlers() {
     Object.keys(listoApi).forEach((eventName) => {

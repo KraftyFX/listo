@@ -49,7 +49,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         return this.controller.speed;
     }
 
-    get currentTimeAsTime() {
+    get currentTime() {
         this.assertIsActiveVideoSource();
 
         if (this.isLostInTime()) {
@@ -281,6 +281,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get isAtBeginning() {
+        this.assertIsActiveVideoSource();
         this.assertHasSegments();
 
         return Boolean(
@@ -289,6 +290,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get isAtEnd() {
+        this.assertIsActiveVideoSource();
         this.assertHasSegments();
 
         return Boolean(
@@ -333,7 +335,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private emitTimeUpdate() {
-        this.emit('timeupdate', this.currentTimeAsTime, this.speed);
+        this.emit('timeupdate', this.currentTime, this.speed);
     }
 
     private emitPlay() {

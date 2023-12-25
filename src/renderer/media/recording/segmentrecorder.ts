@@ -38,30 +38,52 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     startRecording() {
+        if (this.isRecording) {
+            return;
+        }
+
         this.logger.log('start recording');
+
+        this.recorder.start(1000);
+        this._startTime = dayjs();
+
         this.startTimeout();
     }
 
     async stopRecording() {
+        if (!this.isRecording) {
+            return;
+        }
+
         this.logger.log('stop recording');
         this.clearTimeout();
 
-        await this.stopAndEnsureLastVideoChunk();
+        await this.stopRecordingAndWaitForLastVideoChunk();
         await this.raiseRecording(false);
+
+        this._startTime = null;
     }
 
     get isRecording() {
-        return this.timeout !== 0;
+        return this._startTime !== null;
     }
 
     private timeout: any;
-    private startTime: Dayjs | null = null;
+    private _startTime: Dayjs | null = null;
+
+    get startTime() {
+        this.assertIsRecording();
+
+        return this._startTime!;
+    }
+
+    get duration() {
+        this.assertIsRecording();
+
+        return durationSince(this.startTime).asSeconds();
+    }
 
     private startTimeout() {
-        this.recorder.start(1000);
-        this.startTime = dayjs();
-        this.emitOnStart();
-
         const ms = this.options.minSegmentSizeInSec * 1000;
         this.timeout = setTimeout(() => this.onTimeout(), ms);
     }
@@ -79,7 +101,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     private chunks: Blob[] = [];
 
     private onDataAvailable = (event: BlobEvent) => {
-        this.chunks.push(event.data);
+        if (event.data && event.data.size > 0) {
+            this.chunks.push(event.data);
+        }
     };
 
     onrecording: (recording: Recording) => Promise<void> = null!;
@@ -96,8 +120,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             const fixedBlob = await fixWebmDuration(rawBlob);
 
             const recording: Recording = {
-                startTime: this.startTime!,
-                duration: durationSince(this.startTime!).asSeconds(),
+                startTime: this.startTime,
+                duration: this.duration,
                 blob: fixedBlob,
                 isPartial,
             };
@@ -111,8 +135,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             return recording;
         } catch (e) {
             if (!this.isRecording) {
-                console.warn(e);
-                return null!;
+                // We're not recording right now
+                return;
             } else {
                 console.error(e);
                 throw new Error(`fixWebDuration error most likely. See above.`);
@@ -125,7 +149,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         return this.raiseRecording(true);
     }
 
-    private stopAndEnsureLastVideoChunk() {
+    private stopRecordingAndWaitForLastVideoChunk() {
         return new Promise<void>((resolve) => {
             this.recorder.ondataavailable = (event) => {
                 this.onDataAvailable(event);
@@ -137,7 +161,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         });
     }
 
-    private emitOnStart() {
-        this.emit('onstart', this.startTime!);
+    private assertIsRecording() {
+        if (!this.isRecording) {
+            throw new Error(`Start time is only available during a recording`);
+        }
     }
 }

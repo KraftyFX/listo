@@ -200,10 +200,10 @@ export class DvrStore {
     private listenForPlaybackUpdate() {
         this.dvr.on(
             'playbackupdate',
-            action((currentTimeAsTime, speed) => {
+            action((currentTime, speed) => {
                 this.updateLiveRecordingStats();
 
-                this._currentTime = currentTimeAsTime;
+                this._currentTime = currentTime;
                 this._speed = speed;
 
                 this.refreshControlAbilities();
@@ -228,24 +228,13 @@ export class DvrStore {
     private listenForSegmentAdded() {
         this.dvr.on(
             'segmentadded',
-            action(() => {
-                // We're in a limbo state where the old recording is done but the new one
-                // hasn't started. This makes the recording startTime and duration unreliable.
-                // Rather than do gymnastics in lower level components to guarantee accurate
-                // values we'll use dummy values that are close enough to the real thing.
-                // We can get away with this b/c one of the live/playback update events will
-                // get raised in a split second.
-                this._recordingStartTime = dayjs();
-                this._recordingDuration = 0;
-
-                this.refreshRecordings();
-            })
+            action(() => this.refreshRecordings())
         );
     }
 
     private refreshRecordings() {
         // TODO: Normalize on dayjs.duration?
-        this.timeline.pastRecordings = this.dvr.allSegments.map(
+        this.timeline.pastRecordings = this.dvr.playableRecordings.map(
             ({ isPartial, startTime, duration }) => ({
                 isPartial,
                 startTime,

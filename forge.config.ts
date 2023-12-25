@@ -36,6 +36,14 @@ const config: ForgeConfig = {
                             js: './src/preload/index.ts',
                         },
                     },
+                    {
+                        html: './test/index.html',
+                        js: './test/browser-entry.ts',
+                        name: 'test_window',
+                        preload: {
+                            js: './src/preload/index.ts',
+                        },
+                    },
                 ],
             },
         }),

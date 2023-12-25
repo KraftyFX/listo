@@ -1,11 +1,10 @@
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import TypedEventEmitter from '../eventemitter';
-import { durationSince } from './dateutil';
 import { Recording, SegmentRecorder } from './segmentrecorder';
 
 type LiveStreamRecorderEvents = {
@@ -29,7 +28,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new SegmentRecorder(this.stream, options);
-        this.recorder.on('onstart', (startTime) => (this._startTime = startTime));
         this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 
@@ -71,6 +69,11 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
+    /**
+     * Converts a time to a timecode relative to the start time of the most recent recording
+     * @param time time to convert
+     * @returns timecode
+     */
     getAsTimecode(time: Dayjs) {
         this.assertIsRecording();
 
@@ -91,18 +94,16 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         };
     }
 
-    private _startTime: Dayjs | null = null;
-
     private get startTime() {
         this.assertIsRecording();
 
-        return this._startTime!;
+        return this.recorder.startTime;
     }
 
     get duration() {
         this.assertIsRecording();
 
-        return durationSince(this.startTime).asSeconds();
+        return this.recorder.duration;
     }
 
     async tryFillSegments(time: Dayjs) {
@@ -124,15 +125,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private _isVideoSource = false;
 
     async setAsVideoSource() {
-        this.videoElt.src = '';
-        this.videoElt.srcObject = this.stream;
-        this.videoElt.ontimeupdate = () => this.emitUpdate();
-        this._isVideoSource = true;
+        if (!this._isVideoSource) {
+            this.videoElt.src = '';
+            this.videoElt.srcObject = this.stream;
+            this.videoElt.ontimeupdate = () => this.emitUpdate();
+            this._isVideoSource = true;
+        }
     }
 
     releaseAsVideoSource() {
-        this.videoElt.ontimeupdate = null;
-        this._isVideoSource = false;
+        if (this._isVideoSource) {
+            this.videoElt.ontimeupdate = null;
+            this._isVideoSource = false;
+        }
     }
 
     get paused() {
@@ -140,17 +145,23 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async startRecording() {
-        this._startTime = dayjs();
+        if (this.isRecording) {
+            return;
+        }
+
         await this.recorder.startRecording();
     }
 
     async stopRecording() {
-        this._startTime = null;
+        if (!this.isRecording) {
+            return;
+        }
+
         await this.recorder.stopRecording();
     }
 
     private assertIsRecording() {
-        if (!this._startTime) {
+        if (!this.isRecording) {
             throw new Error(`There is no recording currently active.`);
         }
     }
@@ -166,15 +177,26 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     async play() {
+        this.assertIsActiveVideoSource();
+
         await playAndWait(this.videoElt);
         this.emitPlay();
     }
 
     async pause() {
+        this.assertIsActiveVideoSource();
+
         await pauseAndWait(this.videoElt);
         this.emitPause();
     }
 
+    private assertIsActiveVideoSource() {
+        if (!this._isVideoSource) {
+            throw new Error(
+                `This is only available when playback the active source on the video element`
+            );
+        }
+    }
     private emitPlay() {
         this.emit('play');
     }
