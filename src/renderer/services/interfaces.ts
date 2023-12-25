@@ -18,7 +18,7 @@ export interface IStreamRecorder {
     readonly stream: any;
 
     start(timeslice?: number): void;
-    stop(): void;
+    stop(): Promise<void>;
     ondataavailable: ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
 }
 

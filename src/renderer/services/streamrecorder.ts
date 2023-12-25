@@ -20,19 +20,17 @@ export class StreamRecorder implements IStreamRecorder {
         this.recorder.start(timeslice);
     }
 
-    stop(): void {
-        this.recorder.stop();
+    stop(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.recorder.ondataavailable = (event) => {
+                this.onDataAvailable(event);
+                this.recorder.ondataavailable = this.onDataAvailable;
+                resolve();
+            };
+
+            this.recorder.stop();
+        });
     }
 
-    get ondataavailable() {
-        return this.recorder.ondataavailable as OnDataAvailableEvent;
-    }
-
-    set ondataavailable(callback: OnDataAvailableEvent) {
-        if (callback) {
-            this.recorder.ondataavailable = callback.bind(this);
-        } else {
-            this.recorder.ondataavailable = null;
-        }
-    }
+    ondataavailable: OnDataAvailableEvent = null;
 }
