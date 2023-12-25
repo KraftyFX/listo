@@ -58,7 +58,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.logger.log('stop recording');
         this.clearTimeout();
 
-        await this.stopAndEnsureLastVideoChunk();
+        await this.stopRecordingAndWaitForLastVideoChunk();
         await this.raiseRecording(false);
 
         this._startTime = null;
@@ -141,7 +141,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         return this.raiseRecording(true);
     }
 
-    private stopAndEnsureLastVideoChunk() {
+    private stopRecordingAndWaitForLastVideoChunk() {
         return new Promise<void>((resolve) => {
             this.recorder.ondataavailable = (event) => {
                 this.onDataAvailable(event);
