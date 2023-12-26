@@ -16,8 +16,10 @@ export interface IVideoPlayer {
     ondurationchange: TimeChangeEvent;
 }
 
+export type OnDataAvailableEvent = ((this: IMediaRecorder, ev: BlobEvent) => any) | null;
+
 export interface IMediaRecorder {
     start(timeslice?: number): void;
     stop(): void;
-    ondataavailable: ((this: MediaRecorder, ev: BlobEvent) => any) | null;
+    ondataavailable: OnDataAvailableEvent;
 }
