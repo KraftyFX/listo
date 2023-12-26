@@ -29,6 +29,8 @@ export const ListoApp = observer(function ListoApp() {
                 },
             } as DvrOptions;
 
+            await dvrStore.cameraStore.startWatchingCameraList();
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     deviceId: options.recording.source,
@@ -50,8 +52,6 @@ export const ListoApp = observer(function ListoApp() {
 
             dvr = new DigitalVideoRecorder(locator, options);
             window.dvr = dvr;
-
-            dvrStore.cameraStore.startWatchingCameraList();
 
             await dvr.showLiveStreamAndStartRecording();
             dvrStore.dvr = dvr;
