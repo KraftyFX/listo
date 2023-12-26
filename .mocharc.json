@@ -2,5 +2,11 @@
     "async-only": true,
     "colors": true,
     "slow": 250,
-    "require": ["ts-node/register", "tsconfig-paths/register", "jsdom-global/register", "source-map-support/register"]
+    "require": [
+        "ts-node/register",
+        "tsconfig-paths/register",
+        "jsdom-global/register",
+        "source-map-support/register"
+    ],
+    "file": ["./test/setup.ts"]
 }
