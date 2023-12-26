@@ -1,3 +1,5 @@
+export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
+
 export interface IVideoPlayer {
     setVideoSource(src: any): void;
 
@@ -9,9 +11,9 @@ export interface IVideoPlayer {
     play(): Promise<void>;
     pause(): Promise<void>;
 
-    onended: ((this: IVideoPlayer) => any) | null;
-    ontimeupdate: ((this: IVideoPlayer) => any) | null;
-    ondurationchange: ((this: IVideoPlayer) => any) | null;
+    onended: TimeChangeEvent;
+    ontimeupdate: TimeChangeEvent;
+    ondurationchange: TimeChangeEvent;
 }
 
 export interface IStreamRecorder {
