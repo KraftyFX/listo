@@ -1,7 +1,5 @@
 import { IVideoPlayer } from './interfaces';
 
-export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
-
 export class VideoPlayer implements IVideoPlayer {
     constructor(public readonly videoElt: HTMLVideoElement) {}
 
