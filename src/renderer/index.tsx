@@ -6,14 +6,16 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ListoApp } from '~/renderer/Components/ListoApp';
+import './index.css';
 
 dayjs.extend(duration);
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
-export async function initListo(rootElt: HTMLElement) {
-    const root = createRoot(rootElt);
+window.onload = async () => {
+    const elt = document.getElementById('page')!;
+    const root = createRoot(elt);
 
     root.render(<ListoApp />);
-}
+};
