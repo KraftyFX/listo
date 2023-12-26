@@ -1,6 +1,7 @@
 import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
-import { RecordingOptions } from '~/renderer/media';
+import _merge from 'lodash.merge';
+import { DEFAULT_DVR_OPTIONS, RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { IServiceLocator, getLocator } from '~/renderer/services';
@@ -17,13 +18,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private readonly recorder: SegmentRecorder;
     private logger: Logger;
     private locator: IServiceLocator;
+    public readonly options: RecordingOptions;
 
-    constructor(
-        public readonly segments: SegmentCollection,
-        public readonly options: RecordingOptions
-    ) {
+    constructor(public readonly segments: SegmentCollection, options?: RecordingOptions) {
         super();
 
+        this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
         this.logger = getLog('lsr', this.options);
 
         this.locator = getLocator();
@@ -65,12 +65,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private async saveRecording(recording: Recording) {
-        const { startTime, duration, blob, isPartial } = recording;
+        const { blob, isPartial } = recording;
 
         if (isPartial || this.options.inMemory) {
             return URL.createObjectURL(blob);
         } else {
-            return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
+            return '';
+            // return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
         }
     }
 
@@ -129,8 +130,12 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     private _isVideoSource = false;
 
+    get isVideoSource() {
+        return this._isVideoSource;
+    }
+
     async setAsVideoSource() {
-        if (!this._isVideoSource) {
+        if (!this.isVideoSource) {
             this.player.setVideoSource(this.recorder.stream);
             this.player.ontimeupdate = () => this.emitUpdate();
             this._isVideoSource = true;
@@ -138,7 +143,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     releaseAsVideoSource() {
-        if (this._isVideoSource) {
+        if (this.isVideoSource) {
             // TODO: Release video source
 
             this.player.ontimeupdate = null;

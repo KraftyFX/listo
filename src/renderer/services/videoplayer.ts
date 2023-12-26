@@ -7,9 +7,11 @@ export class VideoPlayer implements IVideoPlayer {
         if (typeof src === 'string') {
             this.videoElt.srcObject = null;
             this.videoElt.src = src;
-        } else {
+        } else if (src instanceof MediaStream) {
             this.videoElt.src = '';
             this.videoElt.srcObject = src;
+        } else {
+            throw new Error(`VideoPlayer source is not supported`);
         }
     }
 

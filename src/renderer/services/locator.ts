@@ -8,6 +8,8 @@ let _locator: ServiceLocator | null = null;
 
 export function setLocator(locator: ServiceLocator) {
     _locator = locator;
+
+    return getLocator();
 }
 
 export function getLocator() {

@@ -7,8 +7,7 @@ export class MockStreamRecorder implements IStreamRecorder {
     }
 
     get stream(): any {
-        // ТОDO: Return a fake stream of data.  Maybe a raw array?
-        throw new Error(`Not implemented`);
+        return this;
     }
 
     start(timeslice?: number) {

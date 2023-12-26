@@ -1,9 +1,28 @@
 import { IVideoPlayer, TimeChangeEvent } from '~/renderer/services';
+import { MockStreamRecorder } from './streamrecorder.mock';
 
 export class MockVideoPlayer implements IVideoPlayer {
     constructor() {}
 
+    private src: any = null;
+
     setVideoSource(src: any) {
+        if (src === null || src == undefined) {
+            this.src = null;
+        }
+
+        if (this.src === src) {
+            return;
+        } else if (typeof src === 'string') {
+            this.src = src;
+        } else if (src instanceof MockStreamRecorder) {
+            this.src = src;
+        } else if (src instanceof MediaStream) {
+            throw new Error(`MockVideoPlayer does not support MediaStream.`);
+        } else {
+            throw new Error(`MockVideoPlayer does not recognize the source.`);
+        }
+
         this.pause();
     }
 
