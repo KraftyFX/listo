@@ -6,7 +6,7 @@ import { DEFAULT_PLAYBACK_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
-import { IServiceLocator } from '~/renderer/services';
+import { IServiceLocator, getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
 import { PlaybackController } from './playbackcontroller';
@@ -25,17 +25,15 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
     private readonly _segments: SegmentCollection;
+    private locator: IServiceLocator;
 
-    constructor(
-        private readonly locator: IServiceLocator,
-        segments: SegmentCollection,
-        options?: Partial<PlaybackOptions>
-    ) {
+    constructor(segments: SegmentCollection, options?: Partial<PlaybackOptions>) {
         super();
 
         this._segments = segments;
         this.options = _merge({}, DEFAULT_PLAYBACK_OPTIONS, options);
 
+        this.locator = getLocator();
         this.logger = getLog('pbk', this.options);
         this.controller = new PlaybackController(this, this.options);
     }

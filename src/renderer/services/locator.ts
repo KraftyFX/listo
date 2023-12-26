@@ -1,5 +1,19 @@
 import { IServiceLocator, IStreamRecorder, IVideoPlayer } from './interfaces';
 
 export class ServiceLocator implements IServiceLocator {
-    constructor(public readonly player: IVideoPlayer, public readonly recorder: IStreamRecorder) {}
+    constructor(public player: IVideoPlayer, public recorder: IStreamRecorder) {}
+}
+
+let _locator: ServiceLocator | null = null;
+
+export function setLocator(locator: ServiceLocator) {
+    _locator = locator;
+}
+
+export function getLocator() {
+    if (!_locator) {
+        throw new Error(`Locator has not been initalized.`);
+    }
+
+    return _locator;
 }
