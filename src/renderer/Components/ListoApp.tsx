@@ -7,7 +7,7 @@ import { DvrOptions } from '~/renderer/media';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
 import { ServiceLocator } from '../services';
 import { StreamRecorder } from '../services/streamrecorder';
-import { VideoPlayer as Player } from '../services/videoelement';
+import { VideoPlayer as Player } from '../services/videoplayer';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
