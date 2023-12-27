@@ -25,19 +25,19 @@ export class MockHostService implements IHostService {
     advanceTimersBy(ms: number) {
         this.totalMs += ms;
 
-        const onTimeout = (timeout: TimerConfig) => {
-            const timesToRun = Math.floor(this.totalMs / timeout.ms);
-
-            for (let i = timeout.timesRan; i < timesToRun; i++) {
-                timeout.fn();
-            }
-
-            timeout.timesRan = timesToRun;
-        };
-
-        this.timeouts.filter((t) => !!t).forEach(onTimeout);
-        this.intervals.filter((t) => !!t).forEach(onTimeout);
+        this.timeouts.filter((t) => !!t).forEach(this.onTimeout);
+        this.intervals.filter((t) => !!t).forEach(this.onTimeout);
     }
+
+    onTimeout = (timeout: TimerConfig) => {
+        const totalTimesToRun = Math.floor(this.totalMs / timeout.ms);
+
+        for (let i = timeout.timesRan; i < totalTimesToRun; i++) {
+            timeout.fn();
+        }
+
+        timeout.timesRan = totalTimesToRun;
+    };
 
     intervals: TimerConfig[] = [];
 
