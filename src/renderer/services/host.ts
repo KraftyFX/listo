@@ -10,4 +10,12 @@ export class HostService implements IHostService {
     async advanceTimeBy(ms: number) {
         throw new Error(`Not supported`);
     }
+
+    createObjectURL(blob: Blob) {
+        return URL.createObjectURL(blob);
+    }
+
+    revokeObjectURL(url: string) {
+        URL.revokeObjectURL(url);
+    }
 }

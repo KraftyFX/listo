@@ -73,4 +73,22 @@ export class MockHostService implements IHostService {
 
         this.timers[handle - 1] = null!;
     };
+
+    private blobs: Blob[] = [];
+
+    createObjectURL(blob: Blob) {
+        this.blobs.push(blob);
+
+        return `blob:test://blobs/${this.blobs.length}`;
+    }
+
+    revokeObjectURL(url: string) {
+        const index = parseInt(url.substring(url.lastIndexOf('/') + 1));
+
+        if (!this.blobs[index]) {
+            throw new Error(`The blob was revoked already`);
+        }
+
+        this.blobs[index] = null!;
+    }
 }

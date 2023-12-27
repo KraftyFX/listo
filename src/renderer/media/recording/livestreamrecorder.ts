@@ -1,10 +1,10 @@
 import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import _merge from 'lodash.merge';
-import { DEFAULT_DVR_OPTIONS, RecordingOptions } from '~/renderer/media';
+import { DEFAULT_RECORDING_OPTIONS, RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
-import { IServiceLocator, getLocator } from '~/renderer/services';
+import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Recording, SegmentRecorder } from './segmentrecorder';
 
@@ -17,22 +17,23 @@ type LiveStreamRecorderEvents = {
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
     private readonly recorder: SegmentRecorder;
     private logger: Logger;
-    private locator: IServiceLocator;
     public readonly options: RecordingOptions;
 
     constructor(
         public readonly segments: SegmentCollection = new SegmentCollection(),
-        options?: RecordingOptions
+        options: Partial<RecordingOptions> = DEFAULT_RECORDING_OPTIONS
     ) {
         super();
 
-        this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
+        this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('lsr', this.options);
-
-        this.locator = getLocator();
 
         this.recorder = new SegmentRecorder(options);
         this.recorder.onrecording = (recording) => this.onRecording(recording);
+    }
+
+    private get locator() {
+        return getLocator();
     }
 
     private get player() {
@@ -62,7 +63,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     private clearAnyPreviousPartialSegments() {
         if (!this.segments.isEmpty && this.segments.lastSegment.isPartial) {
-            URL.revokeObjectURL(this.segments.lastSegment.url);
+            this.locator.host.revokeObjectURL(this.segments.lastSegment.url);
             this.segments.removeLastSegment();
         }
     }
@@ -71,7 +72,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         const { blob, isPartial } = recording;
 
         if (isPartial || this.options.inMemory) {
-            return URL.createObjectURL(blob);
+            return this.locator.host.createObjectURL(blob);
         } else {
             return '';
             // return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);

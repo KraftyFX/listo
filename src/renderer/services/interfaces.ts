@@ -38,6 +38,9 @@ export interface IHostService {
     clearInterval: ClearTimerCallback;
 
     advanceTimeBy(ms: number): Promise<void>;
+
+    createObjectURL(blob: Blob): string;
+    revokeObjectURL(url: string): void;
 }
 
 export interface IServiceLocator {
