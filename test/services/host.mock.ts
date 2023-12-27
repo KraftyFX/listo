@@ -25,6 +25,8 @@ export class MockHostService implements IHostService {
     advanceTimersBy(ms: number) {
         this.totalMs += ms;
 
+        // TODO: Probably want to do these in parallel based on time
+        // vs sequentially like this.
         this.timeouts.filter((t) => !!t).forEach(this.onTimeout);
         this.intervals.filter((t) => !!t).forEach(this.onTimeout);
     }
