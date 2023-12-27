@@ -20,7 +20,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private locator: IServiceLocator;
     public readonly options: RecordingOptions;
 
-    constructor(public readonly segments: SegmentCollection, options?: RecordingOptions) {
+    constructor(
+        public readonly segments: SegmentCollection = new SegmentCollection(),
+        options?: RecordingOptions
+    ) {
         super();
 
         this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
