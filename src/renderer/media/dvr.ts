@@ -36,6 +36,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.logger = getLog('dvr', this.options);
 
         this.segments = new SegmentCollection();
+
+        // TODO: Fill segments from pre-recordings on disk
+
         this.segments.on('reset', (segment) => this.emitSegmentUpdated());
         this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
 
