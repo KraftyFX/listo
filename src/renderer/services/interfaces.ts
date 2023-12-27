@@ -2,6 +2,7 @@ export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
 
 export interface IVideoPlayer {
     setVideoSource(src: any): void;
+    getVideoSource(): any;
 
     currentTime: number;
     readonly duration: number;

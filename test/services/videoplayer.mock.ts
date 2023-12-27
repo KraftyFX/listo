@@ -26,6 +26,10 @@ export class MockVideoPlayer implements IVideoPlayer {
         this.pause();
     }
 
+    getVideoSource() {
+        return this.src;
+    }
+
     currentTime = 0;
 
     private _duration = 0;

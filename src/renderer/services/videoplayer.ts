@@ -4,7 +4,10 @@ export class VideoPlayer implements IVideoPlayer {
     constructor(public readonly videoElt: HTMLVideoElement) {}
 
     setVideoSource(src: any): void {
-        if (typeof src === 'string') {
+        if (src == null) {
+            this.videoElt.srcObject = null;
+            this.videoElt.src = '';
+        } else if (typeof src === 'string') {
             this.videoElt.srcObject = null;
             this.videoElt.src = src;
         } else if (src instanceof MediaStream) {
@@ -13,6 +16,10 @@ export class VideoPlayer implements IVideoPlayer {
         } else {
             throw new Error(`VideoPlayer source is not supported`);
         }
+    }
+
+    getVideoSource() {
+        return this.videoElt.src || this.videoElt.srcObject;
     }
 
     get currentTime(): number {

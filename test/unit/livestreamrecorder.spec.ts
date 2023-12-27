@@ -1,14 +1,30 @@
 import { assert } from 'chai';
 import { LiveStreamRecorder } from '~/renderer/media/recording/livestreamrecorder';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {
-    it('can be set as the video source', async () => {
-        const segments = new SegmentCollection();
-        const recorder = new LiveStreamRecorder(segments);
+    it('can set the video source', async () => {
+        const { player, recorder: streamRecorder } = getLocator();
+        const recorder = new LiveStreamRecorder();
+
+        assert.isFalse(recorder.isVideoSource);
 
         await recorder.setAsVideoSource();
 
         assert.isTrue(recorder.isVideoSource);
+        assert.equal(player.getVideoSource(), streamRecorder, 'Player video source');
+    });
+
+    it('can release the video source', async () => {
+        const { player } = getLocator();
+        const recorder = new LiveStreamRecorder();
+
+        assert.isFalse(recorder.isVideoSource);
+
+        await recorder.setAsVideoSource();
+        await recorder.releaseAsVideoSource();
+
+        assert.isFalse(recorder.isVideoSource);
+        assert.equal(player.getVideoSource(), null, 'Player video source');
     });
 });

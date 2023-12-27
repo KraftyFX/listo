@@ -147,8 +147,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
     releaseAsVideoSource() {
         if (this.isVideoSource) {
-            // TODO: Release video source
-
+            this.player.setVideoSource(null);
             this.player.ontimeupdate = null;
             this._isVideoSource = false;
         }
