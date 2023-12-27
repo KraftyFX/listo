@@ -1,7 +1,12 @@
-import { IServiceLocator, IStreamRecorder, IVideoPlayer } from './interfaces';
+import { HostService } from './host';
+import { IHostService, IServiceLocator, IStreamRecorder, IVideoPlayer } from './interfaces';
 
 export class ServiceLocator implements IServiceLocator {
-    constructor(public player: IVideoPlayer, public recorder: IStreamRecorder) {}
+    constructor(
+        public player: IVideoPlayer,
+        public recorder: IStreamRecorder,
+        public host: IHostService = new HostService()
+    ) {}
 }
 
 let _locator: ServiceLocator | null = null;

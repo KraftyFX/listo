@@ -27,7 +27,19 @@ export interface IStreamRecorder {
     ondataavailable: OnDataAvailableEvent;
 }
 
+export type TimerCallback = (...args: any[]) => any;
+export type ClearTimerCallback = (handle: number) => void;
+
+export interface IHostService {
+    setTimeout: (fn: TimerCallback, ms: number) => number;
+    clearTimeout: ClearTimerCallback;
+
+    setInterval: (fn: TimerCallback, ms: number) => number;
+    clearInterval: ClearTimerCallback;
+}
+
 export interface IServiceLocator {
     player: IVideoPlayer;
     recorder: IStreamRecorder;
+    host: IHostService;
 }
