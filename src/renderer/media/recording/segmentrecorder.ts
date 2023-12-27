@@ -133,7 +133,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
                 isPartial,
             };
 
-            await this.onrecording(recording);
+            if (this.onrecording) {
+                await this.onrecording(recording);
+            }
 
             if (!isPartial) {
                 this.chunks = [];
