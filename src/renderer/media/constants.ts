@@ -9,6 +9,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     source: 'default',
     mimeType: 'video/webm',
     minSegmentSizeInSec: 5,
+    fixDuration: true,
     logging: 'info',
 };
 

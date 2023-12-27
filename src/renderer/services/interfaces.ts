@@ -17,12 +17,14 @@ export interface IVideoPlayer {
     ondurationchange: TimeChangeEvent;
 }
 
+export type OnDataAvailableEvent = ((this: IStreamRecorder, ev: Blob) => any) | null;
+
 export interface IStreamRecorder {
     readonly stream: any;
 
     start(timeslice?: number): void;
     stop(): Promise<void>;
-    ondataavailable: ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
+    ondataavailable: OnDataAvailableEvent;
 }
 
 export interface IServiceLocator {

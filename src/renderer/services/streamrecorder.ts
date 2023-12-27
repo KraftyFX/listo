@@ -1,6 +1,4 @@
-import { IStreamRecorder } from './interfaces';
-
-export type OnDataAvailableEvent = ((this: IStreamRecorder, ev: BlobEvent) => any) | null;
+import { IStreamRecorder, OnDataAvailableEvent } from './interfaces';
 
 export class StreamRecorder implements IStreamRecorder {
     private readonly recorder: MediaRecorder;
@@ -12,7 +10,9 @@ export class StreamRecorder implements IStreamRecorder {
 
     private onDataAvailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
-            this.ondataavailable?.call(this, event);
+            const data = event.data;
+
+            this.ondataavailable?.call(this, data);
         }
     };
 

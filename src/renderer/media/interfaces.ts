@@ -15,6 +15,7 @@ export interface RecordingOptions {
     source: 'default' | string;
     mimeType: string;
     minSegmentSizeInSec: number;
+    fixDuration: boolean;
     logging: LogLevel;
 }
 

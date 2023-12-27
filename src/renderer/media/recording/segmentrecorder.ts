@@ -21,10 +21,10 @@ type SegmentRecorderEvents = {};
 
 export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
     private logger: Logger;
-    readonly options: RecordingOptions;
     private locator: IServiceLocator;
+    public readonly options: RecordingOptions;
 
-    constructor(options?: Partial<RecordingOptions>) {
+    constructor(options: Partial<RecordingOptions> = DEFAULT_RECORDING_OPTIONS) {
         super();
 
         this.locator = getLocator();
@@ -106,8 +106,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     private chunks: Blob[] = [];
 
-    private onDataAvailable = (event: BlobEvent) => {
-        this.chunks.push(event.data);
+    private onDataAvailable = (blob: Blob) => {
+        this.chunks.push(blob);
     };
 
     onrecording: (recording: Recording) => Promise<void> = null!;
@@ -121,7 +121,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
             const blobs = [...this.chunks];
 
             const rawBlob = new Blob(blobs, { type: this.options.mimeType });
-            const fixedBlob = await fixWebmDuration(rawBlob);
+            const fixedBlob = this.options.fixDuration ? await fixWebmDuration(rawBlob) : rawBlob;
 
             const recording: Recording = {
                 startTime: this.startTime,
