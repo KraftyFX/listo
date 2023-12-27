@@ -1,14 +1,12 @@
 import _merge from 'lodash.merge';
-import { IStreamRecorder, OnDataAvailableEvent } from '~/renderer/services';
+import { IStreamRecorder, OnDataAvailableEvent, getLocator } from '~/renderer/services';
 
 interface MockStreamRecorderOptions {
     arrayLength: number;
-    count: number;
 }
 
 const DEFAULT_OPTIONS: MockStreamRecorderOptions = {
     arrayLength: 10,
-    count: 1,
 };
 
 export class MockStreamRecorder implements IStreamRecorder {
@@ -22,30 +20,29 @@ export class MockStreamRecorder implements IStreamRecorder {
         return this;
     }
 
+    private get locator() {
+        return getLocator();
+    }
+
     private interval: any = 0;
 
     start(timeslice?: number) {
         this.count = 0;
-        this.interval = setInterval(this.onInterval, 1);
+        const { setInterval } = this.locator.host;
+        this.interval = setInterval(this.onInterval, timeslice!);
     }
 
     private count = 0;
     private onInterval = () => {
-        if (this.count === this.options.count) {
-            this.stopInterval();
-        } else {
-            this.count++;
+        const arr = new Array(this.options.arrayLength).fill(
+            this.count++,
+            0,
+            this.options.arrayLength
+        );
 
-            const arr = new Array(this.options.arrayLength).fill(
-                this.count,
-                0,
-                this.options.arrayLength
-            );
+        const blob = new Blob(arr);
 
-            const blob = new Blob(arr);
-
-            this.ondataavailable!.call(this, blob);
-        }
+        this.ondataavailable!.call(this, blob);
     };
 
     async stop() {
@@ -59,6 +56,7 @@ export class MockStreamRecorder implements IStreamRecorder {
     };
 
     private stopInterval() {
+        const { clearInterval } = this.locator.host;
         clearInterval(this.interval);
         this.interval = 0;
     }
