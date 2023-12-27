@@ -3,52 +3,74 @@ import { IHostService, TimerCallback } from '~/renderer/services';
 interface TimerConfig {
     fn: TimerCallback;
     timesRan: number;
+    start: number;
     ms: number;
+    type: 'timeout' | 'interval';
 }
 
 export class MockHostService implements IHostService {
     constructor() {}
 
-    timeouts: TimerConfig[] = [];
+    timers: TimerConfig[] = [];
 
     setTimeout = (fn: TimerCallback, ms: number) => {
-        this.timeouts.push({ fn, ms, timesRan: 0 });
-        return this.timeouts.length;
+        this.timers.push({ fn, ms, start: this.totalMs, timesRan: 0, type: 'timeout' });
+        const idx = this.timers.length;
+
+        // console.log(`setTimeout idx=${idx} ms=${ms}`);
+
+        return idx;
     };
 
     clearTimeout = (handle: number) => {
-        this.timeouts[handle] = null!;
+        if (handle <= 0) {
+            return;
+        }
+
+        this.timers[handle - 1] = null!;
     };
 
     private totalMs: number = 0;
 
-    advanceTimersBy(ms: number) {
+    async advanceTimeBy(ms: number) {
         this.totalMs += ms;
 
-        // TODO: Probably want to do these in parallel based on time
-        // vs sequentially like this.
-        this.timeouts.filter((t) => !!t).forEach(this.onTimeout);
-        this.intervals.filter((t) => !!t).forEach(this.onTimeout);
+        for (let i = 0; i < this.timers.length; i++) {
+            const timer = this.timers[i];
+
+            await this.onTimeout(timer, i);
+        }
     }
 
-    onTimeout = (timeout: TimerConfig) => {
-        const totalTimesToRun = Math.floor(this.totalMs / timeout.ms);
+    onTimeout = async (timeout: TimerConfig, idx: number) => {
+        if (!timeout) {
+            return;
+        }
 
-        for (let i = timeout.timesRan; i < totalTimesToRun; i++) {
-            timeout.fn();
+        const totalTimesToRun = Math.floor((this.totalMs - timeout.start) / timeout.ms);
+
+        for (let n = timeout.timesRan; n < totalTimesToRun; n++) {
+            // console.log(`${timeout.type} i=${idx + 1}, n=${n}`);
+            await timeout.fn();
         }
 
         timeout.timesRan = totalTimesToRun;
     };
 
-    intervals: TimerConfig[] = [];
-
     setInterval = (fn: TimerCallback, ms: number) => {
-        this.intervals.push({ fn, ms, timesRan: 0 });
-        return this.intervals.length;
+        this.timers.push({ fn, ms, start: this.totalMs, timesRan: 0, type: 'interval' });
+        const idx = this.timers.length;
+
+        // console.log(`setInterval idx=${idx} ms=${ms}`);
+
+        return idx;
     };
 
     clearInterval = (handle: number) => {
-        this.intervals[handle] = null!;
+        if (handle <= 0) {
+            return;
+        }
+
+        this.timers[handle - 1] = null!;
     };
 }
