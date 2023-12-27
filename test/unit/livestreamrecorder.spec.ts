@@ -4,7 +4,10 @@ import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {
     it('can set the video source', async () => {
-        const { player, recorder: streamRecorder } = getLocator();
+        const {
+            player,
+            recorder: { stream },
+        } = getLocator();
         const recorder = new LiveStreamRecorder();
 
         assert.isFalse(recorder.isVideoSource);
@@ -12,7 +15,7 @@ describe('LiveStreamRecorder', () => {
         await recorder.setAsVideoSource();
 
         assert.isTrue(recorder.isVideoSource);
-        assert.equal(player.getVideoSource(), streamRecorder, 'Player video source');
+        assert.equal(player.getVideoSource(), stream, 'Player video source');
     });
 
     it('can release the video source', async () => {
