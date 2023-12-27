@@ -2,6 +2,8 @@
     "async-only": true,
     "colors": true,
     "slow": 250,
+    "trace-warnings": true,
+    "exit": true,
     "require": [
         "ts-node/register",
         "tsconfig-paths/register",
