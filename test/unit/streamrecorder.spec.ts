@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { getLocator } from '~/renderer/services';
 
 describe('StreamRecorder', () => {
-    after(() => {
+    afterEach(() => {
         const { recorder } = getLocator();
         recorder.stop();
     });

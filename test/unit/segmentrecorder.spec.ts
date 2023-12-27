@@ -3,7 +3,7 @@ import { SegmentRecorder } from '~/renderer/media/recording/segmentrecorder';
 import { getLocator } from '~/renderer/services';
 
 describe('SegmentRecorder', function () {
-    after(() => {
+    afterEach(() => {
         const { recorder } = getLocator();
         recorder.stop();
     });
