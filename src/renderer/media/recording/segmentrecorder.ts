@@ -5,7 +5,7 @@ import fixWebmDuration from 'webm-duration-fix';
 import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { IServiceLocator, getLocator } from '~/renderer/services';
+import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
@@ -21,13 +21,10 @@ type SegmentRecorderEvents = {};
 
 export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
     private logger: Logger;
-    private locator: IServiceLocator;
     public readonly options: RecordingOptions;
 
     constructor(options: Partial<RecordingOptions> = DEFAULT_RECORDING_OPTIONS) {
         super();
-
-        this.locator = getLocator();
 
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('seg-rec', this.options);
@@ -41,6 +38,10 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     get stream() {
         return this.recorder.stream;
+    }
+
+    get locator() {
+        return getLocator();
     }
 
     startRecording() {
@@ -91,10 +92,12 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     private startTimeout() {
         const ms = this.options.minSegmentSizeInSec * 1000;
+        const { setTimeout } = this.locator.host;
         this.timeout = setTimeout(() => this.onTimeout(), ms);
     }
 
     private clearTimeout() {
+        const { clearTimeout } = this.locator.host;
         clearTimeout(this.timeout);
         this.timeout = 0;
     }
