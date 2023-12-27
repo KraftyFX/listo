@@ -36,6 +36,8 @@ export interface IHostService {
 
     setInterval: (fn: TimerCallback, ms: number) => number;
     clearInterval: ClearTimerCallback;
+
+    advanceTimeBy(ms: number): Promise<void>;
 }
 
 export interface IServiceLocator {

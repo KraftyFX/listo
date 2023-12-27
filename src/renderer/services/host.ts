@@ -6,4 +6,8 @@ export class HostService implements IHostService {
 
     setInterval = setInterval;
     clearInterval = clearInterval;
+
+    async advanceTimeBy(ms: number) {
+        throw new Error(`Not supported`);
+    }
 }

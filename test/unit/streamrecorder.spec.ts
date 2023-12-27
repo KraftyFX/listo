@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { MockHostService } from 'test/services/host.mock';
 import { getLocator } from '~/renderer/services';
 
 describe('StreamRecorder', () => {
@@ -9,10 +8,7 @@ describe('StreamRecorder', () => {
     });
 
     it('stopping after the timeslice time produces data', async () => {
-        const locator = getLocator();
-
-        const host = locator.host as MockHostService;
-        const recorder = locator.recorder;
+        const { host, recorder } = getLocator();
 
         let count = 0;
 
@@ -30,10 +26,7 @@ describe('StreamRecorder', () => {
     });
 
     it('stopping before the timeslice time produces data', async () => {
-        const locator = getLocator();
-
-        const host = locator.host as MockHostService;
-        const recorder = locator.recorder;
+        const { host, recorder } = getLocator();
 
         let count = 0;
 
@@ -51,8 +44,7 @@ describe('StreamRecorder', () => {
     });
 
     it('can yield data in 1 second chunks for 5 seconds', async () => {
-        const { recorder, host: _host } = getLocator();
-        const host = _host as MockHostService;
+        const { recorder, host } = getLocator();
 
         let count = 0;
 

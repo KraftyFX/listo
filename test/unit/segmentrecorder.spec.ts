@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 import { SegmentRecorder } from '~/renderer/media/recording/segmentrecorder';
 import { getLocator } from '~/renderer/services';
-import { MockHostService } from '../services/host.mock';
 
 describe('SegmentRecorder', function () {
     after(() => {
@@ -10,8 +9,7 @@ describe('SegmentRecorder', function () {
     });
 
     it(`can record a 5 + 1 second segment of video`, async () => {
-        const locator = getLocator();
-        const host = locator.host as MockHostService;
+        const { host } = getLocator();
 
         const recorder = new SegmentRecorder({
             inMemory: true,
