@@ -3,9 +3,9 @@ import { SegmentRecorder } from '~/renderer/media/recording/segmentrecorder';
 import { getLocator } from '~/renderer/services';
 
 describe('SegmentRecorder', function () {
-    afterEach(() => {
+    afterEach(async () => {
         const { recorder } = getLocator();
-        recorder.stop();
+        await recorder.stop();
     });
 
     it(`can start and stop quickly`, async () => {
@@ -26,6 +26,7 @@ describe('SegmentRecorder', function () {
 
         assert.isTrue(recorder.isRecording, 'before stop');
 
+        recorder.onrecording = null;
         await recorder.stopRecording();
 
         assert.isFalse(recorder.isRecording, 'after stop');
@@ -39,6 +40,12 @@ describe('SegmentRecorder', function () {
             fixDuration: false,
         });
 
+        let count = 0;
+
+        recorder.onrecording = async (recording) => {
+            count++;
+        };
+
         assert.isFalse(recorder.isRecording, 'before start');
 
         recorder.startRecording();
@@ -50,79 +57,176 @@ describe('SegmentRecorder', function () {
         assert.isTrue(recorder.isRecording, 'before stop');
 
         await recorder.stopRecording();
+        recorder.onrecording = null;
 
         assert.isFalse(recorder.isRecording, 'after stop');
+
+        assert.equal(count, 5, 'count');
     });
 
-    it(`can record less than a minimum segment size video`, async () => {
-        const { host } = getLocator();
+    describe('Full segments', () => {
+        it(`can record less than a minimum segment size video`, async () => {
+            const { host } = getLocator();
 
-        const recorder = new SegmentRecorder({
-            inMemory: true,
-            minSegmentSizeInSec: 5,
-            fixDuration: false,
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                minSegmentSizeInSec: 5,
+                fixDuration: false,
+            });
+
+            let count = 0;
+
+            recorder.onrecording = async (recording) => {
+                assert.isFalse(recording.isPartial, 'partial');
+
+                count++;
+            };
+
+            recorder.startRecording();
+
+            await host.advanceTimeBy(500);
+
+            await recorder.stopRecording();
+            recorder.onrecording = null;
+
+            assert.equal(count, 1, 'recordings');
         });
 
-        let count = 0;
+        it(`can record more than a minimum segment size of video`, async () => {
+            const { host } = getLocator();
 
-        recorder.onrecording = async () => {
-            count++;
-        };
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                minSegmentSizeInSec: 5,
+                fixDuration: false,
+            });
 
-        recorder.startRecording();
+            let count = 0;
 
-        await host.advanceTimeBy(500);
+            recorder.onrecording = async (recording) => {
+                assert.isFalse(recording.isPartial, 'partial');
 
-        await recorder.stopRecording();
+                count++;
+            };
 
-        assert.equal(count, 1, 'recordings');
+            recorder.startRecording();
+
+            await host.advanceTimeBy(6000);
+
+            await recorder.stopRecording();
+            recorder.onrecording = null;
+
+            assert.equal(count, 2, 'recordings');
+        });
+
+        it(`can record a few segments sizes worth of video`, async () => {
+            const { host } = getLocator();
+
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                minSegmentSizeInSec: 5,
+                fixDuration: false,
+            });
+
+            let count = 0;
+
+            recorder.onrecording = async (recording) => {
+                assert.isFalse(recording.isPartial, 'partial');
+
+                count++;
+            };
+
+            recorder.startRecording();
+
+            await host.advanceTimeBy(20000);
+
+            await recorder.stopRecording();
+
+            assert.equal(count, 5, 'recordings');
+        });
     });
 
-    it(`can record more than a minimum segment size of video`, async () => {
-        const { host } = getLocator();
+    describe('Partial segments', () => {
+        it(`cannot force yield a recording before the minimum stream recording size`, async () => {
+            const { host } = getLocator();
 
-        const recorder = new SegmentRecorder({
-            inMemory: true,
-            minSegmentSizeInSec: 5,
-            fixDuration: false,
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                fixDuration: false,
+            });
+
+            recorder.onrecording = async (recording) => {
+                assert.fail(`A recording was raised when it should not have`);
+            };
+
+            recorder.startRecording();
+
+            await host.advanceTimeBy(500);
+
+            const recording = await recorder.forceRender();
+
+            assert.isNull(recording, 'recording');
+
+            recorder.onrecording = null;
+            recorder.stopRecording();
         });
 
-        let count = 0;
+        it(`can force yield a recording after the minimum stream recording size`, async () => {
+            const { host } = getLocator();
 
-        recorder.onrecording = async () => {
-            count++;
-        };
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                fixDuration: false,
+            });
 
-        recorder.startRecording();
+            recorder.onrecording = async (recording) => {
+                assert.isTrue(recording.isPartial, 'partial');
+            };
 
-        await host.advanceTimeBy(6000);
+            recorder.startRecording();
 
-        await recorder.stopRecording();
+            await host.advanceTimeBy(1500);
 
-        assert.equal(count, 2, 'recordings');
-    });
+            const recording = await recorder.forceRender();
 
-    it(`can record a few segments sizes worth of video`, async () => {
-        const { host } = getLocator();
+            assert.isNotNull(recording, 'recording');
 
-        const recorder = new SegmentRecorder({
-            inMemory: true,
-            minSegmentSizeInSec: 5,
-            fixDuration: false,
+            recorder.onrecording = null;
+            await recorder.stopRecording();
         });
 
-        let count = 0;
+        it(`can force yield a recording after a full segment`, async () => {
+            const { host } = getLocator();
 
-        recorder.onrecording = async () => {
-            count++;
-        };
+            const recorder = new SegmentRecorder({
+                inMemory: true,
+                fixDuration: false,
+            });
 
-        recorder.startRecording();
+            let count = 0;
 
-        await host.advanceTimeBy(20000);
+            recorder.onrecording = async (recording) => {
+                count++;
 
-        await recorder.stopRecording();
+                if (count === 1) {
+                    assert.isFalse(recording.isPartial, 'partial');
+                } else if (count === 2) {
+                    assert.isTrue(recording.isPartial, 'partial');
+                } else {
+                    assert.fail(`More recordings were yielded than expected. ${count}`);
+                }
+            };
 
-        assert.equal(count, 5, 'recordings');
+            recorder.startRecording();
+
+            await host.advanceTimeBy(7000);
+
+            const recording = await recorder.forceRender();
+
+            assert.isNotNull(recording, 'recording');
+
+            recorder.onrecording = null;
+            await recorder.stopRecording();
+        });
     });
 });
