@@ -1,10 +1,11 @@
 import { IHostService, TimerCallback } from '~/renderer/services';
 
 interface TimerConfig {
+    idx: number;
     fn: TimerCallback;
-    timesRan: number;
-    start: number;
     ms: number;
+    runAt: number;
+    timesRan: number;
     type: 'timeout' | 'interval';
 }
 
@@ -14,12 +15,7 @@ export class MockHostService implements IHostService {
     timers: TimerConfig[] = [];
 
     setTimeout = (fn: TimerCallback, ms: number) => {
-        this.timers.push({ fn, ms, start: this.totalMs, timesRan: 0, type: 'timeout' });
-        const idx = this.timers.length;
-
-        // console.log(`setTimeout idx=${idx} ms=${ms}`);
-
-        return idx;
+        return this.addTimer(fn, ms, 'timeout');
     };
 
     clearTimeout = (handle: number) => {
@@ -27,52 +23,67 @@ export class MockHostService implements IHostService {
             return;
         }
 
-        this.timers[handle - 1] = null!;
+        this.timers[this.timers.findIndex((t) => t && t.idx === handle)] = null!;
+    };
+
+    setInterval = (fn: TimerCallback, ms: number) => {
+        return this.addTimer(fn, ms, 'interval');
+    };
+
+    clearInterval = (handle: number) => {
+        this.clearTimeout(handle);
     };
 
     private totalMs: number = 0;
 
-    async advanceTimeBy(ms: number) {
-        this.totalMs += ms;
+    private addTimer(fn: TimerCallback, ms: number, type: 'timeout' | 'interval') {
+        const timer: TimerConfig = {
+            idx: this.timers.length + 1,
+            fn,
+            ms,
+            runAt: this.totalMs + ms,
+            timesRan: 0,
+            type,
+        };
 
-        for (let i = 0; i < this.timers.length; i++) {
-            const timer = this.timers[i];
+        // console.log(`setTimeout idx=${timer.idx} ms=${ms}`);
+        this.timers.push(timer);
 
-            await this.onTimeout(timer, i);
-        }
+        return timer.idx;
     }
 
-    onTimeout = async (timeout: TimerConfig, idx: number) => {
-        if (!timeout) {
+    async advanceTimeBy(ms: number) {
+        if (ms <= 0) {
             return;
         }
 
-        const totalTimesToRun = Math.floor((this.totalMs - timeout.start) / timeout.ms);
+        const newNow = this.totalMs + ms;
 
-        for (let n = timeout.timesRan; n < totalTimesToRun; n++) {
-            // console.log(`${timeout.type} i=${idx + 1}, n=${n}`);
-            await timeout.fn();
+        let timersToFire = this.timers
+            .filter((t) => t && t.runAt <= newNow)
+            .sort((t1, t2) => t1.runAt - t2.runAt);
+
+        while (timersToFire.length > 0) {
+            const timer = timersToFire[0];
+
+            // console.log(`${timer.type} i=${timer.idx}, n=${timer.runAt}`);
+
+            this.totalMs = timer.runAt;
+
+            await timer.fn();
+
+            timer.runAt += timer.ms;
+            timer.timesRan++;
+
+            timersToFire = this.timers
+                .filter((t) => t && t.runAt <= newNow)
+                .sort((t1, t2) => t1.runAt - t2.runAt);
+
+            // console.log(timersToFire.length);
         }
 
-        timeout.timesRan = totalTimesToRun;
-    };
-
-    setInterval = (fn: TimerCallback, ms: number) => {
-        this.timers.push({ fn, ms, start: this.totalMs, timesRan: 0, type: 'interval' });
-        const idx = this.timers.length;
-
-        // console.log(`setInterval idx=${idx} ms=${ms}`);
-
-        return idx;
-    };
-
-    clearInterval = (handle: number) => {
-        if (handle <= 0) {
-            return;
-        }
-
-        this.timers[handle - 1] = null!;
-    };
+        this.totalMs = newNow;
+    }
 
     private blobs: Blob[] = [];
 
