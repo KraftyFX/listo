@@ -18,11 +18,15 @@ describe('SegmentRecorder', function () {
 
         assert.isFalse(recorder.isRecording, 'before start');
 
+        const { now: startTime } = host;
         recorder.startRecording();
 
         assert.isTrue(recorder.isRecording, 'after start');
 
         await host.advanceTimeBy(500);
+
+        assert.isTrue(recorder.startTime.isSame(startTime), 'startTime');
+        assert.equal(recorder.duration, 0.5, 'duration in sec');
 
         assert.isTrue(recorder.isRecording, 'before stop');
 
@@ -41,11 +45,15 @@ describe('SegmentRecorder', function () {
 
         assert.isFalse(recorder.isRecording, 'before start');
 
+        const { now: startTime } = host;
         recorder.startRecording();
 
         assert.isTrue(recorder.isRecording, 'after start');
 
         await host.advanceTimeBy(20000);
+
+        assert.isTrue(recorder.startTime.isSame(startTime), 'startTime');
+        assert.equal(recorder.duration, 20, 'duration in sec');
 
         assert.isTrue(recorder.isRecording, 'before stop');
 
