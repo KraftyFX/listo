@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { IHostService, TimerCallback } from '~/renderer/services';
 
 interface TimerConfig {
@@ -33,6 +34,10 @@ export class MockHostService implements IHostService {
     clearInterval = (handle: number) => {
         this.clearTimeout(handle);
     };
+
+    get now() {
+        return dayjs().startOf('hour').add(this.totalMs, 'milliseconds');
+    }
 
     private totalMs: number = 0;
 

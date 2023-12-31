@@ -1,3 +1,5 @@
+import { Dayjs } from 'dayjs';
+
 export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
 
 export interface IVideoPlayer {
@@ -37,6 +39,7 @@ export interface IHostService {
     setInterval: (fn: TimerCallback, ms: number) => number;
     clearInterval: ClearTimerCallback;
 
+    readonly now: Dayjs;
     advanceTimeBy(ms: number): Promise<void>;
 
     createObjectURL(blob: Blob): string;
