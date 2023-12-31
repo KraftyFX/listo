@@ -7,7 +7,6 @@ import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { durationSince } from './dateutil';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
 export interface Recording {
@@ -52,7 +51,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.logger.log('start recording');
 
         this.recorder.start(1000);
-        this._startTime = dayjs();
+        this._startTime = this.locator.host.now;
 
         this.startTimeout();
     }
@@ -87,7 +86,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     get duration() {
         this.assertIsRecording();
 
-        return durationSince(this.startTime).asSeconds();
+        const { host } = this.locator;
+
+        return dayjs.duration(host.now.diff(this.startTime), 'milliseconds').asSeconds();
     }
 
     private startTimeout() {
