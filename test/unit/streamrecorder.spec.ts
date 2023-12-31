@@ -7,7 +7,7 @@ describe('StreamRecorder', () => {
         recorder.stop();
     });
 
-    it('stopping after the timeslice time produces blobs', async () => {
+    it('stopping after the timeslice duration yields blobs', async () => {
         const { host, recorder } = getLocator();
 
         let count = 0;
@@ -25,7 +25,7 @@ describe('StreamRecorder', () => {
         assert.equal(count, 2, 'count');
     });
 
-    it('stopping before the timeslice time produces blobs', async () => {
+    it('stopping before the timeslice duration yields blobs', async () => {
         const { host, recorder } = getLocator();
 
         let count = 0;
@@ -43,13 +43,15 @@ describe('StreamRecorder', () => {
         assert.equal(count, 1, 'count');
     });
 
-    it('can yield blobs in 1 second chunks for 5 seconds', async () => {
+    it('stopping yields one trailing blob', async () => {
         const { recorder, host } = getLocator();
 
         let count = 0;
 
         recorder.ondataavailable = () => {
             count++;
+
+            assert.isAtMost(count, 6, 'Recorder yielded more total segments than it should have');
         };
 
         recorder.start(1000);
