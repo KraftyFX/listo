@@ -7,7 +7,7 @@ describe('StreamRecorder', () => {
         recorder.stop();
     });
 
-    it('stopping after the timeslice time produces data', async () => {
+    it('stopping after the timeslice time produces blobs', async () => {
         const { host, recorder } = getLocator();
 
         let count = 0;
@@ -25,7 +25,7 @@ describe('StreamRecorder', () => {
         assert.equal(count, 2, 'count');
     });
 
-    it('stopping before the timeslice time produces data', async () => {
+    it('stopping before the timeslice time produces blobs', async () => {
         const { host, recorder } = getLocator();
 
         let count = 0;
@@ -43,7 +43,7 @@ describe('StreamRecorder', () => {
         assert.equal(count, 1, 'count');
     });
 
-    it('can yield data in 1 second chunks for 5 seconds', async () => {
+    it('can yield blobs in 1 second chunks for 5 seconds', async () => {
         const { recorder, host } = getLocator();
 
         let count = 0;
