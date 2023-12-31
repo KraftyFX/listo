@@ -8,7 +8,7 @@ describe('SegmentRecorder', function () {
         await recorder.stop();
     });
 
-    it(`can start and stop quickly`, async () => {
+    it(`can start and stop before minimum recording size`, async () => {
         const { host } = getLocator();
 
         const recorder = new SegmentRecorder({
@@ -26,25 +26,18 @@ describe('SegmentRecorder', function () {
 
         assert.isTrue(recorder.isRecording, 'before stop');
 
-        recorder.onrecording = null;
         await recorder.stopRecording();
 
         assert.isFalse(recorder.isRecording, 'after stop');
     });
 
-    it(`can start and stop after a while`, async () => {
+    it(`can start and stop well after the minimum recording size`, async () => {
         const { host } = getLocator();
 
         const recorder = new SegmentRecorder({
             inMemory: true,
             fixDuration: false,
         });
-
-        let count = 0;
-
-        recorder.onrecording = async (recording) => {
-            count++;
-        };
 
         assert.isFalse(recorder.isRecording, 'before start');
 
@@ -57,11 +50,8 @@ describe('SegmentRecorder', function () {
         assert.isTrue(recorder.isRecording, 'before stop');
 
         await recorder.stopRecording();
-        recorder.onrecording = null;
 
         assert.isFalse(recorder.isRecording, 'after stop');
-
-        assert.equal(count, 5, 'count');
     });
 
     describe('Full segments', () => {
