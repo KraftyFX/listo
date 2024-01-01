@@ -92,7 +92,7 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
     }
 
     private startTimeout() {
-        const ms = this.options.minSegmentSizeInSec * 1000;
+        const ms = this.options.minSizeInSec * 1000;
         const { setTimeout } = this.locator.host;
         this.timeout = setTimeout(() => this.onTimeout(), ms);
     }

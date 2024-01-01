@@ -41,7 +41,7 @@ describe('SegmentRecorder', function () {
 
         const recorder = new MediaStreamRecorder({
             inMemory: true,
-            minSegmentSizeInSec: 5,
+            minSizeInSec: 5,
             fixDuration: false,
         });
 
@@ -70,7 +70,7 @@ describe('SegmentRecorder', function () {
 
             const recorder = new MediaStreamRecorder({
                 inMemory: true,
-                minSegmentSizeInSec: 5,
+                minSizeInSec: 5,
                 fixDuration: false,
             });
 
@@ -89,12 +89,12 @@ describe('SegmentRecorder', function () {
             accumulator.assertCount(1, 'recordings');
         });
 
-        it(`can record less than a minimum segment size of video`, async () => {
+        it(`can record less than a minimum recording size of video`, async () => {
             const { host } = getLocator();
 
             const recorder = new MediaStreamRecorder({
                 inMemory: true,
-                minSegmentSizeInSec: 5,
+                minSizeInSec: 5,
                 fixDuration: false,
             });
 
@@ -113,12 +113,12 @@ describe('SegmentRecorder', function () {
             accumulator.assertCount(1, 'recordings');
         });
 
-        it(`can record more than a minimum segment size of video`, async () => {
+        it(`can record more than a minimum recording size of video`, async () => {
             const { host } = getLocator();
 
             const recorder = new MediaStreamRecorder({
                 inMemory: true,
-                minSegmentSizeInSec: 5,
+                minSizeInSec: 5,
                 fixDuration: false,
             });
 
@@ -143,7 +143,7 @@ describe('SegmentRecorder', function () {
 
             const recorder = new MediaStreamRecorder({
                 inMemory: true,
-                minSegmentSizeInSec: 5,
+                minSizeInSec: 5,
                 fixDuration: false,
             });
 
@@ -191,7 +191,7 @@ describe('SegmentRecorder', function () {
             await recorder.stopRecording();
         });
 
-        it(`can force yield a recording before the minimum SEGMENT recording size`, async () => {
+        it(`can force yield a recording before the minimum recording recording size`, async () => {
             const { host } = getLocator();
 
             const recorder = new MediaStreamRecorder({
