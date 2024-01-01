@@ -18,17 +18,28 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private readonly recorder: MediaStreamRecorder;
     private logger: Logger;
     public readonly options: RecordingOptions;
+    public readonly segments: SegmentCollection;
 
+    constructor();
+    constructor(options: Partial<RecordingOptions>);
+    constructor(segment: SegmentCollection, options: Partial<RecordingOptions>);
     constructor(
-        public readonly segments: SegmentCollection = new SegmentCollection(),
-        options: Partial<RecordingOptions> = DEFAULT_RECORDING_OPTIONS
+        segmentsOrOptions?: SegmentCollection | Partial<RecordingOptions>,
+        options?: Partial<RecordingOptions>
     ) {
         super();
 
-        this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
+        if (segmentsOrOptions instanceof SegmentCollection) {
+            this.segments = segmentsOrOptions;
+            this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
+        } else {
+            this.segments = new SegmentCollection();
+            this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, segmentsOrOptions);
+        }
+
         this.logger = getLog('lsr', this.options);
 
-        this.recorder = new MediaStreamRecorder(options);
+        this.recorder = new MediaStreamRecorder(this.options);
         this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 
