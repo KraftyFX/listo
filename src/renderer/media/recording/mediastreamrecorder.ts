@@ -88,7 +88,7 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
 
         const { host } = this.locator;
 
-        return dayjs.duration(host.now.diff(this.startTime), 'milliseconds').asSeconds();
+        return dayjs.duration(host.now.diff(this.startTime)).asSeconds();
     }
 
     private startTimeout() {
