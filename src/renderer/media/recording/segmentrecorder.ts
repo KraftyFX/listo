@@ -39,7 +39,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         return this.reader.stream;
     }
 
-    get locator() {
+    private get locator() {
         return getLocator();
     }
 
