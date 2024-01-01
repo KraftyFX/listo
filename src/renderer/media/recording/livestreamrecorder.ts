@@ -52,7 +52,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     /**
-     * The onRecording method saves whatever blob we got from the segment recorder.
+     * The onRecording method saves whatever blob we got from the media stream recorder.
      *
      * If a user wants to scrub through something super recent that's still being recorded then
      * the DVR will call to `forceRender()` ensure playable video data is available. This will
@@ -222,6 +222,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             );
         }
     }
+
     private emitPlay() {
         this.emit('play');
     }
