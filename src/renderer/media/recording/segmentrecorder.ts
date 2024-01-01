@@ -155,13 +155,15 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     }
 
     forceRender() {
+        this.assertIsRecording();
+
         this.logger.info('force rendering');
         return this.raiseRecording(true);
     }
 
     private assertIsRecording() {
         if (!this.isRecording) {
-            throw new Error(`Start time is only available during a recording`);
+            throw new Error(`This is only available during recording`);
         }
     }
 }
