@@ -55,7 +55,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
      * The onRecording method saves whatever blob we got from the media stream recorder.
      *
      * If a user wants to scrub through something super recent that's still being recorded then
-     * the DVR will call to `forceRender()` ensure playable video data is available. This will
+     * the DVR will call to `forceFillWithLatestVideoData()` ensure playable video data is available. This will
      * yield a partial segment (i.e. a segment with less data than normally expected). We want
      * to keep this around temorarily and treat it like a normal segment until its full version
      * comes in to replace it.
@@ -127,20 +127,13 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this.recorder.duration;
     }
 
-    async tryFillSegments(time: Dayjs) {
-        if (this.containsTime(time)) {
-            await this.recorder.forceRender();
+    async forceFillWithLatestVideoData() {
+        this.assertIsRecording();
 
-            this.assertHasSegment(time);
+        await this.recorder.yieldPartialRecording();
 
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    containsTime(time: Dayjs) {
-        return this.isRecording && time.isSameOrBefore(this.recording.endTime);
+        this.assertHasSegments();
+        this.assertLastSegmentIsPartial();
     }
 
     private _isVideoSource = false;
@@ -191,16 +184,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertHasSegment(time: Dayjs) {
-        if (!this.segments.containsTime(time)) {
-            const timecode = this.getAsTimecode(time);
-
-            throw new Error(
-                `The segment recorder was told to force render everything but didn't produce data at ${timecode}`
-            );
-        }
-    }
-
     async play() {
         this.assertIsActiveVideoSource();
 
@@ -219,6 +202,22 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         if (!this._isVideoSource) {
             throw new Error(
                 `This is only available when playback the active source on the video element`
+            );
+        }
+    }
+
+    private assertHasSegments() {
+        if (this.segments.isEmpty) {
+            throw new Error(
+                `No segments were produced after being told to force render. This is a logic error.`
+            );
+        }
+    }
+
+    private assertLastSegmentIsPartial() {
+        if (!this.segments.lastSegment.isPartial) {
+            throw new Error(
+                `A segment was forcefully rendered but and should have been partial but was not. Thre is alogic error`
             );
         }
     }

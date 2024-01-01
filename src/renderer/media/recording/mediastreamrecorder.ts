@@ -154,10 +154,10 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
         }
     }
 
-    forceRender() {
+    yieldPartialRecording() {
         this.assertIsRecording();
 
-        this.logger.info('force rendering');
+        this.logger.info('force yielding a partial recording');
         return this.raiseRecording(true);
     }
 

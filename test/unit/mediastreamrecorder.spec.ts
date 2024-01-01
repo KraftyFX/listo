@@ -182,7 +182,7 @@ describe('SegmentRecorder', function () {
 
             await host.advanceTimeBy(500);
 
-            const recording = await recorder.forceRender();
+            const recording = await recorder.yieldPartialRecording();
 
             assert.isNull(recording, 'recording');
 
@@ -208,7 +208,7 @@ describe('SegmentRecorder', function () {
 
             await host.advanceTimeBy(1500);
 
-            const recording = await recorder.forceRender();
+            const recording = await recorder.yieldPartialRecording();
 
             assert.isNotNull(recording, 'recording');
 
@@ -235,7 +235,7 @@ describe('SegmentRecorder', function () {
 
             await host.advanceTimeBy(7000);
 
-            const recording = await recorder.forceRender();
+            const recording = await recorder.yieldPartialRecording();
 
             assert.isNotNull(recording, 'recording');
 

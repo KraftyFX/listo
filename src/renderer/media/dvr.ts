@@ -120,7 +120,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             // This fill segments call is needed b/c the user is in playback mode
             // and might have jumped to a time that is still actively being recorded
-            await this.liveStreamRecorder.tryFillSegments(time);
+            await this.ensureVideoDataForTime(time);
             await this.playback.goToTime(time);
         } else {
             this.assertWillHaveVideoDataToPlay();
@@ -139,7 +139,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
                 time = time || this.segments.lastSegmentEndTime.subtract(1, 'second');
             }
 
-            await this.liveStreamRecorder.tryFillSegments(time);
+            await this.ensureVideoDataForTime(time);
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
 
@@ -150,6 +150,38 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             this.emitModeChange();
             this.startPollingLiveStreamRecordingDuration('playback');
+        }
+    }
+
+    private async ensureVideoDataForTime(time: dayjs.Dayjs) {
+        if (this.isInActiveRecordingWindow(time)) {
+            await this.liveStreamRecorder.forceFillWithLatestVideoData();
+
+            this.assertContainsVideoDataForTime(time);
+
+            return true;
+        } else {
+            return this.segments.containsTime(time);
+        }
+    }
+
+    private isInActiveRecordingWindow(time: Dayjs) {
+        if (this.isRecording) {
+            const { startTime, endTime } = this.recording;
+
+            return time.isBetween(startTime, endTime);
+        } else {
+            return false;
+        }
+    }
+
+    private assertContainsVideoDataForTime(time: dayjs.Dayjs) {
+        if (!this.segments.containsTime(time)) {
+            const timecode = this.getAsTimecode(time);
+
+            throw new Error(
+                `The live stream recorder was forced to render all the data it had but contains nothing for ${timecode}`
+            );
         }
     }
 
