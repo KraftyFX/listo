@@ -189,8 +189,8 @@ describe('LiveStreamRecorder', () => {
             await host.advanceTimeBy(3000);
 
             assert.equal(segments.length, 2, 'segment count');
+            assert.equal(partial.index, full.index, 'segment index');
             assert.isEmpty(partial.url, 'partial segment url');
-            assert.equal(partial.startTime.valueOf(), full.startTime.valueOf(), 'startTime');
 
             await recorder.stopRecording();
         });
