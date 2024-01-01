@@ -25,8 +25,12 @@ export class RecordingAccumulator {
         assert.isAtMost(actual, expected, 'The accumulator received more recordings than expected');
     }
 
-    assertCount(count: number, message?: string) {
-        assert.equal(this.recordings.length, count, message);
+    assertCount(count?: number, message?: string) {
+        assert.equal(
+            this.recordings.length,
+            count === undefined ? this.options.expectedCount : count,
+            message || 'recordings'
+        );
     }
 
     assertAllRecordingsAreFull() {

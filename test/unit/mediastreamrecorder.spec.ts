@@ -86,7 +86,7 @@ describe('SegmentRecorder', function () {
 
             await recorder.stopRecording();
 
-            accumulator.assertCount(1, 'recordings');
+            accumulator.assertCount();
         });
 
         it(`can record less than a minimum recording size of video`, async () => {
@@ -110,7 +110,7 @@ describe('SegmentRecorder', function () {
 
             await recorder.stopRecording();
 
-            accumulator.assertCount(1, 'recordings');
+            accumulator.assertCount();
         });
 
         it(`can record more than a minimum recording size of video`, async () => {
@@ -134,7 +134,7 @@ describe('SegmentRecorder', function () {
 
             await recorder.stopRecording();
 
-            accumulator.assertCount(2, 'recordings');
+            accumulator.assertCount();
             accumulator.assertAllRecordingsAreFull();
         });
 
@@ -159,7 +159,7 @@ describe('SegmentRecorder', function () {
 
             await recorder.stopRecording();
 
-            accumulator.assertCount(5, 'recordings');
+            accumulator.assertCount();
             accumulator.assertAllRecordingsAreFull();
         });
     });
@@ -186,7 +186,7 @@ describe('SegmentRecorder', function () {
 
             assert.isNull(recording, 'recording');
 
-            accumulator.assertCount(0, 'recordings');
+            accumulator.assertCount(0);
 
             await recorder.stopRecording();
         });
@@ -212,7 +212,7 @@ describe('SegmentRecorder', function () {
 
             assert.isNotNull(recording, 'recording');
 
-            accumulator.assertCount(1, 'recordings');
+            accumulator.assertCount(1);
             accumulator.assertOnlyLastRecordingIsPartial();
 
             await recorder.stopRecording();
@@ -239,7 +239,7 @@ describe('SegmentRecorder', function () {
 
             assert.isNotNull(recording, 'recording');
 
-            accumulator.assertCount(2, 'recordings');
+            accumulator.assertCount(2);
             accumulator.assertOnlyLastRecordingIsPartial();
 
             await recorder.stopRecording();
