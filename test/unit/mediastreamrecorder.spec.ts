@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { MediaStreamRecorder } from '~/renderer/media/recording/mediastreamrecorder';
 import { getLocator } from '~/renderer/services';
-import { RecordingAccumulator } from './recordingaccumulator';
+import { RecordingAccumulator } from './accumulators';
 
 describe('SegmentRecorder', function () {
     afterEach(async () => {
