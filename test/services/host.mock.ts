@@ -95,7 +95,7 @@ export class MockHostService implements IHostService {
     createObjectURL(blob: Blob) {
         this.blobs.push(blob);
 
-        return `blob:test://blobs/${this.blobs.length}`;
+        return `blob:test://blobs/${this.blobs.length - 1}`;
     }
 
     revokeObjectURL(url: string) {
