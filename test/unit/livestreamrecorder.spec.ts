@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import { LiveStreamRecorder } from '~/renderer/media/recording/livestreamrecorder';
+import { Segment } from '~/renderer/media/segments/interfaces';
 import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {
@@ -97,7 +98,7 @@ describe('LiveStreamRecorder', () => {
             await recorder.stopRecording();
         });
 
-        it.only('can fill with few full segments of recordings', async () => {
+        it('can fill with few full segments of recordings', async () => {
             const { host } = getLocator();
             const recorder = new LiveStreamRecorder({
                 fixDuration: false,
@@ -134,11 +135,11 @@ describe('LiveStreamRecorder', () => {
                 minSizeInSec: 5,
             });
 
-            const { segments } = recorder;
-
             await recorder.startRecording();
 
             await host.advanceTimeBy(12000);
+
+            const { segments } = recorder;
 
             segments.on('segmentadded', (segment) => {
                 assert.isTrue(segment.isPartial, 'partial');
@@ -149,6 +150,48 @@ describe('LiveStreamRecorder', () => {
             assert.equal(segments.length, 3, 'segment count');
 
             segments.removeAllListeners();
+            await recorder.stopRecording();
+        });
+
+        it('can replace a partial segment with a full one', async () => {
+            const { host } = getLocator();
+            const recorder = new LiveStreamRecorder({
+                fixDuration: false,
+                minSizeInSec: 5,
+            });
+
+            await recorder.startRecording();
+
+            await host.advanceTimeBy(7000);
+
+            const { segments } = recorder;
+            let partial: Segment = null!;
+
+            segments.once('segmentadded', (segment) => {
+                assert.isTrue(segment.isPartial, 'partial');
+
+                partial = segment;
+            });
+
+            await recorder.forceFillWithLatestVideoData();
+
+            assert.isNotEmpty(partial.url, 'partial segment url');
+            assert.equal(segments.length, 2, 'segment count');
+
+            let full: Segment = null!;
+
+            segments.once('segmentadded', (segment) => {
+                assert.isFalse(segment.isPartial, 'partial');
+
+                full = segment;
+            });
+
+            await host.advanceTimeBy(3000);
+
+            assert.equal(segments.length, 2, 'segment count');
+            assert.isEmpty(partial.url, 'partial segment url');
+            assert.equal(partial.startTime.valueOf(), full.startTime.valueOf(), 'startTime');
+
             await recorder.stopRecording();
         });
     });

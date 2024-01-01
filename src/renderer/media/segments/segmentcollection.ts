@@ -34,7 +34,16 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return this._segments.length === 0;
     }
 
+    get isLastSegmentPartial() {
+        return !this.isEmpty && this.lastSegment.isPartial;
+    }
+
     addSegment(startTime: Dayjs, url: string, duration: number, isPartial: boolean) {
+        if (this.isLastSegmentPartial) {
+            this.assertIsSuitableReplacement(startTime);
+            this.removeLastSegment();
+        }
+
         const segment: Segment = {
             index: this._segments.length,
             url,
@@ -50,6 +59,26 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         this.emitSegmentAdded(segment);
 
         return segment;
+    }
+
+    private assertIsSuitableReplacement(startTime: Dayjs) {
+        if (this.lastSegment.url !== '') {
+            throw new Error(
+                `A segment is being added but the last one in the list is partial. ` +
+                    `The old one should be cleaned up before the new one is added but ` +
+                    `the URL is still set. This suggests the old one wasn't disposed ` +
+                    `properly and is a logic error.`
+            );
+        }
+
+        if (this.lastSegment.startTime.diff(startTime) !== 0) {
+            throw new Error(
+                `A segment is being added but the last one in the list is partial. ` +
+                    `This new one should be replacing the old one but the start times ` +
+                    `do not match. This suggests the recording time math is wrong ` +
+                    `or an invalid/stale segment is being added. This is a logic error.`
+            );
+        }
     }
 
     removeLastSegment() {

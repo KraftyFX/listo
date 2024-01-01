@@ -6,6 +6,7 @@ import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
+import { Segment } from '../segments/interfaces';
 import { MediaStreamRecorder, Recording } from './mediastreamrecorder';
 
 type LiveStreamRecorderEvents = {
@@ -51,32 +52,18 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this.locator.player;
     }
 
-    /**
-     * The onRecording method saves whatever blob we got from the media stream recorder.
-     *
-     * If a user wants to scrub through something super recent that's still being recorded then
-     * the DVR will call to `forceFillWithLatestVideoData()` ensure playable video data is available. This will
-     * yield a partial segment (i.e. a segment with less data than normally expected). We want
-     * to keep this around temorarily and treat it like a normal segment until its full version
-     * comes in to replace it.
-     */
     private async onRecording(recording: Recording) {
         const { startTime, duration, isPartial } = recording;
 
         this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
 
+        if (this.segments.isLastSegmentPartial) {
+            this.disposeSegment(this.segments.lastSegment);
+        }
+
         const url = await this.saveRecording(recording);
 
-        this.clearAnyPreviousPartialSegments();
-
         this.segments.addSegment(startTime, url, duration, isPartial);
-    }
-
-    private clearAnyPreviousPartialSegments() {
-        if (!this.segments.isEmpty && this.segments.lastSegment.isPartial) {
-            this.locator.host.revokeObjectURL(this.segments.lastSegment.url);
-            this.segments.removeLastSegment();
-        }
     }
 
     private async saveRecording(recording: Recording) {
@@ -87,6 +74,15 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         } else {
             return '';
             // return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
+        }
+    }
+
+    private disposeSegment(segment: Segment) {
+        if (segment.isPartial || this.options.inMemory) {
+            this.locator.host.revokeObjectURL(segment.url);
+            segment.url = '';
+        } else {
+            throw new Error(`Disposing saved segments on disk is invalid for this component.`);
         }
     }
 
