@@ -211,7 +211,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     async pause() {
         this.assertIsActiveVideoSource();
 
-        await this.player.play();
+        await this.player.pause();
         this.emitPause();
     }
 
