@@ -1,5 +1,5 @@
 import _merge from 'lodash.merge';
-import { IStreamRecorder, OnDataAvailableEvent, getLocator } from '~/renderer/services';
+import { IMediaStreamReader, OnDataAvailableEvent, getLocator } from '~/renderer/services';
 
 interface MockStreamRecorderOptions {
     arrayLength: number;
@@ -9,7 +9,7 @@ const DEFAULT_OPTIONS: MockStreamRecorderOptions = {
     arrayLength: 10,
 };
 
-export class MockStreamRecorder implements IStreamRecorder {
+export class MockMediaStreamReader implements IMediaStreamReader {
     public readonly options: MockStreamRecorderOptions;
 
     constructor(options: Partial<MockStreamRecorderOptions> = DEFAULT_OPTIONS) {
@@ -34,11 +34,9 @@ export class MockStreamRecorder implements IStreamRecorder {
 
     private count = 0;
     private onInterval = () => {
-        const arr = new Array(this.options.arrayLength).fill(
-            this.count++,
-            0,
-            this.options.arrayLength
-        );
+        const length = this.count === 0 ? this.options.arrayLength / 2 : this.options.arrayLength;
+
+        const arr = new Array(length).fill(this.count++, 0, length);
 
         const blob = new Blob(arr);
 

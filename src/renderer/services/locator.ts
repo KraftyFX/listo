@@ -1,10 +1,10 @@
 import { HostService } from './host';
-import { IHostService, IServiceLocator, IStreamRecorder, IVideoPlayer } from './interfaces';
+import { IHostService, IMediaStreamReader, IServiceLocator, IVideoPlayer } from './interfaces';
 
 export class ServiceLocator implements IServiceLocator {
     constructor(
         public player: IVideoPlayer,
-        public recorder: IStreamRecorder,
+        public reader: IMediaStreamReader,
         public host: IHostService = new HostService()
     ) {}
 }

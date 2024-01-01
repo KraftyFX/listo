@@ -28,15 +28,15 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('seg-rec', this.options);
 
-        this.recorder.ondataavailable = this.onDataAvailable;
+        this.reader.ondataavailable = this.onDataAvailable;
     }
 
-    private get recorder() {
-        return this.locator.recorder;
+    private get reader() {
+        return this.locator.reader;
     }
 
     get stream() {
-        return this.recorder.stream;
+        return this.reader.stream;
     }
 
     get locator() {
@@ -50,7 +50,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
         this.logger.log('start recording');
 
-        this.recorder.start(1000);
+        this.reader.start(1000);
         this._startTime = this.locator.host.now;
 
         this.startTimeout();
@@ -64,7 +64,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.logger.log('stop recording');
         this.clearTimeout();
 
-        await this.recorder.stop();
+        await this.reader.stop();
         await this.raiseRecording(false);
 
         this._startTime = null;

@@ -1,6 +1,6 @@
-import { IStreamRecorder, OnDataAvailableEvent } from './interfaces';
+import { IMediaStreamReader, OnDataAvailableEvent } from './interfaces';
 
-export class StreamRecorder implements IStreamRecorder {
+export class MediaStreamReader implements IMediaStreamReader {
     private readonly recorder: MediaRecorder;
 
     constructor(public readonly stream: MediaStream, public readonly mimeType: string) {

@@ -19,9 +19,9 @@ export interface IVideoPlayer {
     ondurationchange: TimeChangeEvent;
 }
 
-export type OnDataAvailableEvent = ((this: IStreamRecorder, ev: Blob) => any) | null;
+export type OnDataAvailableEvent = ((this: IMediaStreamReader, ev: Blob) => any) | null;
 
-export interface IStreamRecorder {
+export interface IMediaStreamReader {
     readonly stream: any;
 
     start(timeslice?: number): void;
@@ -48,6 +48,6 @@ export interface IHostService {
 
 export interface IServiceLocator {
     player: IVideoPlayer;
-    recorder: IStreamRecorder;
+    reader: IMediaStreamReader;
     host: IHostService;
 }

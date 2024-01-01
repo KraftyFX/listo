@@ -6,7 +6,7 @@ import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { DvrOptions } from '~/renderer/media';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
 import { ServiceLocator, setLocator } from '../services';
-import { StreamRecorder } from '../services/streamrecorder';
+import { MediaStreamReader } from '../services/mediastreamreader';
 import { VideoPlayer as Player } from '../services/videoplayer';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
@@ -48,7 +48,7 @@ export const ListoApp = observer(function ListoApp() {
             setLocator(
                 new ServiceLocator(
                     new Player(videoRef.current),
-                    new StreamRecorder(stream, options.recording.mimeType)
+                    new MediaStreamReader(stream, options.recording.mimeType)
                 )
             );
 

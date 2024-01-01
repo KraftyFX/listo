@@ -5,7 +5,7 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { ServiceLocator, setLocator } from '~/renderer/services';
 import { MockHostService } from './services/host.mock';
-import { MockStreamRecorder } from './services/streamrecorder.mock';
+import { MockMediaStreamReader } from './services/mediastreamreader.mock';
 import { MockVideoPlayer } from './services/videoplayer.mock';
 
 dayjs.extend(duration);
@@ -15,6 +15,10 @@ dayjs.extend(isSameOrBefore);
 
 before(() => {
     setLocator(
-        new ServiceLocator(new MockVideoPlayer(), new MockStreamRecorder(), new MockHostService())
+        new ServiceLocator(
+            new MockVideoPlayer(),
+            new MockMediaStreamReader(),
+            new MockHostService()
+        )
     );
 });
