@@ -1,59 +1,65 @@
 import { assert } from 'chai';
 import { LiveStreamRecorder } from '~/renderer/media/recording/livestreamrecorder';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {
     afterEach(() => {
-        const { player, recorder } = getLocator();
+        const { player, reader } = getLocator();
 
         player.setVideoSource(null);
-        recorder.stop();
+        reader.stop();
     });
 
-    it('can set the video source', async () => {
-        const { player, recorder } = getLocator();
-        const liveStreamRecorder = new LiveStreamRecorder();
+    describe('Video Source', () => {
+        it('can set the video source', async () => {
+            const { player, reader } = getLocator();
+            const liveStreamRecorder = new LiveStreamRecorder();
 
-        assert.isFalse(liveStreamRecorder.isVideoSource);
+            assert.isFalse(liveStreamRecorder.isVideoSource, 'Video source');
 
-        await liveStreamRecorder.setAsVideoSource();
+            await liveStreamRecorder.setAsVideoSource();
 
-        assert.isTrue(liveStreamRecorder.isVideoSource);
-        assert.equal(player.getVideoSource(), recorder.stream, 'Player video source');
-    });
-
-    it('can release the video source', async () => {
-        const { player } = getLocator();
-        const recorder = new LiveStreamRecorder();
-
-        assert.isFalse(recorder.isVideoSource);
-
-        await recorder.setAsVideoSource();
-        await recorder.releaseAsVideoSource();
-
-        assert.isFalse(recorder.isVideoSource);
-        assert.equal(player.getVideoSource(), null, 'Player video source');
-    });
-
-    it('can record a few seconds of video', async () => {
-        const { host } = getLocator();
-        const recorder = new LiveStreamRecorder(new SegmentCollection(), { fixDuration: false });
-
-        let count = 0;
-
-        recorder.segments.on('segmentadded', (segment) => {
-            assert.isFalse(segment.isPartial, 'partial');
-
-            count++;
+            assert.isTrue(liveStreamRecorder.isVideoSource, 'Video source');
+            assert.equal(player.getVideoSource(), reader.stream, 'Player video source');
         });
 
-        await recorder.startRecording();
+        it('can release the video source', async () => {
+            const { player } = getLocator();
+            const recorder = new LiveStreamRecorder();
 
-        await host.advanceTimeBy(10000);
+            await recorder.setAsVideoSource();
 
-        await recorder.stopRecording();
+            assert.isTrue(recorder.isVideoSource, 'Video source');
 
-        assert.equal(count, 3, 'segment count');
+            await recorder.releaseAsVideoSource();
+
+            assert.isFalse(recorder.isVideoSource, 'Video source');
+
+            assert.equal(player.getVideoSource(), null, 'Player video source');
+        });
+    });
+
+    describe('Recording', () => {
+        it('can record a few seconds of full segment video', async () => {
+            const { host } = getLocator();
+            const recorder = new LiveStreamRecorder({
+                fixDuration: false,
+                minSizeInSec: 5,
+            });
+
+            const { segments } = recorder;
+
+            segments.on('segmentadded', (segment) => {
+                assert.isFalse(segment.isPartial, 'partial');
+            });
+
+            await recorder.startRecording();
+
+            await host.advanceTimeBy(12000);
+
+            await recorder.stopRecording();
+
+            assert.equal(segments.length, 3, 'segment count');
+        });
     });
 });

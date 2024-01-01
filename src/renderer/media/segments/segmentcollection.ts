@@ -26,6 +26,10 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return this._segments;
     }
 
+    get length() {
+        return this._segments.length;
+    }
+
     get isEmpty() {
         return this._segments.length === 0;
     }
