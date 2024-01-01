@@ -6,7 +6,7 @@ import { Logger, getLog } from '~/renderer/media/logutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { Recording, SegmentRecorder } from './segmentrecorder';
+import { MediaStreamRecorder, Recording } from './mediastreamrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
@@ -15,7 +15,7 @@ type LiveStreamRecorderEvents = {
 };
 
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
-    private readonly recorder: SegmentRecorder;
+    private readonly recorder: MediaStreamRecorder;
     private logger: Logger;
     public readonly options: RecordingOptions;
 
@@ -28,7 +28,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('lsr', this.options);
 
-        this.recorder = new SegmentRecorder(options);
+        this.recorder = new MediaStreamRecorder(options);
         this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 

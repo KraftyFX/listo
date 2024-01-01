@@ -18,7 +18,7 @@ export interface Recording {
 
 type SegmentRecorderEvents = {};
 
-export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
+export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
     private logger: Logger;
     public readonly options: RecordingOptions;
 
