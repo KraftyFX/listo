@@ -1,4 +1,5 @@
 import { Dayjs } from 'dayjs';
+import { Recording } from '../media/recording';
 
 export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
 
@@ -46,8 +47,13 @@ export interface IHostService {
     revokeObjectURL(url: string): void;
 }
 
+export interface IListoService {
+    saveRecording(recording: Recording): Promise<string>;
+}
+
 export interface IServiceLocator {
     player: IVideoPlayer;
     reader: IMediaStreamReader;
+    listo: IListoService;
     host: IHostService;
 }

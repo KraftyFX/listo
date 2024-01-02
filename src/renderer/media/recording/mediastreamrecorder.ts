@@ -7,14 +7,8 @@ import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
+import { Recording } from './interfaces';
 // import ysFixWebmDuration from 'fix-webm-duration';
-
-export interface Recording {
-    startTime: Dayjs;
-    duration: number;
-    blob: Blob;
-    isPartial: boolean;
-}
 
 type SegmentRecorderEvents = {};
 
