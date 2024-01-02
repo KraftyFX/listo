@@ -3,7 +3,7 @@ import { Segment } from '~/renderer/media/segments/interfaces';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 
-describe.only('SegmentCollection', () => {
+describe('SegmentCollection', () => {
     describe('addSegment()', () => {
         it('once', async () => {
             const { host } = getLocator();
@@ -237,7 +237,9 @@ describe.only('SegmentCollection', () => {
             const { segments } = getWithSparseSegments();
 
             const expectedSegment = segments.lastSegment;
-            const time = expectedSegment.startTime.add(1, 'second');
+            const time = expectedSegment.startTime
+                .add(expectedSegment.duration, 'second')
+                .add(5, 'seconds');
 
             const { segment, offset } = await segments.getSegmentAtTime(time);
 
