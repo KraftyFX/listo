@@ -51,7 +51,7 @@ describe('LiveStreamRecorder', () => {
             const { segments } = recorder;
             const startTime = host.now;
 
-            segments.on('segmentadded', (segment) => {
+            segments.once('segmentadded', (segment) => {
                 assert.isFalse(segment.isPartial, 'partial');
 
                 assert.equal(segment.duration, 4.5, 'duration');
@@ -64,7 +64,6 @@ describe('LiveStreamRecorder', () => {
 
             await recorder.stopRecording();
 
-            segments.removeAllListeners();
             assert.equal(segments.length, 1, 'segment count');
         });
 
@@ -79,7 +78,7 @@ describe('LiveStreamRecorder', () => {
 
             const startTime = host.now;
 
-            segments.on('segmentadded', (segment) => {
+            segments.once('segmentadded', (segment) => {
                 assert.isTrue(segment.isPartial, 'partial');
 
                 assert.equal(segment.duration, 4.5, 'duration');
@@ -94,7 +93,6 @@ describe('LiveStreamRecorder', () => {
 
             assert.equal(segments.length, 1, 'segment count');
 
-            segments.removeAllListeners();
             await recorder.stopRecording();
         });
 
