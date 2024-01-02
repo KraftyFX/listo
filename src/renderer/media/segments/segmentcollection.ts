@@ -39,6 +39,10 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     addSegment(startTime: Dayjs, url: string, duration: number, isPartial: boolean) {
+        if (!url || duration < 0) {
+            throw new Error(`Arguments are invalid`);
+        }
+
         if (this.isLastSegmentPartial) {
             this.removeLastSegment();
         }
@@ -83,9 +87,12 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
 
         const segment = this.findClosestSegmentForTime(time);
-        const offset = time.diff(segment.startTime) / 1000;
 
-        return { segment, offset };
+        if (time.isSameOrBefore(segment.startTime)) {
+            return { segment, offset: 0 };
+        } else {
+            return { segment, offset: time.diff(segment.startTime) / 1000 };
+        }
     }
 
     private findClosestSegmentForTime(time: Dayjs) {

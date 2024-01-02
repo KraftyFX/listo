@@ -52,7 +52,7 @@ describe.only('SegmentCollection', () => {
             }
         });
 
-        it('many times with last partial', async () => {
+        it('many times with last as partial', async () => {
             const { host } = getLocator();
             const segments = getWithDenseSegments();
 
@@ -219,25 +219,110 @@ describe.only('SegmentCollection', () => {
             assert.isFalse(segments.containsTime(time), 'time');
         });
     });
+
+    describe('getSegmentAtTime()', () => {
+        it('before start returns the start', async () => {
+            const { segments } = getWithSparseSegments();
+
+            const expectedSegment = segments.segments[0];
+            const time = expectedSegment.startTime.subtract(1, 'second');
+
+            const { segment, offset } = await segments.getSegmentAtTime(time);
+
+            assert.equal(segment, expectedSegment, 'segment');
+            assert.equal(offset, 0, 'offset');
+        });
+
+        it('after end returns the end', async () => {
+            const { segments } = getWithSparseSegments();
+
+            const expectedSegment = segments.lastSegment;
+            const time = expectedSegment.startTime.add(1, 'second');
+
+            const { segment, offset } = await segments.getSegmentAtTime(time);
+
+            assert.equal(segment, expectedSegment, 'segment');
+            assert.equal(offset, expectedSegment.duration, 'offset');
+        });
+
+        it('time within known segment returns it', async () => {
+            const { segments } = getWithSparseSegments();
+
+            const expectedSegment = segments.segments[2];
+            const time = expectedSegment.startTime.add(1.2, 'seconds');
+
+            const { segment, offset } = await segments.getSegmentAtTime(time);
+
+            assert.equal(segment, expectedSegment, 'segment');
+            assert.equal(offset, 1.2, 'offset');
+        });
+
+        it('time at end of known segment gets the next segment', async () => {
+            const { segments } = getWithSparseSegments();
+
+            const expectedSegment = segments.segments[2];
+            const time = segments.segments[1].startTime.add(
+                segments.segments[1].duration,
+                'seconds'
+            );
+
+            const { segment, offset } = await segments.getSegmentAtTime(time);
+
+            assert.equal(segment, expectedSegment, 'segment');
+            assert.equal(offset, 0, 'offset');
+        });
+
+        it('time at gap gets next closest segment', async () => {
+            const { segments } = getWithSparseSegments();
+
+            const expectedSegment = segments.segments[2];
+            const time = expectedSegment.startTime.subtract(2, 'seconds');
+
+            const { segment, offset } = await segments.getSegmentAtTime(time);
+
+            assert.equal(segment, expectedSegment, 'segment');
+            assert.equal(offset, 0, 'offset');
+        });
+    });
 });
 
 function getWithDenseSegments() {
     const segments = new SegmentCollection();
     const { host } = getLocator();
-    let now = host.now;
+    const duration = 5;
 
     for (let i = 0; i < 5; i++) {
-        // Durations are usually +/0 0.1 sec of the desired time
-        const duration = 4.9 + 0.2 * Math.random();
-
-        segments.addSegment(now, 'test://', duration, false);
-
-        // Start times are pretty much never the previous start time + duration.
-        // there's always data loss caused by computational overhead.
-        now = now.add(duration + 0.001, 'seconds');
-
+        segments.addSegment(host.now, 'test://', duration, false);
         host.advanceTimeBy((duration + 0.001) * 1000);
     }
 
     return segments;
+}
+
+function getWithSparseSegments() {
+    const segments = new SegmentCollection();
+    const { host } = getLocator();
+
+    const recordings = [
+        { offset: 0, duration: 4.9 },
+        { offset: 5, duration: 4.8 },
+        // 5 sec gap
+        { offset: 15, duration: 4.9 },
+        { offset: 20, duration: 4.8 },
+        { offset: 25, duration: 4.9 },
+        // 5 sec gap
+        { offset: 35, duration: 4.8 },
+    ];
+
+    const start = host.now;
+    let last: Segment = null!;
+
+    recordings.forEach(({ offset, duration }) => {
+        last = segments.addSegment(start.add(offset, 'seconds'), 'test://', duration, false);
+    });
+
+    const durationInMs = last.startTime.add(last.duration * 1000).diff(start);
+    host.advanceTimeBy(durationInMs);
+
+    return { segments, recordings };
 }
