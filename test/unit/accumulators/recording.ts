@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { Recording } from '~/renderer/media/recording/mediastreamrecorder';
+import { Recording } from '~/renderer/media/recording';
 
 export class RecordingAccumulator {
     constructor(
