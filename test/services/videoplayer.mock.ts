@@ -60,7 +60,7 @@ export class MockVideoPlayer implements IVideoPlayer {
         return this._duration;
     }
 
-    _paused = false;
+    private _paused = false;
 
     get paused() {
         return this._paused;
