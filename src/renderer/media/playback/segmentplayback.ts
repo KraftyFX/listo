@@ -38,7 +38,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         this.controller = new PlaybackController(this, this.options);
     }
 
-    private get player() {
+    get player() {
         return this.locator.player;
     }
 
@@ -64,6 +64,10 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private _isVideoSource = false;
+
+    public get isVideoSource() {
+        return this._isVideoSource;
+    }
 
     async setAsVideoSource(time: Dayjs) {
         this.assertHasSegments();
