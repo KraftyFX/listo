@@ -4,13 +4,6 @@ import { Segment } from '~/renderer/media/segments/interfaces';
 import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {
-    afterEach(() => {
-        const { player, reader } = getLocator();
-
-        player.setVideoSource(null);
-        reader.stop();
-    });
-
     describe('Video Source', () => {
         it('can set the video source', async () => {
             const { player, reader } = getLocator();

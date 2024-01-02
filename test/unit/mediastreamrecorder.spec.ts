@@ -4,11 +4,6 @@ import { getLocator } from '~/renderer/services';
 import { RecordingAccumulator } from './accumulators';
 
 describe('SegmentRecorder', function () {
-    afterEach(async () => {
-        const { reader } = getLocator();
-        await reader.stop();
-    });
-
     it(`can start and stop before minimum recording size`, async () => {
         const { host } = getLocator();
 

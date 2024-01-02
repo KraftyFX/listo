@@ -2,11 +2,6 @@ import { assert } from 'chai';
 import { getLocator } from '~/renderer/services';
 
 describe('StreamRecorder', () => {
-    afterEach(() => {
-        const { reader } = getLocator();
-        reader.stop();
-    });
-
     it('stopping after the timeslice duration yields blobs', async () => {
         const { host, reader } = getLocator();
 
