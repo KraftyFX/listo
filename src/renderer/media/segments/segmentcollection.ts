@@ -208,7 +208,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    assertIsConsistent() {
+    private assertIsConsistent() {
         this.segments.forEach((segment, index) => {
             if (segment.index !== index) {
                 throw new Error(`Segment ${index} has a mismatched location. (${segment.index})`);
