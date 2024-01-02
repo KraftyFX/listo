@@ -288,13 +288,13 @@ describe('SegmentCollection', () => {
     });
 });
 
-function getWithDenseSegments() {
+export function getWithDenseSegments() {
     const segments = new SegmentCollection();
     const { host } = getLocator();
     const duration = 5;
 
     for (let i = 0; i < 5; i++) {
-        segments.addSegment(host.now, 'test://', duration, false);
+        segments.addSegment(host.now, `test://${i}/${duration}`, duration, false);
         host.advanceTimeBy((duration + 0.001) * 1000);
     }
 
@@ -319,8 +319,13 @@ function getWithSparseSegments() {
     const start = host.now;
     let last: Segment = null!;
 
-    recordings.forEach(({ offset, duration }) => {
-        last = segments.addSegment(start.add(offset, 'seconds'), 'test://', duration, false);
+    recordings.forEach(({ offset, duration }, i) => {
+        last = segments.addSegment(
+            start.add(offset, 'seconds'),
+            `test://${i}/${duration}`,
+            duration,
+            false
+        );
     });
 
     const durationInMs = last.startTime.add(last.duration * 1000).diff(start);
