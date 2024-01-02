@@ -76,12 +76,12 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     async getSegmentAtTime(time: Dayjs) {
         const segments = this.segments;
 
-        if (time.isBefore(this.firstSegmentStartTime)) {
+        if (time.isSameOrBefore(this.firstSegmentStartTime)) {
             const segment = segments[0];
             return { segment, offset: 0 };
         }
 
-        if (time.isAfter(this.lastSegmentEndTime)) {
+        if (time.isSameOrAfter(this.lastSegmentEndTime)) {
             const segment = this.lastSegment;
             return { segment, offset: segment.duration };
         }
