@@ -70,36 +70,41 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     async setAsVideoSource(time: Dayjs) {
-        this.assertHasSegments();
+        if (!this._isVideoSource) {
+            this._isVideoSource = true;
 
-        await this.goToTime(time);
+            this.assertHasSegments();
 
-        this.player.ontimeupdate = () => this.emitTimeUpdate();
-        this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
+            await this.goToTime(time);
 
-        this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
-        this.controller.on('play', () => this.emitPlay());
-        this.controller.on('pause', () => this.emitPause());
+            this.player.ontimeupdate = () => this.emitTimeUpdate();
+            this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
 
-        this._isVideoSource = true;
+            this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
+            this.controller.on('play', () => this.emitPlay());
+            this.controller.on('pause', () => this.emitPause());
 
-        if (this.paused) {
-            this.emitPause();
-        } else {
-            this.emitPlay();
+            if (this.paused) {
+                this.emitPause();
+            } else {
+                this.emitPlay();
+            }
         }
     }
 
     async releaseAsVideoSource() {
-        this.disableAutoPlayback();
-        this.player.ontimeupdate = null;
-        this.player.ondurationchange = null;
+        if (this._isVideoSource) {
+            this.disableAutoPlayback();
+            this.player.ontimeupdate = null;
+            this.player.ondurationchange = null;
+            this.player.setVideoSource(null);
 
-        this.controller.removeAllListeners();
-        this.controller.stop();
+            this.controller.removeAllListeners();
+            this.controller.stop();
 
-        this.currentSegment = null!;
-        this._isVideoSource = false;
+            this.currentSegment = null!;
+            this._isVideoSource = false;
+        }
     }
 
     private currentSegment: Segment = null!;
