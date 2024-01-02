@@ -62,29 +62,11 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return segment;
     }
 
-    removeLastSegment() {
+    private removeLastSegment() {
         if (!this.isEmpty) {
             this.assertSegmentIsDisposed(this.lastSegment);
             this._segments.pop();
         }
-
-        this.assertIsConsistent();
-    }
-
-    assertIsConsistent() {
-        this.segments.forEach((segment, index) => {
-            if (segment.index !== index) {
-                throw new Error(`Segment ${index} has a mismatched location. (${segment.index})`);
-            }
-
-            if (segment.url === '') {
-                throw new Error(`Segment ${index} is disposed when it should not be.`);
-            }
-
-            if (index < this.length - 1 && segment.isPartial) {
-                throw new Error(`Segment ${index} is partial when it should not be.`);
-            }
-        });
     }
 
     async getSegmentAtTime(time: Dayjs) {
@@ -224,6 +206,22 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         if (this.isEmpty) {
             throw new Error(`The segments collection is empty`);
         }
+    }
+
+    assertIsConsistent() {
+        this.segments.forEach((segment, index) => {
+            if (segment.index !== index) {
+                throw new Error(`Segment ${index} has a mismatched location. (${segment.index})`);
+            }
+
+            if (segment.url === '') {
+                throw new Error(`Segment ${index} is disposed when it should not be.`);
+            }
+
+            if (index < this.length - 1 && segment.isPartial) {
+                throw new Error(`Segment ${index} is partial when it should not be.`);
+            }
+        });
     }
 
     private assertIsSegmentDefined(segment: Segment) {

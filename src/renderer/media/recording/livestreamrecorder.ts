@@ -7,7 +7,8 @@ import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
-import { MediaStreamRecorder, Recording } from './mediastreamrecorder';
+import { Recording } from './interfaces';
+import { MediaStreamRecorder } from './mediastreamrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
