@@ -67,13 +67,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private async saveRecording(recording: Recording) {
-        const { blob, isPartial } = recording;
-
-        if (isPartial || this.options.inMemory) {
-            return this.locator.host.createObjectURL(blob);
+        if (recording.isPartial || this.options.inMemory) {
+            return this.locator.host.createObjectURL(recording.blob);
         } else {
-            return '';
-            // return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
+            return this.locator.listo.saveRecording(recording);
         }
     }
 
