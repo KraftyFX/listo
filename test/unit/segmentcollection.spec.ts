@@ -301,7 +301,7 @@ export function getWithDenseSegments() {
     return segments;
 }
 
-function getWithSparseSegments() {
+export function getWithSparseSegments() {
     const segments = new SegmentCollection();
     const { host } = getLocator();
 
@@ -313,7 +313,7 @@ function getWithSparseSegments() {
         { offset: 20, duration: 4.8 },
         { offset: 25, duration: 4.9 },
         // 5 sec gap
-        { offset: 35, duration: 4.8 },
+        { offset: 35, duration: 5 },
     ];
 
     const start = host.now;
