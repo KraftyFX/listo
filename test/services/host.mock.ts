@@ -24,6 +24,7 @@ export class MockHostService implements IHostService {
             return;
         }
 
+        // console.log(`clearTimer idx=${handle}`);
         this.timers[this.timers.findIndex((t) => t && t.idx === handle)] = null!;
     };
 
@@ -51,7 +52,7 @@ export class MockHostService implements IHostService {
             type,
         };
 
-        // console.log(`setTimeout idx=${timer.idx} ms=${ms}`);
+        // console.log(`setTimer idx=${timer.idx} type=${type} ms=${ms}`);
         this.timers.push(timer);
 
         return timer.idx;
@@ -71,7 +72,7 @@ export class MockHostService implements IHostService {
         while (timersToFire.length > 0) {
             const timer = timersToFire[0];
 
-            // console.log(`${timer.type} i=${timer.idx}, n=${timer.runAt}`);
+            // console.log(` - ${timer.type} i=${timer.idx}, next=${timer.runAt}`);
 
             this.totalMs = timer.runAt;
 
