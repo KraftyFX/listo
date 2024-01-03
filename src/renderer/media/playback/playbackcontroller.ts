@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import { PlaybackOptions } from '~/renderer/media';
 import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { SegmentPlayback } from './segmentplayback';
 
@@ -169,6 +170,8 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
     private _interval: any = 0;
 
     private startInterval() {
+        const { setInterval } = getLocator().host;
+
         this.logger.log('Starting playback timer');
 
         this._interval =
@@ -211,6 +214,8 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
     private stopInterval() {
         if (this._interval !== 0) {
+            const { clearInterval } = getLocator().host;
+
             this.logger.log('Stopping playback timer');
 
             clearInterval(this._interval);
