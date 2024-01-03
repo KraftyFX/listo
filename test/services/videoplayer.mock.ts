@@ -1,5 +1,5 @@
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
-import { IVideoPlayer, TimeChangeEvent } from '~/renderer/services';
+import { IVideoPlayer, TimeChangeEvent, getLocator } from '~/renderer/services';
 import { MockMediaStreamReader } from './mediastreamreader.mock';
 
 export class MockVideoPlayer implements IVideoPlayer {
@@ -40,11 +40,6 @@ export class MockVideoPlayer implements IVideoPlayer {
             throw new Error(`MockVideoPlayer does not recognize the source.`);
         }
 
-        setTimeout(() => {
-            this.ontimeupdate?.();
-            this.ondurationchange?.();
-        }, 0);
-
         this.pause();
     }
 
@@ -66,9 +61,16 @@ export class MockVideoPlayer implements IVideoPlayer {
         return this._paused;
     }
 
+    private get locator() {
+        return getLocator();
+    }
+
     play() {
         return new Promise<void>((resolve, reject) => {
             this._paused = false;
+
+            this.startPlayingInterval();
+
             resolve();
         });
     }
@@ -76,8 +78,42 @@ export class MockVideoPlayer implements IVideoPlayer {
     pause() {
         return new Promise<void>((resolve, reject) => {
             this._paused = true;
+            this.stopPlayingInterval();
             resolve();
         });
+    }
+
+    private interval: any = null;
+    private durationRaised = false;
+
+    private startPlayingInterval() {
+        const { setInterval } = this.locator.host;
+
+        this.interval = this.interval || setInterval(this.onPlayInterval, 250);
+    }
+
+    private onPlayInterval = () => {
+        this.currentTime = Math.min(this.currentTime + 0.25, this.duration);
+
+        this.ontimeupdate?.();
+
+        if (!this.durationRaised && this.currentTime > 0.25) {
+            this.durationRaised = true;
+            this.ondurationchange?.();
+        }
+
+        if (this.currentTime >= this.duration) {
+            this.onended?.();
+            this.stopPlayingInterval();
+        }
+    };
+
+    private stopPlayingInterval() {
+        const { clearInterval } = this.locator.host;
+
+        clearInterval(this.interval);
+        this.interval = null;
+        this.durationRaised = false;
     }
 
     onended: TimeChangeEvent = null;
