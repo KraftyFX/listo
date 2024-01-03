@@ -21,7 +21,7 @@ export class CameraStore {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const cameras = devices.filter((d) => d.kind === 'videoinput');
 
-            runInAction(() => (this.cameras = cameras));
+            return runInAction(() => (this.cameras = cameras));
         };
 
         navigator.mediaDevices.ondevicechange = loadCameraList;
