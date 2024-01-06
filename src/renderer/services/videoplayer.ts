@@ -1,21 +1,28 @@
 import { IVideoPlayer, TimeChangeEvent } from './interfaces';
 
 export class VideoPlayer implements IVideoPlayer {
-    constructor(public readonly videoElt: HTMLVideoElement) {}
+    constructor(public readonly videoElt: HTMLVideoElement) {
+        this.videoElt.addEventListener('loadedmetadata', () => console.log('metadata'));
+        this.videoElt.addEventListener('durationchange', () => console.log('duration'));
+    }
 
-    setVideoSource(src: any): void {
-        if (src == null) {
-            this.videoElt.srcObject = null;
-            this.videoElt.src = '';
-        } else if (typeof src === 'string') {
-            this.videoElt.srcObject = null;
-            this.videoElt.src = src;
-        } else if (src instanceof MediaStream) {
-            this.videoElt.src = '';
-            this.videoElt.srcObject = src;
-        } else {
-            throw new Error(`VideoPlayer source is not supported`);
-        }
+    setVideoSource(src: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            if (src == null) {
+                this.videoElt.srcObject = null;
+                this.videoElt.src = '';
+            } else if (typeof src === 'string') {
+                this.videoElt.srcObject = null;
+                this.videoElt.src = src;
+            } else if (src instanceof MediaStream) {
+                this.videoElt.src = '';
+                this.videoElt.srcObject = src;
+            } else {
+                return reject(new Error(`VideoPlayer source is not supported`));
+            }
+
+            resolve();
+        });
     }
 
     getVideoSource() {
@@ -45,7 +52,13 @@ export class VideoPlayer implements IVideoPlayer {
 
                 // See https://stackoverflow.com/a/37172024 for why this timeout is needed.
                 setTimeout(() => {
-                    this.videoElt.play().then(resolve).catch(reject);
+                    this.videoElt
+                        .play()
+                        .then(resolve)
+                        .catch((e) => {
+                            console.error(e);
+                            reject(e);
+                        });
                 }, 10);
             } else {
                 console.info('Play (no-op)');

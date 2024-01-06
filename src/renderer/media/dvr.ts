@@ -141,7 +141,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             await this.ensureVideoDataForTime(time);
             this.liveStreamRecorder.removeAllListeners();
-            this.liveStreamRecorder.releaseAsVideoSource();
+            await this.liveStreamRecorder.releaseAsVideoSource();
 
             this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
             await this.playback.setAsVideoSource(time);

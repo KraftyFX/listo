@@ -9,7 +9,7 @@ export class MockVideoPlayer implements IVideoPlayer {
 
     private src: any = null;
 
-    setVideoSource(src: any) {
+    async setVideoSource(src: any) {
         if (src === null || src == undefined) {
             this.src = null;
             this.currentTime = NaN;
@@ -40,7 +40,7 @@ export class MockVideoPlayer implements IVideoPlayer {
             throw new Error(`MockVideoPlayer does not recognize the source.`);
         }
 
-        this.pause();
+        return this.pause();
     }
 
     getVideoSource() {

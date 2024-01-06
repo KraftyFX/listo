@@ -4,7 +4,7 @@ import { Recording } from '../media/recording';
 export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
 
 export interface IVideoPlayer {
-    setVideoSource(src: any): void;
+    setVideoSource(src: any): Promise<void>;
     getVideoSource(): any;
 
     currentTime: number;

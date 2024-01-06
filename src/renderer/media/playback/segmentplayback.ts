@@ -97,7 +97,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.disableAutoPlayback();
             this.player.ontimeupdate = null;
             this.player.ondurationchange = null;
-            this.player.setVideoSource(null);
+            await this.player.setVideoSource(null);
 
             this.controller.removeAllListeners();
             this.controller.stop();
@@ -123,7 +123,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
-            this.player.setVideoSource(await this.getSegmentUrl(segment));
+            await this.player.setVideoSource(await this.getSegmentUrl(segment));
 
             this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
 
