@@ -2,8 +2,8 @@ import { IVideoPlayer, TimeChangeEvent } from './interfaces';
 
 export class VideoPlayer implements IVideoPlayer {
     constructor(public readonly videoElt: HTMLVideoElement) {
-        this.videoElt.addEventListener('loadedmetadata', () => console.log('metadata'));
-        this.videoElt.addEventListener('durationchange', () => console.log('duration'));
+        // this.videoElt.addEventListener('loadedmetadata', () => console.log('metadata'));
+        // this.videoElt.addEventListener('durationchange', () => console.log('duration'));
     }
 
     setVideoSource(src: any): Promise<void> {
