@@ -6,6 +6,7 @@ import { DEFAULT_PLAYBACK_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { IServiceLocator, getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
 import { PlaybackController } from './playbackcontroller';
@@ -24,19 +25,21 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     private controller: PlaybackController;
     public readonly options: PlaybackOptions;
     private readonly _segments: SegmentCollection;
+    private locator: IServiceLocator;
 
-    constructor(
-        public readonly videoElt: HTMLVideoElement,
-        segments: SegmentCollection,
-        options?: Partial<PlaybackOptions>
-    ) {
+    constructor(segments: SegmentCollection, options?: Partial<PlaybackOptions>) {
         super();
 
         this._segments = segments;
         this.options = _merge({}, DEFAULT_PLAYBACK_OPTIONS, options);
 
+        this.locator = getLocator();
         this.logger = getLog('pbk', this.options);
         this.controller = new PlaybackController(this, this.options);
+    }
+
+    get player() {
+        return this.locator.player;
     }
 
     get segments() {
@@ -56,43 +59,52 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.logger.warn(`Shit. We don't know when we are. Compensating...`);
             return this.currentSegment.startTime;
         } else {
-            return this.currentSegment.startTime.add(this.videoElt.currentTime, 'seconds');
+            return this.currentSegment.startTime.add(this.player.currentTime, 'seconds');
         }
     }
 
     private _isVideoSource = false;
 
+    public get isVideoSource() {
+        return this._isVideoSource;
+    }
+
     async setAsVideoSource(time: Dayjs) {
-        this.assertHasSegments();
+        if (!this._isVideoSource) {
+            this._isVideoSource = true;
 
-        await this.goToTime(time);
+            this.assertHasSegments();
 
-        this.videoElt.ontimeupdate = () => this.emitTimeUpdate();
-        this.videoElt.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
+            await this.goToTime(time);
 
-        this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
-        this.controller.on('play', () => this.emitPlay());
-        this.controller.on('pause', () => this.emitPause());
+            this.player.ontimeupdate = () => this.emitTimeUpdate();
+            this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
 
-        this._isVideoSource = true;
+            this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
+            this.controller.on('play', () => this.emitPlay());
+            this.controller.on('pause', () => this.emitPause());
 
-        if (this.paused) {
-            this.emitPause();
-        } else {
-            this.emitPlay();
+            if (this.paused) {
+                this.emitPause();
+            } else {
+                this.emitPlay();
+            }
         }
     }
 
     async releaseAsVideoSource() {
-        this.disableAutoPlayback();
-        this.videoElt.ontimeupdate = null;
-        this.videoElt.ondurationchange = null;
+        if (this._isVideoSource) {
+            this.disableAutoPlayback();
+            this.player.ontimeupdate = null;
+            this.player.ondurationchange = null;
+            this.player.setVideoSource(null);
 
-        this.controller.removeAllListeners();
-        this.controller.stop();
+            this.controller.removeAllListeners();
+            this.controller.stop();
 
-        this.currentSegment = null!;
-        this._isVideoSource = false;
+            this.currentSegment = null!;
+            this._isVideoSource = false;
+        }
     }
 
     private currentSegment: Segment = null!;
@@ -111,8 +123,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         if (this.currentSegment !== segment) {
             this.currentSegment = segment;
 
-            this.videoElt.srcObject = null;
-            this.videoElt.src = await this.getSegmentUrl(segment);
+            this.player.setVideoSource(await this.getSegmentUrl(segment));
 
             this.logger.log(`Rendering ${formatSegment(segment)}, offset=${offset.toFixed(2)}`);
 
@@ -120,7 +131,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         }
 
         this.syncSegmentDuration(this.currentSegment);
-        this.videoElt.currentTime = offset;
+        this.player.currentTime = offset;
 
         if (segmentChanged) {
             this.emitSegmentRendered(segment);
@@ -148,7 +159,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private tryGetActiveVideoDuration() {
-        const duration = this.videoElt.duration;
+        const duration = this.player.duration;
 
         return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
     }
@@ -170,11 +181,11 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private enableAutoPlayNextSegmet() {
-        this.videoElt.onended = () => this.playNextSegment();
+        this.player.onended = () => this.playNextSegment();
     }
 
     private disableAutoPlayback() {
-        this.videoElt.onended = null;
+        this.player.onended = null;
     }
 
     isBeforeStart(time: Dayjs) {
@@ -285,7 +296,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         this.assertHasSegments();
 
         return Boolean(
-            this.segments.isFirstSegment(this.currentSegment) && this.videoElt.currentTime === 0
+            this.segments.isFirstSegment(this.currentSegment) && this.player.currentTime === 0
         );
     }
 
@@ -299,15 +310,15 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private get isAtCurrentSegmentEnd() {
-        return Boolean(this.videoElt.currentTime === this.videoElt.duration);
+        return Boolean(this.player.currentTime === this.player.duration);
     }
 
     private isLostInTime() {
-        return this.videoElt.currentTime > 0 && this.videoElt.duration === Number.POSITIVE_INFINITY;
+        return this.player.currentTime > 0 && this.player.duration === Number.POSITIVE_INFINITY;
     }
 
     private assertAutoPlaybackIsEnabled() {
-        if (!this.videoElt.onended) {
+        if (!this.player.onended) {
             throw new Error(`This function is meant to be used as part of auto playback.`);
         }
     }

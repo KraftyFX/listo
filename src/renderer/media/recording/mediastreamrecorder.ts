@@ -5,36 +5,36 @@ import fixWebmDuration from 'webm-duration-fix';
 import { RecordingOptions } from '~/renderer/media';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { durationSince } from './dateutil';
+import { Recording } from './interfaces';
 // import ysFixWebmDuration from 'fix-webm-duration';
 
-export interface Recording {
-    startTime: Dayjs;
-    duration: number;
-    blob: Blob;
-    isPartial: boolean;
-}
+type SegmentRecorderEvents = {};
 
-type SegmentRecorderEvents = {
-    onstart: (startTime: Dayjs) => void;
-};
-
-export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
+export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<SegmentRecorderEvents>) {
     private logger: Logger;
-    private readonly recorder: MediaRecorder;
-    readonly options: RecordingOptions;
+    public readonly options: RecordingOptions;
 
-    constructor(private readonly stream: MediaStream, options?: Partial<RecordingOptions>) {
+    constructor(options: Partial<RecordingOptions> = DEFAULT_RECORDING_OPTIONS) {
         super();
 
         this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
         this.logger = getLog('seg-rec', this.options);
 
-        this.recorder = new MediaRecorder(this.stream, {
-            mimeType: this.options.mimeType,
-        });
-        this.recorder.ondataavailable = this.onDataAvailable;
+        this.reader.ondataavailable = this.onDataAvailable;
+    }
+
+    private get reader() {
+        return this.locator.reader;
+    }
+
+    get stream() {
+        return this.reader.stream;
+    }
+
+    private get locator() {
+        return getLocator();
     }
 
     startRecording() {
@@ -44,8 +44,8 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
         this.logger.log('start recording');
 
-        this.recorder.start(1000);
-        this._startTime = dayjs();
+        this.reader.start(1000);
+        this._startTime = this.locator.host.now;
 
         this.startTimeout();
     }
@@ -58,7 +58,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         this.logger.log('stop recording');
         this.clearTimeout();
 
-        await this.stopRecordingAndWaitForLastVideoChunk();
+        await this.reader.stop();
         await this.raiseRecording(false);
 
         this._startTime = null;
@@ -80,15 +80,19 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
     get duration() {
         this.assertIsRecording();
 
-        return durationSince(this.startTime).asSeconds();
+        const { host } = this.locator;
+
+        return dayjs.duration(host.now.diff(this.startTime)).asSeconds();
     }
 
     private startTimeout() {
-        const ms = this.options.minSegmentSizeInSec * 1000;
+        const ms = this.options.minSizeInSec * 1000;
+        const { setTimeout } = this.locator.host;
         this.timeout = setTimeout(() => this.onTimeout(), ms);
     }
 
     private clearTimeout() {
+        const { clearTimeout } = this.locator.host;
         clearTimeout(this.timeout);
         this.timeout = 0;
     }
@@ -100,24 +104,22 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
 
     private chunks: Blob[] = [];
 
-    private onDataAvailable = (event: BlobEvent) => {
-        if (event.data && event.data.size > 0) {
-            this.chunks.push(event.data);
-        }
+    private onDataAvailable = (blob: Blob) => {
+        this.chunks.push(blob);
     };
 
-    onrecording: (recording: Recording) => Promise<void> = null!;
+    onrecording: ((recording: Recording) => Promise<void>) | null = null;
 
     private async raiseRecording(isPartial: boolean) {
         try {
             if (this.chunks.length === 0) {
-                return;
+                return null;
             }
 
             const blobs = [...this.chunks];
 
             const rawBlob = new Blob(blobs, { type: this.options.mimeType });
-            const fixedBlob = await fixWebmDuration(rawBlob);
+            const fixedBlob = this.options.fixDuration ? await fixWebmDuration(rawBlob) : rawBlob;
 
             const recording: Recording = {
                 startTime: this.startTime,
@@ -126,7 +128,9 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
                 isPartial,
             };
 
-            await this.onrecording(recording);
+            if (this.onrecording) {
+                await this.onrecording(recording);
+            }
 
             if (!isPartial) {
                 this.chunks = [];
@@ -136,7 +140,7 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         } catch (e) {
             if (!this.isRecording) {
                 // We're not recording right now
-                return;
+                return null;
             } else {
                 console.error(e);
                 throw new Error(`fixWebDuration error most likely. See above.`);
@@ -144,26 +148,16 @@ export class SegmentRecorder extends (EventEmitter as new () => TypedEventEmitte
         }
     }
 
-    forceRender() {
-        this.logger.info('force rendering');
+    yieldPartialRecording() {
+        this.assertIsRecording();
+
+        this.logger.info('force yielding a partial recording');
         return this.raiseRecording(true);
-    }
-
-    private stopRecordingAndWaitForLastVideoChunk() {
-        return new Promise<void>((resolve) => {
-            this.recorder.ondataavailable = (event) => {
-                this.onDataAvailable(event);
-                this.recorder.ondataavailable = this.onDataAvailable;
-                resolve();
-            };
-
-            this.recorder.stop();
-        });
     }
 
     private assertIsRecording() {
         if (!this.isRecording) {
-            throw new Error(`Start time is only available during a recording`);
+            throw new Error(`This is only available during recording`);
         }
     }
 }

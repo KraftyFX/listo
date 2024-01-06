@@ -14,7 +14,8 @@ export interface RecordingOptions {
     inMemory: boolean;
     source: 'default' | string;
     mimeType: string;
-    minSegmentSizeInSec: number;
+    minSizeInSec: number;
+    fixDuration: boolean; // TODO: Find a way to get rid of this
     logging: LogLevel;
 }
 

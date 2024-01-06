@@ -1,11 +1,14 @@
 import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
-import { RecordingOptions } from '~/renderer/media';
+import _merge from 'lodash.merge';
+import { DEFAULT_RECORDING_OPTIONS, RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { pauseAndWait, playAndWait } from '~/renderer/media/playback/playbackutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { Recording, SegmentRecorder } from './segmentrecorder';
+import { Segment } from '../segments/interfaces';
+import { Recording } from './interfaces';
+import { MediaStreamRecorder } from './mediastreamrecorder';
 
 type LiveStreamRecorderEvents = {
     play: () => void;
@@ -14,58 +17,70 @@ type LiveStreamRecorderEvents = {
 };
 
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
-    private readonly recorder: SegmentRecorder;
+    private readonly recorder: MediaStreamRecorder;
     private logger: Logger;
+    public readonly options: RecordingOptions;
+    public readonly segments: SegmentCollection;
 
+    constructor();
+    constructor(options: Partial<RecordingOptions>);
+    constructor(segment: SegmentCollection, options: Partial<RecordingOptions>);
     constructor(
-        public readonly videoElt: HTMLVideoElement,
-        public readonly stream: MediaStream,
-        public readonly segments: SegmentCollection,
-        public readonly options: RecordingOptions
+        segmentsOrOptions?: SegmentCollection | Partial<RecordingOptions>,
+        options?: Partial<RecordingOptions>
     ) {
         super();
 
+        if (segmentsOrOptions instanceof SegmentCollection) {
+            this.segments = segmentsOrOptions;
+            this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, options);
+        } else {
+            this.segments = new SegmentCollection();
+            this.options = _merge({}, DEFAULT_RECORDING_OPTIONS, segmentsOrOptions);
+        }
+
         this.logger = getLog('lsr', this.options);
 
-        this.recorder = new SegmentRecorder(this.stream, options);
+        this.recorder = new MediaStreamRecorder(this.options);
         this.recorder.onrecording = (recording) => this.onRecording(recording);
     }
 
-    /**
-     * The onRecording method saves whatever blob we got from the segment recorder.
-     *
-     * If a user wants to scrub through something super recent that's still being recorded then
-     * the DVR will call to `forceRender()` ensure playable video data is available. This will
-     * yield a partial segment (i.e. a segment with less data than normally expected). We want
-     * to keep this around temorarily and treat it like a normal segment until its full version
-     * comes in to replace it.
-     */
+    private get locator() {
+        return getLocator();
+    }
+
+    private get player() {
+        return this.locator.player;
+    }
+
     private async onRecording(recording: Recording) {
         const { startTime, duration, isPartial } = recording;
 
         this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
 
-        const url = await this.saveRecording(recording);
+        if (this.segments.isLastSegmentPartial) {
+            this.disposeSegment(this.segments.lastSegment);
+        }
 
-        this.clearAnyPreviousPartialSegments();
+        const url = await this.saveRecording(recording);
 
         this.segments.addSegment(startTime, url, duration, isPartial);
     }
 
-    private clearAnyPreviousPartialSegments() {
-        if (!this.segments.isEmpty && this.segments.lastSegment.isPartial) {
-            URL.revokeObjectURL(this.segments.lastSegment.url);
-            this.segments.removeLastSegment();
+    private async saveRecording(recording: Recording) {
+        if (recording.isPartial || this.options.inMemory) {
+            return this.locator.host.createObjectURL(recording.blob);
+        } else {
+            return this.locator.listo.saveRecording(recording);
         }
     }
 
-    private async saveRecording(recording: Recording) {
-        const { startTime, duration, blob, isPartial } = recording;
-
-        if (isPartial || this.options.inMemory) {
-            return URL.createObjectURL(blob);
+    private disposeSegment(segment: Segment) {
+        if (segment.isPartial || this.options.inMemory) {
+            this.locator.host.revokeObjectURL(segment.url);
+            segment.url = '';
         } else {
-            return await window.listoApi.saveRecording(startTime.toISOString(), duration, [blob]);
+            throw new Error(`Disposing saved segments on disk is invalid for this component.`);
         }
     }
 
@@ -106,42 +121,39 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this.recorder.duration;
     }
 
-    async tryFillSegments(time: Dayjs) {
-        if (this.containsTime(time)) {
-            await this.recorder.forceRender();
+    async forceFillWithLatestVideoData() {
+        this.assertIsRecording();
 
-            this.assertHasSegment(time);
+        await this.recorder.yieldPartialRecording();
 
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    containsTime(time: Dayjs) {
-        return this.isRecording && time.isSameOrBefore(this.recording.endTime);
+        this.assertHasSegments();
+        this.assertLastSegmentIsPartial();
     }
 
     private _isVideoSource = false;
 
+    get isVideoSource() {
+        return this._isVideoSource;
+    }
+
     async setAsVideoSource() {
-        if (!this._isVideoSource) {
-            this.videoElt.src = '';
-            this.videoElt.srcObject = this.stream;
-            this.videoElt.ontimeupdate = () => this.emitUpdate();
+        if (!this.isVideoSource) {
+            this.player.setVideoSource(this.recorder.stream);
+            this.player.ontimeupdate = () => this.emitUpdate();
             this._isVideoSource = true;
         }
     }
 
     releaseAsVideoSource() {
-        if (this._isVideoSource) {
-            this.videoElt.ontimeupdate = null;
+        if (this.isVideoSource) {
+            this.player.setVideoSource(null);
+            this.player.ontimeupdate = null;
             this._isVideoSource = false;
         }
     }
 
     get paused() {
-        return this.videoElt.paused;
+        return this.player.paused;
     }
 
     async startRecording() {
@@ -166,27 +178,17 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
     }
 
-    private assertHasSegment(time: Dayjs) {
-        if (!this.segments.containsTime(time)) {
-            const timecode = this.getAsTimecode(time);
-
-            throw new Error(
-                `The segment recorder was told to force render everything but didn't produce data at ${timecode}`
-            );
-        }
-    }
-
     async play() {
         this.assertIsActiveVideoSource();
 
-        await playAndWait(this.videoElt);
+        await this.player.play();
         this.emitPlay();
     }
 
     async pause() {
         this.assertIsActiveVideoSource();
 
-        await pauseAndWait(this.videoElt);
+        await this.player.pause();
         this.emitPause();
     }
 
@@ -197,6 +199,23 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             );
         }
     }
+
+    private assertHasSegments() {
+        if (this.segments.isEmpty) {
+            throw new Error(
+                `No segments were produced after being told to force render. This is a logic error.`
+            );
+        }
+    }
+
+    private assertLastSegmentIsPartial() {
+        if (!this.segments.lastSegment.isPartial) {
+            throw new Error(
+                `A segment was forcefully rendered but and should have been partial but was not. Thre is alogic error`
+            );
+        }
+    }
+
     private emitPlay() {
         this.emit('play');
     }

@@ -93,27 +93,27 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         );
     }
 
-    function getBars() {
-        return timeline.allRecordings.map(
-            ({ isPartial: isPartial, startTime, duration }, i, recordings) => {
-                const style: React.CSSProperties = {
-                    left: `${getPixelsFromTime(startTime)}px`,
-                    width: `${getPixelsFromDuration(duration)}px`,
-                };
+    function getSegments() {
+        const segments = [...timeline.segments, timeline.liveRecording];
 
-                const classNames = [`bar`];
+        return segments.map(({ isPartial: isPartial, startTime, duration }, i, recordings) => {
+            const style: React.CSSProperties = {
+                left: `${getPixelsFromTime(startTime)}px`,
+                width: `${getPixelsFromDuration(dayjs.duration(duration, 'seconds'))}px`,
+            };
 
-                if (isPartial) {
-                    classNames.push(`partial`);
-                }
+            const classNames = [`bar`];
 
-                if (dvrStore.isLive && i === recordings.length - 1) {
-                    classNames.push('live');
-                }
-
-                return <div key={i} className={classNames.join(' ')} style={style} />;
+            if (isPartial) {
+                classNames.push(`partial`);
             }
-        );
+
+            if (dvrStore.isLive && i === recordings.length - 1) {
+                classNames.push('live');
+            }
+
+            return <div key={i} className={classNames.join(' ')} style={style} />;
+        });
     }
 
     function getMarkers() {
@@ -170,7 +170,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}>
             <div onMouseDown={onMouseDown}>
-                {getBars()}
+                {getSegments()}
                 {getMarkers()}
                 {getThumb()}
             </div>

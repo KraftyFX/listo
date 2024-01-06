@@ -8,14 +8,15 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     inMemory: true,
     source: 'default',
     mimeType: 'video/webm',
-    minSegmentSizeInSec: 5,
-    logging: 'info',
+    minSizeInSec: 5,
+    fixDuration: true,
+    logging: null,
 };
 
 export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
     maxPlaySpeedFactor: 32,
     minPlaySpeedFactor: 1 / 8,
-    logging: 'info',
+    logging: null,
 };
 
 export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
@@ -24,7 +25,7 @@ export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
         major: { minutes: 10 },
         minor: { seconds: 10 },
     },
-    logging: 'info',
+    logging: null,
 };
 
 export const DEFAULT_DVR_OPTIONS: DvrOptions = {
@@ -32,5 +33,5 @@ export const DEFAULT_DVR_OPTIONS: DvrOptions = {
     playback: DEFAULT_PLAYBACK_OPTIONS,
     timeline: DEFAULT_TIMELINE_OPTIONS,
     liveDurationPollingInterval: { milliseconds: 500 },
-    logging: 'info',
+    logging: null,
 };

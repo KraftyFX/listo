@@ -87,8 +87,8 @@ export class DvrStore {
         this.listenForPlayPauseChange();
         this.listenForLiveUpdates();
         this.listenForPlaybackUpdate();
-        this.listenForSegmentUpdated();
-        this.listenForSegmentAdded();
+
+        this.timeline.init();
     }
 
     get recordingStartTime() {
@@ -144,12 +144,21 @@ export class DvrStore {
 
         const isPlayback = !dvr.isLive;
 
-        this._isPlayDisabled = isPlayback && dvr.isAtEnd;
-        this._isNextFrameDisabled = isPlayback && dvr.isAtEnd;
+        if (isPlayback) {
+            this._isPlayDisabled = dvr.isAtEnd;
+            this._isNextFrameDisabled = dvr.isAtEnd;
 
-        this._isRewindDisabled = isPlayback && (dvr.isAtMaxRewindSpeed || dvr.isAtBeginning);
-        this._isSlowForwardDisabled = isPlayback && (dvr.isAtMinSlowSpeed || dvr.isAtEnd);
-        this._isFastForwardDisabled = isPlayback && (dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd);
+            this._isRewindDisabled = dvr.isAtMaxRewindSpeed || dvr.isAtBeginning;
+            this._isSlowForwardDisabled = dvr.isAtMinSlowSpeed || dvr.isAtEnd;
+            this._isFastForwardDisabled = dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd;
+        } else {
+            this._isPlayDisabled = false;
+            this._isNextFrameDisabled = false;
+
+            this._isRewindDisabled = false;
+            this._isSlowForwardDisabled = false;
+            this._isFastForwardDisabled = false;
+        }
     }
 
     private listenForModeChange() {
@@ -212,34 +221,9 @@ export class DvrStore {
     }
 
     private updateLiveRecordingStats() {
-        const { startTime, duration } = this.dvr.recording;
+        const { startTime, duration } = this.dvr.liveRecording;
 
         this._recordingStartTime = startTime;
         this._recordingDuration = duration;
-    }
-
-    private listenForSegmentUpdated() {
-        this.dvr.on(
-            'segmentupdated',
-            action(() => this.refreshRecordings())
-        );
-    }
-
-    private listenForSegmentAdded() {
-        this.dvr.on(
-            'segmentadded',
-            action(() => this.refreshRecordings())
-        );
-    }
-
-    private refreshRecordings() {
-        // TODO: Normalize on dayjs.duration?
-        this.timeline.pastRecordings = this.dvr.playableRecordings.map(
-            ({ isPartial, startTime, duration }) => ({
-                isPartial,
-                startTime,
-                duration: dayjs.duration(duration, 'seconds'),
-            })
-        );
     }
 }

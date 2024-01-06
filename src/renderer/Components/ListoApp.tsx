@@ -3,8 +3,13 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
-import { DvrOptions } from '~/renderer/media';
+import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
+import { ServiceLocator, setLocator } from '../services';
+import { HostService } from '../services/host';
+import { ListoService } from '../services/listo';
+import { MediaStreamReader } from '../services/mediastreamreader';
+import { VideoPlayer as Player } from '../services/videoplayer';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { Timeline } from './Timeline';
@@ -20,30 +25,22 @@ export const ListoApp = observer(function ListoApp() {
 
     useEffect(function mount() {
         const initAsync = async () => {
-            const options = {
-                recording: {
-                    source: dvrStore.cameraStore.lastSelectedCameraId,
-                },
-            } as DvrOptions;
+            await dvrStore.cameraStore.startWatchingCameraList();
 
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    deviceId: options.recording.source,
-                },
-            });
+            const liveStream = await getLiveStream(dvrStore.cameraStore.lastSelectedCameraId);
+            const { mimeType } = DEFAULT_RECORDING_OPTIONS;
 
-            assertLiveStreamAcquired();
+            setLocator(
+                new ServiceLocator(
+                    new Player(videoRef.current),
+                    new MediaStreamReader(liveStream, mimeType),
+                    new ListoService(),
+                    new HostService()
+                )
+            );
 
-            function assertLiveStreamAcquired() {
-                if (!stream) {
-                    throw new Error(`User denied access to the camera. Can't acquire live stream.`);
-                }
-            }
-
-            dvr = new DigitalVideoRecorder(videoRef.current, stream, options);
+            dvr = new DigitalVideoRecorder();
             window.dvr = dvr;
-
-            dvrStore.cameraStore.startWatchingCameraList();
 
             await dvr.showLiveStreamAndStartRecording();
             dvrStore.dvr = dvr;
@@ -95,3 +92,17 @@ export const ListoApp = observer(function ListoApp() {
         </>
     );
 });
+
+async function getLiveStream(deviceId: string) {
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            deviceId,
+        },
+    });
+
+    if (!stream) {
+        throw new Error(`The user denied access to the camera. Can't acquire live stream.`);
+    }
+
+    return stream;
+}

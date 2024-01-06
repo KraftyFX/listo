@@ -29,28 +29,22 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     readonly options: DvrOptions;
 
-    constructor(
-        public readonly videoElt: HTMLVideoElement,
-        public readonly stream: MediaStream,
-        options?: Partial<DvrOptions>
-    ) {
+    constructor(options?: Partial<DvrOptions>) {
         super();
 
         this.options = _merge({}, DEFAULT_DVR_OPTIONS, options);
         this.logger = getLog('dvr', this.options);
 
         this.segments = new SegmentCollection();
+
+        // TODO: Fill segments from pre-recordings on disk
+
         this.segments.on('reset', (segment) => this.emitSegmentUpdated());
         this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
 
-        this.playback = new SegmentPlayback(this.videoElt, this.segments, this.options.playback);
+        this.playback = new SegmentPlayback(this.segments, this.options.playback);
 
-        this.liveStreamRecorder = new LiveStreamRecorder(
-            this.videoElt,
-            this.stream,
-            this.segments,
-            this.options.recording
-        );
+        this.liveStreamRecorder = new LiveStreamRecorder(this.segments, this.options.recording);
     }
 
     dispose() {
@@ -78,11 +72,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this._isLive;
     }
 
-    get playableRecordings() {
+    get playableSegments() {
         return this.segments.segments;
     }
 
-    get recording() {
+    get liveRecording() {
         if (this.isRecording) {
             return this.liveStreamRecorder.recording;
         } else {
@@ -126,7 +120,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             // This fill segments call is needed b/c the user is in playback mode
             // and might have jumped to a time that is still actively being recorded
-            await this.liveStreamRecorder.tryFillSegments(time);
+            await this.ensureVideoDataForTime(time);
             await this.playback.goToTime(time);
         } else {
             this.assertWillHaveVideoDataToPlay();
@@ -140,12 +134,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
 
             if (this.isRecording) {
-                time = time || this.recording.endTime.subtract(1, 'second');
+                time = time || this.liveRecording.endTime.subtract(1, 'second');
             } else {
                 time = time || this.segments.lastSegmentEndTime.subtract(1, 'second');
             }
 
-            await this.liveStreamRecorder.tryFillSegments(time);
+            await this.ensureVideoDataForTime(time);
             this.liveStreamRecorder.removeAllListeners();
             this.liveStreamRecorder.releaseAsVideoSource();
 
@@ -156,6 +150,38 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
             this.emitModeChange();
             this.startPollingLiveStreamRecordingDuration('playback');
+        }
+    }
+
+    private async ensureVideoDataForTime(time: dayjs.Dayjs) {
+        if (this.isInActiveRecordingWindow(time)) {
+            await this.liveStreamRecorder.forceFillWithLatestVideoData();
+
+            this.assertContainsVideoDataForTime(time);
+
+            return true;
+        } else {
+            return this.segments.containsTime(time);
+        }
+    }
+
+    private isInActiveRecordingWindow(time: Dayjs) {
+        if (this.isRecording) {
+            const { startTime, endTime } = this.liveRecording;
+
+            return time.isBetween(startTime, endTime);
+        } else {
+            return false;
+        }
+    }
+
+    private assertContainsVideoDataForTime(time: dayjs.Dayjs) {
+        if (!this.segments.containsTime(time)) {
+            const timecode = this.getAsTimecode(time);
+
+            throw new Error(
+                `The live stream recorder was forced to render all the data it had but contains nothing for ${timecode}`
+            );
         }
     }
 

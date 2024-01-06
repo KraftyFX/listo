@@ -17,7 +17,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     constructor() {
         super();
 
-        this.logger = getLog('seg-coll', { logging: 'info' });
+        this.logger = getLog('seg-coll', { logging: null });
     }
 
     get segments() {
@@ -26,11 +26,27 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return this._segments;
     }
 
+    get length() {
+        return this._segments.length;
+    }
+
     get isEmpty() {
         return this._segments.length === 0;
     }
 
+    get isLastSegmentPartial() {
+        return !this.isEmpty && this.lastSegment.isPartial;
+    }
+
     addSegment(startTime: Dayjs, url: string, duration: number, isPartial: boolean) {
+        if (!url || duration < 0) {
+            throw new Error(`Arguments are invalid`);
+        }
+
+        if (this.isLastSegmentPartial) {
+            this.removeLastSegment();
+        }
+
         const segment: Segment = {
             index: this._segments.length,
             url,
@@ -43,13 +59,16 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
 
         this._segments.push(segment);
 
+        this.assertIsConsistent();
+
         this.emitSegmentAdded(segment);
 
         return segment;
     }
 
-    removeLastSegment() {
+    private removeLastSegment() {
         if (!this.isEmpty) {
+            this.assertSegmentIsDisposed(this.lastSegment);
             this._segments.pop();
         }
     }
@@ -57,20 +76,23 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     async getSegmentAtTime(time: Dayjs) {
         const segments = this.segments;
 
-        if (time.isBefore(this.firstSegmentStartTime)) {
+        if (time.isSameOrBefore(this.firstSegmentStartTime)) {
             const segment = segments[0];
             return { segment, offset: 0 };
         }
 
-        if (time.isAfter(this.lastSegmentEndTime)) {
+        if (time.isSameOrAfter(this.lastSegmentEndTime)) {
             const segment = this.lastSegment;
             return { segment, offset: segment.duration };
         }
 
         const segment = this.findClosestSegmentForTime(time);
-        const offset = time.diff(segment.startTime) / 1000;
 
-        return { segment, offset };
+        if (time.isSameOrBefore(segment.startTime)) {
+            return { segment, offset: 0 };
+        } else {
+            return { segment, offset: time.diff(segment.startTime) / 1000 };
+        }
     }
 
     private findClosestSegmentForTime(time: Dayjs) {
@@ -180,6 +202,8 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
 
         segment.duration = duration;
 
+        this.assertIsConsistent();
+
         this.emitReset(segment);
 
         return true;
@@ -191,9 +215,35 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
+    private assertIsConsistent() {
+        this.segments.forEach((segment, index) => {
+            if (segment.index !== index) {
+                throw new Error(`Segment ${index} has a mismatched location. (${segment.index})`);
+            }
+
+            if (segment.url === '') {
+                throw new Error(`Segment ${index} is disposed when it should not be.`);
+            }
+
+            if (index < this.length - 1 && segment.isPartial) {
+                throw new Error(`Segment ${index} is partial when it should not be.`);
+            }
+        });
+    }
+
     private assertIsSegmentDefined(segment: Segment) {
         if (!segment) {
             throw new Error(`The provided segment is undefined`);
+        }
+    }
+
+    private assertSegmentIsDisposed(segment: Segment) {
+        if (segment.url !== '') {
+            throw new Error(
+                `A segment is being added but the last one in the list is partial. ` +
+                    `The old one should be diposed before the new one is added but ` +
+                    `was not. This is a logic error.`
+            );
         }
     }
 

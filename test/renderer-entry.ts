@@ -17,4 +17,4 @@ window.onload = () => {
     mocha.run();
 };
 
-import './segmentrecorder.spec';
+import './unit/mediastreamrecorder.spec';
