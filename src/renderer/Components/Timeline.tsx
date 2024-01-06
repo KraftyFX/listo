@@ -93,7 +93,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         );
     }
 
-    function getBars() {
+    function getSegments() {
         return timeline.allRecordings.map(
             ({ isPartial: isPartial, startTime, duration }, i, recordings) => {
                 const style: React.CSSProperties = {
@@ -170,7 +170,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}>
             <div onMouseDown={onMouseDown}>
-                {getBars()}
+                {getSegments()}
                 {getMarkers()}
                 {getThumb()}
             </div>

@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
-import { computed, makeAutoObservable, observable } from 'mobx';
+import { action, computed, makeAutoObservable, observable } from 'mobx';
 import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
 import { DvrStore } from './dvrStore';
 
@@ -13,7 +13,7 @@ export interface Bar {
 export class TimelineStore {
     autoscroll = true;
 
-    pastRecordings: Bar[] = [];
+    segments: Bar[] = [];
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
@@ -22,6 +22,36 @@ export class TimelineStore {
             firstRecording: computed,
             lastRecording: computed,
         });
+    }
+
+    public init() {
+        this.listenForSegmentAdded();
+        this.listenForSegmentUpdated();
+    }
+
+    private listenForSegmentAdded() {
+        this.dvrStore.dvr.on(
+            'segmentadded',
+            action(() => this.refreshRecordings())
+        );
+    }
+
+    private listenForSegmentUpdated() {
+        this.dvrStore.dvr.on(
+            'segmentupdated',
+            action(() => this.refreshRecordings())
+        );
+    }
+
+    private refreshRecordings() {
+        // TODO: Normalize on dayjs.duration?
+        this.segments = this.dvrStore.dvr.playableSegments.map(
+            ({ isPartial, startTime, duration }) => ({
+                isPartial,
+                startTime,
+                duration: dayjs.duration(duration, 'seconds'),
+            })
+        );
     }
 
     private get firstRecording() {
@@ -34,7 +64,7 @@ export class TimelineStore {
     }
 
     get allRecordings() {
-        return [...this.pastRecordings, this.liveRecording];
+        return [...this.segments, this.liveRecording];
     }
 
     get liveRecording(): Bar {

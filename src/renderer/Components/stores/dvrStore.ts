@@ -87,8 +87,8 @@ export class DvrStore {
         this.listenForPlayPauseChange();
         this.listenForLiveUpdates();
         this.listenForPlaybackUpdate();
-        this.listenForSegmentUpdated();
-        this.listenForSegmentAdded();
+
+        this.timeline.init();
     }
 
     get recordingStartTime() {
@@ -225,30 +225,5 @@ export class DvrStore {
 
         this._recordingStartTime = startTime;
         this._recordingDuration = duration;
-    }
-
-    private listenForSegmentUpdated() {
-        this.dvr.on(
-            'segmentupdated',
-            action(() => this.refreshRecordings())
-        );
-    }
-
-    private listenForSegmentAdded() {
-        this.dvr.on(
-            'segmentadded',
-            action(() => this.refreshRecordings())
-        );
-    }
-
-    private refreshRecordings() {
-        // TODO: Normalize on dayjs.duration?
-        this.timeline.pastRecordings = this.dvr.playableRecordings.map(
-            ({ isPartial, startTime, duration }) => ({
-                isPartial,
-                startTime,
-                duration: dayjs.duration(duration, 'seconds'),
-            })
-        );
     }
 }

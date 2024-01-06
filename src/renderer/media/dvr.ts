@@ -72,7 +72,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this._isLive;
     }
 
-    get playableRecordings() {
+    get playableSegments() {
         return this.segments.segments;
     }
 
