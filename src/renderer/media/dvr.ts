@@ -80,7 +80,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         if (this.isRecording) {
             return this.liveStreamRecorder.recording;
         } else {
-            // TODO: Maybe this should throw instead?
             const endTime = this.segments.lastSegmentEndTime;
 
             return {
