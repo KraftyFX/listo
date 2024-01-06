@@ -1,19 +1,13 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { Duration } from 'dayjs/plugin/duration';
 import { action, computed, makeAutoObservable, observable } from 'mobx';
 import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
+import { Segment } from '~/renderer/media/segments/interfaces';
 import { DvrStore } from './dvrStore';
-
-export interface Bar {
-    startTime: dayjs.Dayjs;
-    duration: Duration;
-    isPartial: boolean;
-}
 
 export class TimelineStore {
     autoscroll = true;
 
-    segments: Bar[] = [];
+    segments: Segment[] = [];
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
@@ -44,34 +38,30 @@ export class TimelineStore {
     }
 
     private refreshRecordings() {
-        // TODO: Normalize on dayjs.duration?
-        this.segments = this.dvrStore.dvr.playableSegments.map(
-            ({ isPartial, startTime, duration }) => ({
-                isPartial,
-                startTime,
-                duration: dayjs.duration(duration, 'seconds'),
-            })
-        );
+        this.segments = this.dvrStore.dvr.playableSegments;
     }
 
-    private get firstRecording() {
-        return this.allRecordings[0];
+    private get startOfTime() {
+        const { startTime } = this.segments.length === 0 ? this.liveRecording : this.segments[0];
+
+        return startTime;
     }
 
-    private get lastRecording() {
-        const arr = this.allRecordings;
-        return arr[arr.length - 1];
+    private get endOfTime() {
+        const { startTime, duration } = this.dvrStore.isLive
+            ? this.liveRecording
+            : this.segments.slice(-1)[0];
+
+        return startTime.add(dayjs.duration(duration, 'seconds').asSeconds(), 'seconds');
     }
 
-    get allRecordings() {
-        return [...this.segments, this.liveRecording];
-    }
-
-    get liveRecording(): Bar {
+    get liveRecording(): Segment {
         return {
+            index: NaN,
+            url: '',
             isPartial: false,
             startTime: this.dvrStore.recordingStartTime,
-            duration: dayjs.duration(this.dvrStore.recordingDuration, 'seconds'),
+            duration: this.dvrStore.recordingDuration,
         };
     }
 
@@ -84,23 +74,17 @@ export class TimelineStore {
     }
 
     get startOfTimeline() {
-        const { startTime } = this.firstRecording;
-
-        return this.getPrevMarkerStartTime(startTime);
+        return this.getPrevMarkerStartTime(this.startOfTime);
     }
 
     get endOfTimeline() {
-        const { startTime, duration } = this.lastRecording;
-
-        const endOfRecording = startTime.add(duration.asSeconds(), 'seconds');
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
 
-        return this.getPrevMarkerStartTime(endOfRecording).add(majorMarkerDuration);
+        return this.getPrevMarkerStartTime(this.endOfTime).add(majorMarkerDuration);
     }
 
     private getPrevMarkerStartTime(time: dayjs.Dayjs) {
-        const startOfDay = this.firstRecording.startTime.startOf('day');
-        const durationInDay = dayjs.duration(time.diff(startOfDay));
+        const durationInDay = dayjs.duration(time.diff(this.startOfTime.startOf('day')));
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
         const secSinceLastMarker = durationInDay.asSeconds() % majorMarkerDuration.asSeconds();
 
