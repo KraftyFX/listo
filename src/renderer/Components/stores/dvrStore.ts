@@ -221,7 +221,7 @@ export class DvrStore {
     }
 
     private updateLiveRecordingStats() {
-        const { startTime, duration } = this.dvr.recording;
+        const { startTime, duration } = this.dvr.liveRecording;
 
         this._recordingStartTime = startTime;
         this._recordingDuration = duration;

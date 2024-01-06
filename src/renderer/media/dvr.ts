@@ -76,10 +76,11 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         return this.segments.segments;
     }
 
-    get recording() {
+    get liveRecording() {
         if (this.isRecording) {
             return this.liveStreamRecorder.recording;
         } else {
+            // TODO: Maybe this should throw instead?
             const endTime = this.segments.lastSegmentEndTime;
 
             return {
@@ -134,7 +135,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
 
             if (this.isRecording) {
-                time = time || this.recording.endTime.subtract(1, 'second');
+                time = time || this.liveRecording.endTime.subtract(1, 'second');
             } else {
                 time = time || this.segments.lastSegmentEndTime.subtract(1, 'second');
             }
@@ -167,7 +168,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private isInActiveRecordingWindow(time: Dayjs) {
         if (this.isRecording) {
-            const { startTime, endTime } = this.recording;
+            const { startTime, endTime } = this.liveRecording;
 
             return time.isBetween(startTime, endTime);
         } else {
