@@ -1,7 +1,10 @@
 import { IVideoPlayer, TimeChangeEvent } from './interfaces';
 
 export class VideoPlayer implements IVideoPlayer {
-    constructor(public readonly videoElt: HTMLVideoElement) {}
+    constructor(public readonly videoElt: HTMLVideoElement) {
+        videoElt.onplaying = () => (this._isPlaying = true);
+        videoElt.onpause = () => (this._isPlaying = false);
+    }
 
     setVideoSource(src: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -42,46 +45,47 @@ export class VideoPlayer implements IVideoPlayer {
         return this.videoElt.duration;
     }
 
+    private _isPlaying = false;
+
     get paused(): boolean {
         return this.videoElt.paused;
     }
 
     play(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            if (!this.isPlaying()) {
-                console.info('Play');
-
-                // See https://stackoverflow.com/a/37172024 for why this timeout is needed.
-                setTimeout(() => {
-                    this.videoElt
-                        .play()
-                        .then(resolve)
-                        .catch((e) => {
-                            console.error(e);
-                            reject(e);
-                        });
-                }, 10);
-            } else {
+            if (this.isPlaying()) {
                 console.info('Play (no-op)');
-                resolve();
+                return resolve();
             }
+
+            this.videoElt
+                .play()
+                .then(resolve)
+                .catch((err) => {
+                    // Despite the isPlaying() check above we still got the error.
+                    if (this.isPlayInterruptDomException(err)) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            // }, 10);
         });
     }
 
+    private isPlayInterruptDomException(err: any) {
+        return err instanceof DOMException && err.message.startsWith('The play() request');
+    }
+
     /**
-     * These heuristics help reduce the risk of "The play() request was interrupted by a call to pause()" exception.
+     * These heuristics help reduce the frequency of "The play() request was interrupted by a call to pause()" exception.
      *
      * For context see:
      *  - https://stackoverflow.com/questions/36803176/how-to-prevent-the-play-request-was-interrupted-by-a-call-to-pause-error
      *  - https://developer.chrome.com/blog/play-request-was-interrupted
      */
     private isPlaying() {
-        return (
-            this.videoElt.currentTime > 0 &&
-            !this.videoElt.paused &&
-            !this.videoElt.ended &&
-            this.videoElt.readyState > this.videoElt.HAVE_CURRENT_DATA
-        );
+        return !this.videoElt.paused && this._isPlaying;
     }
 
     pause(): Promise<void> {
