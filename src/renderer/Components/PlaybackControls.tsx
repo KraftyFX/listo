@@ -43,6 +43,14 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
         }
     });
 
+    const handleStartRecording = action(() => {
+        dvrStore.dvr.startRecording();
+    });
+
+    const handleStopRecording = action(() => {
+        dvrStore.dvr.stopRecording();
+    });
+
     const handleGoLive = action(() => {
         dvrStore.dvr.switchToLiveStream();
     });
@@ -89,6 +97,11 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
             <button id="live" disabled={dvrStore.isLive} onClick={handleGoLive}>
                 Live
             </button>
+            {dvrStore.isRecording ? (
+                <button onClick={handleStopRecording}>Stop</button>
+            ) : (
+                <button onClick={handleStartRecording}>Start</button>
+            )}
             <div>
                 <span className="elapsed">{getPlayTime(currentTime, speed)}</span>
             </div>
