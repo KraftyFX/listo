@@ -93,7 +93,7 @@ export class TimelineStore {
     get startOfTimeline() {
         this.assertHasInitialized();
 
-        const time = this.willHaveVideoDataToPlay ? this.startOfTime : dayjs();
+        const time = this.willHaveVideoDataToPlay ? this.startOfTime : this.currentTime;
 
         return this.getPrevMarkerStartTime(time);
     }
@@ -101,7 +101,7 @@ export class TimelineStore {
     get endOfTimeline() {
         this.assertHasInitialized();
 
-        const time = this.willHaveVideoDataToPlay ? this.endOfTime : dayjs();
+        const time = this.willHaveVideoDataToPlay ? this.endOfTime : this.currentTime;
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
 
         return this.getPrevMarkerStartTime(time).add(majorMarkerDuration);
