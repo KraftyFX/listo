@@ -50,6 +50,7 @@ export interface IHostService {
 }
 
 export interface IListoService {
+    getRecentRecordings(): Promise<string[]>;
     saveRecording(recording: Recording, hasErrors: boolean): Promise<string>;
 }
 

@@ -38,8 +38,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         this.segments = new SegmentCollection();
 
-        // TODO: Fill segments from pre-recordings on disk
-
         this.segments.on('added', (segment) => this.emitSegmentAdded(segment));
         this.segments.on('reset', (segment) => this.emitSegmentUpdated(segment));
 
@@ -52,6 +50,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.stopRecording();
         this.removeAllListeners();
         this.stopPollingLiveStreamRecordingDuration();
+    }
+
+    addSegment(startTime: Dayjs, duration: number, url: string, hasErrors: boolean) {
+        const segment = this.segments.addSegment({ startTime, duration, isPartial: false }, url);
+
+        segment.hasErrors = hasErrors;
     }
 
     async showLiveStreamAndStartRecording() {
@@ -185,8 +189,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
+    public get willHaveVideoDataToPlay() {
+        return this.isRecording || !this.segments.isEmpty;
+    }
+
     private assertWillHaveVideoDataToPlay() {
-        if (!this.isRecording && this.segments.isEmpty) {
+        if (!this.willHaveVideoDataToPlay) {
             throw new Error(`Playback without existing/anticipated video data is not supported.`);
         }
     }

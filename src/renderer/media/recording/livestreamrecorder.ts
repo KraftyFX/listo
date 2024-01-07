@@ -89,7 +89,6 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         if (segment.isPartial || this.options.inMemory) {
             this.locator.host.revokeObjectURL(segment.url);
             segment.url = '';
-            segment.blob = null!;
         } else {
             throw new Error(`Disposing saved segments on disk is invalid for this component.`);
         }

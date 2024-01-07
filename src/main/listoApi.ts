@@ -9,14 +9,14 @@ const desktop = app.getPath('desktop');
 const listoRootDir = join(desktop, 'listo');
 
 export const listoApi: IpcMainHandlers<ListoApiKeys> = {
-    getRecordings(event: Electron.IpcMainInvokeEvent, startTimeIso: string): string[] {
+    getRecentRecordings(event: Electron.IpcMainInvokeEvent): string[] {
         if (!fs.existsSync(listoRootDir)) {
             fs.mkdirSync(listoRootDir, { recursive: true });
         }
 
         const entries = fs.readdirSync(listoRootDir, { withFileTypes: true });
         const webmFiles = entries
-            .filter((e) => e.isFile() && e.name.endsWith('.webm'))
+            .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.webm'))
             .map((e) => `listo://recordings/${e.name}`);
 
         return webmFiles;

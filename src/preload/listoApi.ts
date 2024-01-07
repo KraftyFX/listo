@@ -2,8 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { toUint8Arrays } from './blobutil';
 
 export const LISTO_API = {
-    async getRecordings(startTimeIso: string): Promise<string[]> {
-        return (await invoke('getRecordings', startTimeIso)) as string[];
+    async getRecentRecordings(): Promise<string[]> {
+        return (await invoke('getRecentRecordings')) as string[];
     },
 
     async startNewRecording(chunks: Blob[]) {

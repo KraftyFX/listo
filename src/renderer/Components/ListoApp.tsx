@@ -41,11 +41,11 @@ export const ListoApp = observer(function ListoApp() {
             );
 
             dvr = new DigitalVideoRecorder();
-            window.dvr = dvr;
 
-            await dvr.showLiveStreamAndStartRecording();
-            dvrStore.dvr = dvr;
+            window.dvr = dvrStore.dvr = dvr;
             window.dvrStore = dvrStore;
+
+            await dvr.switchToLiveStream();
 
             setIsDvrReady(true);
         };

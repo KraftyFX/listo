@@ -18,9 +18,19 @@ export class TimelineStore {
         });
     }
 
+    private _hasInit = false;
+
     public init() {
         this.listenForSegmentAdded();
         this.listenForSegmentUpdated();
+
+        this._hasInit = true;
+    }
+
+    private assertHasInitialized() {
+        if (!this._hasInit) {
+            throw new Error(`The timeline store hasn't been initialized yet`);
+        }
     }
 
     private listenForSegmentAdded() {
@@ -56,10 +66,13 @@ export class TimelineStore {
     }
 
     get liveRecording(): Segment {
+        this.assertHasInitialized();
+
         return {
             index: NaN,
             url: '',
             isPartial: false,
+            hasErrors: false,
             startTime: this.dvrStore.recordingStartTime,
             duration: this.dvrStore.recordingDuration,
         };
@@ -73,14 +86,25 @@ export class TimelineStore {
         this.dvrStore.currentTime = time;
     }
 
+    private get willHaveVideoDataToPlay() {
+        return this.dvrStore.dvr.willHaveVideoDataToPlay;
+    }
+
     get startOfTimeline() {
-        return this.getPrevMarkerStartTime(this.startOfTime);
+        this.assertHasInitialized();
+
+        const time = this.willHaveVideoDataToPlay ? this.startOfTime : dayjs();
+
+        return this.getPrevMarkerStartTime(time);
     }
 
     get endOfTimeline() {
+        this.assertHasInitialized();
+
+        const time = this.willHaveVideoDataToPlay ? this.endOfTime : dayjs();
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
 
-        return this.getPrevMarkerStartTime(this.endOfTime).add(majorMarkerDuration);
+        return this.getPrevMarkerStartTime(time).add(majorMarkerDuration);
     }
 
     private getPrevMarkerStartTime(time: dayjs.Dayjs) {

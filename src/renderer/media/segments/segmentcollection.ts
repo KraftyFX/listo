@@ -39,7 +39,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return !this.isEmpty && this.lastSegment.isPartial;
     }
 
-    addSegment({ startTime, duration, isPartial, blob }: Recording, url: string) {
+    addSegment({ startTime, duration, isPartial }: Recording, url: string) {
         if (!url || duration < 0) {
             throw new Error(`Arguments are invalid`);
         }
@@ -54,7 +54,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             startTime,
             duration,
             isPartial,
-            blob,
             hasErrors: false,
         };
 
