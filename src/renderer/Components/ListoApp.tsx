@@ -43,8 +43,8 @@ export const ListoApp = observer(function ListoApp() {
 
             console.log(recordings);
 
-            recordings.forEach(({ startTime, duration, url }) => {
-                dvr.addSegment(startTime, duration, url, false);
+            recordings.forEach(({ startTime, duration, url, hasErrors }) => {
+                dvr.addSegment(startTime, duration, url, hasErrors);
             });
 
             await dvr.switchToLiveStream();

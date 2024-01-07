@@ -5,6 +5,7 @@ export interface Recording {
     startTimeIso: string;
     duration: number;
     url: string;
+    hasErrors: boolean;
 }
 
 export const LISTO_API = {

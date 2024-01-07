@@ -127,8 +127,16 @@ function getDebugRecordingFromFilename(name: string): Recording | null {
     try {
         const url = `listo://recordings/${name}`;
 
-        name = name.substring(0, name.length - `.webm`.length);
         name = name.substring(`debug-`.length);
+
+        let hasErrors = false;
+        if (name.endsWith(`-err.webm`)) {
+            hasErrors = true;
+            name = name.substring(0, name.length - `-err.webm`.length);
+        } else {
+            hasErrors = false;
+            name = name.substring(0, name.length - `.webm`.length);
+        }
 
         const indexPart = name.substring(0, name.indexOf(`-`));
         const durationPart = name.substring(indexPart.length + 1);
@@ -137,6 +145,7 @@ function getDebugRecordingFromFilename(name: string): Recording | null {
             startTimeIso: indexPart,
             duration: parseFloat(durationPart),
             url,
+            hasErrors,
         };
     } catch (e) {
         console.error(`Could not parse ${name}`);
@@ -150,9 +159,12 @@ function getRealRecordingFromFilename(name: string): Recording | null {
     try {
         const url = `listo://recordings/${name}`;
 
+        let hasErrors = false;
         if (name.endsWith(`-err.webm`)) {
+            hasErrors = true;
             name = name.substring(0, name.length - `-err.webm`.length);
         } else {
+            hasErrors = false;
             name = name.substring(0, name.length - `.webm`.length);
         }
 
@@ -163,6 +175,7 @@ function getRealRecordingFromFilename(name: string): Recording | null {
             startTimeIso: dayjs(startTimePart, timestampFormat).toISOString(),
             duration: parseFloat(durationPart),
             url,
+            hasErrors,
         };
     } catch (e) {
         console.error(`Could not parse ${name}`);

@@ -49,8 +49,13 @@ export interface IHostService {
     revokeObjectURL(url: string): void;
 }
 
+export interface RecordingEx extends Recording {
+    url: string;
+    hasErrors: boolean;
+}
+
 export interface IListoService {
-    getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<Recording[]>;
+    getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<RecordingEx[]>;
     saveRecording(recording: Recording, blob: Blob, hasErrors: boolean): Promise<string>;
 }
 
