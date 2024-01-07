@@ -43,8 +43,21 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.segments.on('reset', (segment) => this.emitSegmentUpdated(segment));
 
         this.playback = new SegmentPlayback(this.segments, this.options.playback);
+        this.playback.on('error', (segment, error, handled) =>
+            this.emitPlaybackError(segment, error, handled)
+        );
+        this.playback.on('play', () => this.emitPlay());
+        this.playback.on('pause', () => this.emitPause());
+        this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
+        this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
+        this.playback.on('timeupdate', (currentTime, speed) =>
+            this.emitPlaybackUpdate(this.playback.currentTime, speed)
+        );
 
         this.liveStreamRecorder = new LiveStreamRecorder(this.segments, this.options.recording);
+        this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
+        this.liveStreamRecorder.on('play', () => this.emitPlay());
+        this.liveStreamRecorder.on('pause', () => this.emitPause());
         this.liveStreamRecorder.on('recordingchange', (isRecording) =>
             this.emitRecodingChange(isRecording)
         );
@@ -107,12 +120,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.stopPollingLiveStreamRecordingDuration();
 
         await this.playback.pause();
-        this.playback.removeAllListeners();
         await this.playback.releaseAsVideoSource();
-
-        this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
-        this.liveStreamRecorder.on('play', () => this.emitPlay());
-        this.liveStreamRecorder.on('pause', () => this.emitPause());
 
         this.logger.info('Switching to live stream');
         await this.liveStreamRecorder.setAsVideoSource();
@@ -134,17 +142,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         } else {
             this.assertWillHaveVideoDataToPlay();
 
-            this.playback.on('timeupdate', (currentTime, speed) =>
-                this.emitPlaybackUpdate(this.playback.currentTime, speed)
-            );
-            this.playback.on('error', (segment, error, handled) =>
-                this.emitPlaybackError(segment, error, handled)
-            );
-            this.playback.on('play', () => this.emitPlay());
-            this.playback.on('pause', () => this.emitPause());
-            this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
-            this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
-
             if (this.isRecording) {
                 time = time || this.liveRecording.endTime.subtract(1, 'second');
             } else {
@@ -152,7 +149,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             }
 
             await this.ensureVideoDataForTime(time);
-            this.liveStreamRecorder.removeAllListeners();
             await this.liveStreamRecorder.releaseAsVideoSource();
 
             this.logger.info(`Switching to playback at ${this.getAsTimecode(time)}`);
