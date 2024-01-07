@@ -108,7 +108,7 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
         this.chunks.push(blob);
     };
 
-    onrecording: ((recording: Recording) => Promise<void>) | null = null;
+    onrecording: ((recording: Recording, blob: Blob) => Promise<void>) | null = null;
 
     private async raiseRecording(isPartial: boolean) {
         try {
@@ -124,12 +124,11 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
             const recording: Recording = {
                 startTime: this.startTime,
                 duration: this.duration,
-                blob: fixedBlob,
                 isPartial,
             };
 
             if (this.onrecording) {
-                await this.onrecording(recording);
+                await this.onrecording(recording, fixedBlob);
             }
 
             if (!isPartial) {

@@ -27,21 +27,12 @@ export const ListoApp = observer(function ListoApp() {
     useEffect(function mount() {
         const initAsync = async () => {
             await dvrStore.cameraStore.startWatchingCameraList();
+            const cameraId = dvrStore.cameraStore.lastSelectedCameraId;
+            const { stream, mimeType } = await getLiveStream(cameraId);
 
-            const liveStream = await getLiveStream(dvrStore.cameraStore.lastSelectedCameraId);
-            const { mimeType } = DEFAULT_RECORDING_OPTIONS;
-
-            setLocator(
-                new ServiceLocator(
-                    new Player(videoRef.current),
-                    new MediaStreamReader(liveStream, mimeType),
-                    new ListoService(),
-                    new HostService()
-                )
-            );
+            await initailizeServiceLocator(videoRef, stream, mimeType);
 
             dvr = new DigitalVideoRecorder();
-
             window.dvr = dvrStore.dvr = dvr;
             window.dvrStore = dvrStore;
 
@@ -87,13 +78,31 @@ export const ListoApp = observer(function ListoApp() {
                         viewport={dayjs.duration(dvr.options.timeline.viewport)}
                         marker={dvr.options.timeline.marker}
                     />
-                    <button onClick={handleStopRecording}>Stop Recording</button>
-                    <button onClick={handleStartRecording}>Start Recording</button>
+                    {dvrStore.isRecording ? (
+                        <button onClick={handleStopRecording}>Stop Recording</button>
+                    ) : (
+                        <button onClick={handleStartRecording}>Start Recording</button>
+                    )}
                 </>
             )}
         </>
     );
 });
+
+async function initailizeServiceLocator(
+    videoRef: React.MutableRefObject<HTMLVideoElement>,
+    stream: MediaStream,
+    mimeType: string
+) {
+    setLocator(
+        new ServiceLocator(
+            new Player(videoRef.current),
+            new MediaStreamReader(stream, mimeType),
+            new ListoService(),
+            new HostService()
+        )
+    );
+}
 
 async function getLiveStream(deviceId: string) {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -106,5 +115,7 @@ async function getLiveStream(deviceId: string) {
         throw new Error(`The user denied access to the camera. Can't acquire live stream.`);
     }
 
-    return stream;
+    const { mimeType } = DEFAULT_RECORDING_OPTIONS;
+
+    return { stream, mimeType };
 }

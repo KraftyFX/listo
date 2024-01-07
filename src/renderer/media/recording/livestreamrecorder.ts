@@ -14,6 +14,8 @@ type LiveStreamRecorderEvents = {
     play: () => void;
     pause: () => void;
     update: () => void;
+
+    recordingchange: (isRecording: boolean) => void;
 };
 
 export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmitter<LiveStreamRecorderEvents>) {
@@ -42,7 +44,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         this.logger = getLog('lsr', this.options);
 
         this.recorder = new MediaStreamRecorder(this.options);
-        this.recorder.onrecording = (recording) => this.onRecording(recording);
+        this.recorder.onrecording = (recording, blob) => this.onRecording(recording, blob);
     }
 
     private get locator() {
@@ -53,7 +55,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this.locator.player;
     }
 
-    private async onRecording(recording: Recording) {
+    private async onRecording(recording: Recording, blob: Blob) {
         const { startTime, isPartial } = recording;
 
         this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
@@ -71,15 +73,15 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
             this.segments.addSegment(recording, url);
         } else {
-            const url = await this.saveRecording(recording);
+            const url = await this.saveRecording(recording, blob);
 
             this.segments.addSegment(recording, url);
         }
     }
 
-    private async saveRecording(recording: Recording) {
+    private async saveRecording(recording: Recording, blob: Blob) {
         if (recording.isPartial || this.options.inMemory) {
-            return this.locator.host.createObjectURL(recording.blob);
+            return this.locator.host.createObjectURL(blob);
         } else {
             return this.locator.listo.saveRecording(recording, false);
         }
@@ -172,6 +174,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
 
         await this.recorder.startRecording();
+        this.emitRecodingChange(true);
     }
 
     async stopRecording() {
@@ -180,6 +183,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         }
 
         await this.recorder.stopRecording();
+        this.emitRecodingChange(false);
     }
 
     private assertIsRecording() {
@@ -224,6 +228,10 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
                 `A segment was forcefully yielded but and should have been partial but was not. Thre is alogic error`
             );
         }
+    }
+
+    private emitRecodingChange(isRecording: boolean) {
+        this.emit('recordingchange', isRecording);
     }
 
     private emitPlay() {

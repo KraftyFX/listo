@@ -17,6 +17,7 @@ type DvrEvents = {
     playbackupdate: (currentTime: Dayjs, speed: number) => void;
     playbackerror: (segment: Segment, err: any, handled: boolean) => void;
     liveupdate: () => void;
+    recordingchange: (isRecording: boolean) => void;
     segmentadded: (segment: Segment) => void;
     segmentupdated: (segment: Segment) => void;
     segmentrendered: (segment: Segment) => void;
@@ -44,6 +45,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.playback = new SegmentPlayback(this.segments, this.options.playback);
 
         this.liveStreamRecorder = new LiveStreamRecorder(this.segments, this.options.recording);
+        this.liveStreamRecorder.on('recordingchange', (isRecording) =>
+            this.emitRecodingChange(isRecording)
+        );
     }
 
     dispose() {
@@ -379,5 +383,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private emitLiveUpdate() {
         this.emit('liveupdate');
+    }
+
+    private emitRecodingChange(isRecording: boolean) {
+        this.emit('recordingchange', isRecording);
     }
 }

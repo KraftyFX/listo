@@ -13,6 +13,7 @@ export class DvrStore {
             | '_dvr'
             | '_recordingStartTime'
             | '_currentTime'
+            | '_isRecording'
             | '_recordingDuration'
             | '_speed'
             | '_isLive'
@@ -26,6 +27,7 @@ export class DvrStore {
             _timeline: false,
             _dvr: observable.ref,
 
+            _isRecording: observable,
             _recordingStartTime: observable.ref,
             _currentTime: observable.ref,
             _recordingDuration: observable,
@@ -50,6 +52,7 @@ export class DvrStore {
     private _cameraStore: CameraStore;
     private _dvr: DigitalVideoRecorder | null = null;
 
+    private _isRecording = false;
     private _recordingStartTime: Dayjs = dayjs();
     private _recordingDuration = 0;
     private _currentTime = dayjs();
@@ -89,6 +92,7 @@ export class DvrStore {
         this.listenForModeChange();
         this.listenForPlayPauseChange();
         this.listenForLiveUpdates();
+        this.listenForRecordingChange();
         this.listenForPlaybackUpdate();
         this.listenForPlaybackErrors();
 
@@ -105,6 +109,10 @@ export class DvrStore {
 
     set currentTime(time: Dayjs) {
         this.dvr.goToPlaybackTime(time);
+    }
+
+    get isRecording() {
+        return this._isRecording;
     }
 
     get recordingDuration() {
@@ -209,6 +217,15 @@ export class DvrStore {
                     );
                 }
             })
+        );
+    }
+
+    private listenForRecordingChange() {
+        this._isRecording = this.dvr.isRecording;
+
+        this.dvr.on(
+            'recordingchange',
+            action((isRecording) => (this._isRecording = isRecording))
         );
     }
 
