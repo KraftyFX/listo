@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
 import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media';
-import { DigitalVideoRecorder } from '~/renderer/media/dvr';
+import { DigitalVideoRecorder } from '../media/dvr';
 import { ServiceLocator, setLocator } from '../services';
 import { HostService } from '../services/host';
 import { ListoService } from '../services/listo';
@@ -15,11 +15,13 @@ import { PlaybackError } from './PlaybackError';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 
-let dvr: DigitalVideoRecorder;
-const dvrStore = new DvrStore();
+export interface ListoAppProps {
+    dvrStore: DvrStore;
+}
 
-export const ListoApp = observer(function ListoApp() {
+export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
     const videoRef = useRef<HTMLVideoElement>(null!);
+    const { dvrStore } = props;
 
     const [isDvrReady, setIsDvrReady] = useState(false);
 
@@ -31,8 +33,7 @@ export const ListoApp = observer(function ListoApp() {
 
             const { listo } = await initailizeServiceLocator(videoRef, stream, mimeType);
 
-            dvr = new DigitalVideoRecorder();
-            window.dvr = dvrStore.dvr = dvr;
+            window.dvr = dvrStore.dvr = new DigitalVideoRecorder();
             window.dvrStore = dvrStore;
 
             const recordings = await listo.getRecentRecordings(
@@ -40,13 +41,11 @@ export const ListoApp = observer(function ListoApp() {
                 dayjs().endOf('day').toISOString()
             );
 
-            console.log(recordings);
-
             recordings.forEach(({ startTime, duration, url, hasErrors }) => {
-                dvr.addSegment(startTime, duration, url, hasErrors);
+                dvrStore.dvr.addSegment(startTime, duration, url, hasErrors);
             });
 
-            await dvr.switchToLiveStream();
+            await dvrStore.dvr.switchToLiveStream();
 
             setIsDvrReady(true);
         };
@@ -55,7 +54,7 @@ export const ListoApp = observer(function ListoApp() {
 
         return function dismount() {
             dvrStore.cameraStore.stopWatchingCameraList();
-            dvr.dispose();
+            dvrStore.dvr.dispose();
         };
     }, []);
 
@@ -77,8 +76,8 @@ export const ListoApp = observer(function ListoApp() {
                     <Timeline
                         autoScrollTimeout={2000}
                         dvrStore={dvrStore}
-                        viewport={dayjs.duration(dvr.options.timeline.viewport)}
-                        marker={dvr.options.timeline.marker}
+                        viewport={dayjs.duration(dvrStore.dvr.options.timeline.viewport)}
+                        marker={dvrStore.dvr.options.timeline.marker}
                     />
                 </>
             )}

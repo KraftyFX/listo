@@ -6,6 +6,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ListoApp } from '~/renderer/Components/ListoApp';
+import { DvrStore } from './Components/stores/dvrStore';
 import './index.css';
 
 dayjs.extend(duration);
@@ -17,5 +18,7 @@ window.onload = async () => {
     const elt = document.getElementById('page')!;
     const root = createRoot(elt);
 
-    root.render(<ListoApp />);
+    const dvrStore = new DvrStore();
+
+    root.render(<ListoApp dvrStore={dvrStore} />);
 };
