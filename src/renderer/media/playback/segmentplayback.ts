@@ -187,6 +187,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             console.error(`Segment ${index} had an unreognized error`);
         }
 
+        this.currentSegment.hasErrors = true;
         this.emitError(this.currentSegment, err, handled);
     }
 
