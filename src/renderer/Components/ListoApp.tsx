@@ -30,11 +30,22 @@ export const ListoApp = observer(function ListoApp() {
             const cameraId = dvrStore.cameraStore.lastSelectedCameraId;
             const { stream, mimeType } = await getLiveStream(cameraId);
 
-            await initailizeServiceLocator(videoRef, stream, mimeType);
+            const { listo } = await initailizeServiceLocator(videoRef, stream, mimeType);
 
             dvr = new DigitalVideoRecorder();
             window.dvr = dvrStore.dvr = dvr;
             window.dvrStore = dvrStore;
+
+            const recordings = await listo.getRecentRecordings(
+                dayjs().startOf('day').toISOString(),
+                dayjs().endOf('day').toISOString()
+            );
+
+            console.log(recordings);
+
+            recordings.forEach(({ startTime, duration, url }) => {
+                dvr.addSegment(startTime, duration, url, false);
+            });
 
             await dvr.switchToLiveStream();
 
@@ -94,7 +105,7 @@ async function initailizeServiceLocator(
     stream: MediaStream,
     mimeType: string
 ) {
-    setLocator(
+    return setLocator(
         new ServiceLocator(
             new Player(videoRef.current),
             new MediaStreamReader(stream, mimeType),

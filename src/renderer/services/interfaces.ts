@@ -50,8 +50,8 @@ export interface IHostService {
 }
 
 export interface IListoService {
-    getRecentRecordings(): Promise<string[]>;
-    saveRecording(recording: Recording, hasErrors: boolean): Promise<string>;
+    getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<Recording[]>;
+    saveRecording(recording: Recording, blob: Blob, hasErrors: boolean): Promise<string>;
 }
 
 export interface IServiceLocator {
