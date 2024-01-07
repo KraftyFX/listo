@@ -62,9 +62,19 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
             this.disposeSegment(this.segments.lastSegment);
         }
 
-        const url = await this.saveRecording(recording);
+        // Adding a corrupted video for testing
+        // TODO: Remove this before release
+        if (this.segments.length === 1) {
+            const url = `listo://recordings/5.496-err.webm`;
 
-        this.segments.addSegment(recording, url);
+            recording.duration = 5.496;
+
+            this.segments.addSegment(recording, url);
+        } else {
+            const url = await this.saveRecording(recording);
+
+            this.segments.addSegment(recording, url);
+        }
     }
 
     private async saveRecording(recording: Recording) {
