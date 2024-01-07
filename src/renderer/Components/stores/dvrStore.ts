@@ -193,9 +193,11 @@ export class DvrStore {
             action(() => {
                 this.updateLiveRecordingStats();
 
-                // When the app is in playback mode we're still getting live data
-                // but the user might be paused or scrubbing. As a result we only
-                // want to update the current time if we're actually in live mode.
+                // When the app is in playback mode we're still getting live data.
+                // However, we don't want to change currentTime b/c the user might
+                // be paused or scrubbing around. `currentTime` updates would be
+                // disruptive to whatever they're doing so we only do this when in
+                // live mode.
                 if (this.isLive) {
                     this._currentTime = this._recordingStartTime.add(
                         this._recordingDuration,
