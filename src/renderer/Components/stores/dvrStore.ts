@@ -167,7 +167,7 @@ export class DvrStore {
             this._isPlayDisabled = false;
             this._isNextFrameDisabled = false;
 
-            this._isRewindDisabled = false;
+            this._isRewindDisabled = !dvr.willHaveVideoDataToPlay;
             this._isSlowForwardDisabled = false;
             this._isFastForwardDisabled = false;
         }
@@ -225,7 +225,11 @@ export class DvrStore {
 
         this.dvr.on(
             'recordingchange',
-            action((isRecording) => (this._isRecording = isRecording))
+            action((isRecording) => {
+                this._isRecording = isRecording;
+
+                this.refreshControlAbilities();
+            })
         );
     }
 
