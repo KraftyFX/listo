@@ -59,7 +59,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
         this.playback.on('timeupdate', (currentTime, speed) =>
-            this.emitPlaybackUpdate(this.playback.currentTime, speed)
+            this.emitPlaybackUpdate(currentTime, speed)
         );
     }
 
