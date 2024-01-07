@@ -5,7 +5,7 @@ export const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND;
 export const REFRESH_RATE_IN_MS = 1000 / FRAMES_PER_SECOND;
 
 export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
-    inMemory: false,
+    inMemory: true,
     source: 'default',
     mimeType: 'video/webm',
     minSizeInSec: 5,
@@ -21,10 +21,10 @@ export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
 };
 
 export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
-    viewport: { seconds: 60 },
+    viewport: { seconds: 20 },
     marker: {
-        major: { minutes: 10 },
-        minor: { seconds: 10 },
+        major: { minutes: 1 },
+        minor: { seconds: 5 },
     },
     logging: null,
 };

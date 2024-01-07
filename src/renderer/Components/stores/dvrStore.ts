@@ -11,10 +11,11 @@ export class DvrStore {
             DvrStore,
             | '_timeline'
             | '_dvr'
-            | '_recordingStartTime'
-            | '_currentTime'
             | '_isRecording'
+            | '_recordingStartTime'
             | '_recordingDuration'
+            | '_willHaveVideoDataToPlay'
+            | '_currentTime'
             | '_speed'
             | '_isLive'
             | '_isPaused'
@@ -29,8 +30,10 @@ export class DvrStore {
 
             _isRecording: observable,
             _recordingStartTime: observable.ref,
-            _currentTime: observable.ref,
             _recordingDuration: observable,
+            _willHaveVideoDataToPlay: observable,
+
+            _currentTime: observable.ref,
             _speed: observable,
 
             _isLive: observable,
@@ -55,6 +58,7 @@ export class DvrStore {
     private _isRecording = false;
     private _recordingStartTime: Dayjs = dayjs();
     private _recordingDuration = 0;
+    private _willHaveVideoDataToPlay = false;
     private _currentTime = dayjs();
     private _speed = 1;
 
@@ -99,8 +103,20 @@ export class DvrStore {
         this.timeline.init();
     }
 
+    get isRecording() {
+        return this._isRecording;
+    }
+
     get recordingStartTime() {
         return this._recordingStartTime;
+    }
+
+    get recordingDuration() {
+        return this._recordingDuration;
+    }
+
+    get willHaveVideoDataToPlay() {
+        return this._willHaveVideoDataToPlay;
     }
 
     get currentTime() {
@@ -109,14 +125,6 @@ export class DvrStore {
 
     set currentTime(time: Dayjs) {
         this.dvr.goToPlaybackTime(time);
-    }
-
-    get isRecording() {
-        return this._isRecording;
-    }
-
-    get recordingDuration() {
-        return this._recordingDuration;
     }
 
     get speed() {
@@ -154,6 +162,8 @@ export class DvrStore {
     private refreshControlAbilities() {
         const dvr = this.dvr;
 
+        this._willHaveVideoDataToPlay = dvr.willHaveVideoDataToPlay;
+
         const isPlayback = !dvr.isLive;
 
         if (isPlayback) {
@@ -167,7 +177,7 @@ export class DvrStore {
             this._isPlayDisabled = true;
             this._isNextFrameDisabled = true;
 
-            this._isRewindDisabled = !dvr.willHaveVideoDataToPlay;
+            this._isRewindDisabled = !this.willHaveVideoDataToPlay;
             this._isSlowForwardDisabled = true;
             this._isFastForwardDisabled = true;
         }

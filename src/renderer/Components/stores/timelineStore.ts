@@ -11,12 +11,8 @@ export class TimelineStore {
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
-        makeAutoObservable<
-            TimelineStore,
-            'willHaveVideoDataToPlay' | 'firstRecording' | 'lastRecording'
-        >(this, {
+        makeAutoObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
             markerSize: observable.deep,
-            willHaveVideoDataToPlay: computed,
             firstRecording: computed,
             lastRecording: computed,
         });
@@ -85,14 +81,10 @@ export class TimelineStore {
         this.dvrStore.currentTime = time;
     }
 
-    private get willHaveVideoDataToPlay() {
-        return this.dvrStore.dvr.willHaveVideoDataToPlay;
-    }
-
     get startOfTimeline() {
         this.assertHasInitialized();
 
-        const time = this.willHaveVideoDataToPlay ? this.startOfTime : this.currentTime;
+        const time = this.dvrStore.willHaveVideoDataToPlay ? this.startOfTime : this.currentTime;
 
         return this.getPrevMarkerStartTime(time);
     }
@@ -100,7 +92,7 @@ export class TimelineStore {
     get endOfTimeline() {
         this.assertHasInitialized();
 
-        const time = this.willHaveVideoDataToPlay ? this.endOfTime : this.currentTime;
+        const time = this.dvrStore.willHaveVideoDataToPlay ? this.endOfTime : this.currentTime;
         const majorMarkerDuration = dayjs.duration(this.markerSize.minor);
 
         return this.getPrevMarkerStartTime(time).add(majorMarkerDuration);
