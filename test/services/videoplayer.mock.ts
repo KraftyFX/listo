@@ -119,4 +119,6 @@ export class MockVideoPlayer implements IVideoPlayer {
     onended: TimeChangeEvent = null;
     ontimeupdate: TimeChangeEvent = null;
     ondurationchange: TimeChangeEvent = null;
+
+    onerror: ((err: any) => any) | null = null;
 }

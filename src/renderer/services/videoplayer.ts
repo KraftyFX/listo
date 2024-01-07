@@ -1,17 +1,20 @@
 import { IVideoPlayer, TimeChangeEvent } from './interfaces';
 
 export class VideoPlayer implements IVideoPlayer {
-    constructor(public readonly videoElt: HTMLVideoElement) {
-        // this.videoElt.addEventListener('loadedmetadata', () => console.log('metadata'));
-        // this.videoElt.addEventListener('durationchange', () => console.log('duration'));
-    }
+    constructor(public readonly videoElt: HTMLVideoElement) {}
 
     setVideoSource(src: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             if (src == null) {
                 this.videoElt.srcObject = null;
                 this.videoElt.src = '';
-            } else if (typeof src === 'string') {
+
+                return resolve();
+            }
+
+            this.videoElt.addEventListener('loadeddata', () => resolve(), { once: true });
+
+            if (typeof src === 'string') {
                 this.videoElt.srcObject = null;
                 this.videoElt.src = src;
             } else if (src instanceof MediaStream) {
@@ -20,8 +23,6 @@ export class VideoPlayer implements IVideoPlayer {
             } else {
                 return reject(new Error(`VideoPlayer source is not supported`));
             }
-
-            resolve();
         });
     }
 
@@ -129,6 +130,18 @@ export class VideoPlayer implements IVideoPlayer {
             this.videoElt.ondurationchange = callback.bind(this);
         } else {
             this.videoElt.ondurationchange = null;
+        }
+    }
+
+    get onerror() {
+        return this.videoElt.onerror as (err: any) => any;
+    }
+
+    set onerror(callback: ((err: any) => any) | null) {
+        if (callback) {
+            this.videoElt.onerror = () => callback(this.videoElt.error);
+        } else {
+            this.videoElt.onerror = null;
         }
     }
 }

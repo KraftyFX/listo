@@ -14,10 +14,15 @@ export const LISTO_API = {
         return await invoke('appendToRecording', path, chunkArray);
     },
 
-    async saveRecording(startTimeIso: string, durationSec: number, chunks: Blob[]) {
+    async saveRecording(
+        startTimeIso: string,
+        durationSec: number,
+        chunks: Blob[],
+        hasErrors: boolean
+    ) {
         const chunkArray = await toUint8Arrays(chunks);
 
-        return await invoke('saveRecording', startTimeIso, durationSec, chunkArray);
+        return await invoke('saveRecording', startTimeIso, durationSec, chunkArray, hasErrors);
     },
 };
 

@@ -18,6 +18,8 @@ export interface IVideoPlayer {
     onended: TimeChangeEvent;
     ontimeupdate: TimeChangeEvent;
     ondurationchange: TimeChangeEvent;
+
+    onerror: ((err: any) => any) | null;
 }
 
 export type OnDataAvailableEvent = ((this: IMediaStreamReader, ev: Blob) => any) | null;
@@ -48,7 +50,7 @@ export interface IHostService {
 }
 
 export interface IListoService {
-    saveRecording(recording: Recording): Promise<string>;
+    saveRecording(recording: Recording, hasErrors: boolean): Promise<string>;
 }
 
 export interface IServiceLocator {

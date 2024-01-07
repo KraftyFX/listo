@@ -47,10 +47,12 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         event: Electron.IpcMainInvokeEvent,
         startTimeIso: string,
         durationSec: number,
-        chunks: Uint8Array[]
+        chunks: Uint8Array[],
+        hasErrors: boolean
     ) {
         const startTimeFormat = dayjs(startTimeIso).format('YYYY-MM-DD-h-mm-ssa');
-        const recordingFilename = `${startTimeFormat}-${durationSec.toFixed(3)}.webm`;
+        const suffix = hasErrors ? `-err` : ``;
+        const recordingFilename = `${startTimeFormat}-${durationSec.toFixed(3)}${suffix}.webm`;
         const recordingFilepath = join(listoRootDir, recordingFilename);
 
         if (!fs.existsSync(listoRootDir)) {
