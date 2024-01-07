@@ -42,6 +42,14 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.segments.on('added', (segment) => this.emitSegmentAdded(segment));
         this.segments.on('reset', (segment) => this.emitSegmentUpdated(segment));
 
+        this.liveStreamRecorder = new LiveStreamRecorder(this.segments, this.options.recording);
+        this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
+        this.liveStreamRecorder.on('play', () => this.emitPlay());
+        this.liveStreamRecorder.on('pause', () => this.emitPause());
+        this.liveStreamRecorder.on('recordingchange', (isRecording) =>
+            this.emitRecodingChange(isRecording)
+        );
+
         this.playback = new SegmentPlayback(this.segments, this.options.playback);
         this.playback.on('error', (segment, error, handled) =>
             this.emitPlaybackError(segment, error, handled)
@@ -52,14 +60,6 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         this.playback.on('segmentrendered', (segment) => this.emitSegmentRendered(segment));
         this.playback.on('timeupdate', (currentTime, speed) =>
             this.emitPlaybackUpdate(this.playback.currentTime, speed)
-        );
-
-        this.liveStreamRecorder = new LiveStreamRecorder(this.segments, this.options.recording);
-        this.liveStreamRecorder.on('update', () => this.emitLiveUpdate());
-        this.liveStreamRecorder.on('play', () => this.emitPlay());
-        this.liveStreamRecorder.on('pause', () => this.emitPause());
-        this.liveStreamRecorder.on('recordingchange', (isRecording) =>
-            this.emitRecodingChange(isRecording)
         );
     }
 
