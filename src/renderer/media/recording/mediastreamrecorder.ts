@@ -111,39 +111,36 @@ export class MediaStreamRecorder extends (EventEmitter as new () => TypedEventEm
     onrecording: ((recording: Recording, blob: Blob) => Promise<void>) | null = null;
 
     private async raiseRecording(isPartial: boolean) {
+        if (this.chunks.length === 0) {
+            return null;
+        }
+
+        const rawBlob = new Blob([...this.chunks], { type: this.options.mimeType });
+        const fixedBlob = this.options.fixDuration ? await this.tryFixBlob(rawBlob) : rawBlob;
+
+        const recording: Recording = {
+            startTime: this.startTime,
+            duration: this.duration,
+            isPartial,
+        };
+
+        if (this.onrecording) {
+            await this.onrecording(recording, fixedBlob);
+        }
+
+        if (!isPartial) {
+            this.chunks = [];
+        }
+
+        return recording;
+    }
+
+    async tryFixBlob(blob: Blob) {
         try {
-            if (this.chunks.length === 0) {
-                return null;
-            }
-
-            const blobs = [...this.chunks];
-
-            const rawBlob = new Blob(blobs, { type: this.options.mimeType });
-            const fixedBlob = this.options.fixDuration ? await fixWebmDuration(rawBlob) : rawBlob;
-
-            const recording: Recording = {
-                startTime: this.startTime,
-                duration: this.duration,
-                isPartial,
-            };
-
-            if (this.onrecording) {
-                await this.onrecording(recording, fixedBlob);
-            }
-
-            if (!isPartial) {
-                this.chunks = [];
-            }
-
-            return recording;
+            return await fixWebmDuration(blob);
         } catch (e) {
-            if (!this.isRecording) {
-                // We're not recording right now
-                return null;
-            } else {
-                console.error(e);
-                throw new Error(`fixWebDuration error most likely. See above.`);
-            }
+            console.error(e);
+            throw new Error(`fixWebDuration error`);
         }
     }
 

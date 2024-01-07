@@ -83,7 +83,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         if (recording.isPartial || this.options.inMemory) {
             return this.locator.host.createObjectURL(blob);
         } else {
-            return this.locator.listo.saveRecording(recording, false);
+            return this.locator.listo.saveRecording(recording, blob, false);
         }
     }
 
