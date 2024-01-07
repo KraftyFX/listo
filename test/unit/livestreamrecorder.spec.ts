@@ -44,7 +44,7 @@ describe('LiveStreamRecorder', () => {
             const { segments } = recorder;
             const startTime = host.now;
 
-            segments.once('segmentadded', (segment) => {
+            segments.once('added', (segment) => {
                 assert.isFalse(segment.isPartial, 'partial');
 
                 assert.equal(segment.duration, 4.5, 'duration');
@@ -71,7 +71,7 @@ describe('LiveStreamRecorder', () => {
 
             const startTime = host.now;
 
-            segments.once('segmentadded', (segment) => {
+            segments.once('added', (segment) => {
                 assert.isTrue(segment.isPartial, 'partial');
 
                 assert.equal(segment.duration, 4.5, 'duration');
@@ -82,7 +82,7 @@ describe('LiveStreamRecorder', () => {
 
             await host.advanceTimeBy(4500);
 
-            await recorder.forceFillWithLatestVideoData();
+            await recorder.forceYieldSegmentWithLatestVideoData();
 
             assert.equal(segments.length, 1, 'segment count');
 
@@ -99,7 +99,7 @@ describe('LiveStreamRecorder', () => {
             const { segments } = recorder;
             const startTime = host.now;
 
-            segments.on('segmentadded', (segment) => {
+            segments.on('added', (segment) => {
                 assert.isFalse(segment.isPartial, 'partial');
 
                 assert.equal(segment.duration, 5, 'duration');
@@ -132,11 +132,11 @@ describe('LiveStreamRecorder', () => {
 
             const { segments } = recorder;
 
-            segments.on('segmentadded', (segment) => {
+            segments.on('added', (segment) => {
                 assert.isTrue(segment.isPartial, 'partial');
             });
 
-            await recorder.forceFillWithLatestVideoData();
+            await recorder.forceYieldSegmentWithLatestVideoData();
 
             assert.equal(segments.length, 3, 'segment count');
 
@@ -158,20 +158,20 @@ describe('LiveStreamRecorder', () => {
             const { segments } = recorder;
             let partial: Segment = null!;
 
-            segments.once('segmentadded', (segment) => {
+            segments.once('added', (segment) => {
                 assert.isTrue(segment.isPartial, 'partial');
 
                 partial = segment;
             });
 
-            await recorder.forceFillWithLatestVideoData();
+            await recorder.forceYieldSegmentWithLatestVideoData();
 
             assert.isNotEmpty(partial.url, 'partial segment url');
             assert.equal(segments.length, 2, 'segment count');
 
             let full: Segment = null!;
 
-            segments.once('segmentadded', (segment) => {
+            segments.once('added', (segment) => {
                 assert.isFalse(segment.isPartial, 'partial');
 
                 full = segment;

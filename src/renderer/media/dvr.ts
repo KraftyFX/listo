@@ -17,8 +17,8 @@ type DvrEvents = {
     playbackupdate: (currentTime: Dayjs, speed: number) => void;
     playbackerror: (segment: Segment, err: any, handled: boolean) => void;
     liveupdate: () => void;
-    segmentadded: () => void;
-    segmentupdated: () => void;
+    segmentadded: (segment: Segment) => void;
+    segmentupdated: (segment: Segment) => void;
     segmentrendered: (segment: Segment) => void;
 };
 
@@ -40,8 +40,8 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
         // TODO: Fill segments from pre-recordings on disk
 
-        this.segments.on('reset', (segment) => this.emitSegmentUpdated());
-        this.segments.on('segmentadded', (segment) => this.emitSegmentAdded());
+        this.segments.on('added', (segment) => this.emitSegmentAdded(segment));
+        this.segments.on('reset', (segment) => this.emitSegmentUpdated(segment));
 
         this.playback = new SegmentPlayback(this.segments, this.options.playback);
 
@@ -159,13 +159,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private async ensureVideoDataForTime(time: dayjs.Dayjs) {
         if (this.isInActiveRecordingWindow(time)) {
-            await this.liveStreamRecorder.forceFillWithLatestVideoData();
+            await this.liveStreamRecorder.forceYieldSegmentWithLatestVideoData();
 
             this.assertContainsVideoDataForTime(time);
-
-            return true;
-        } else {
-            return this.segments.containsTime(time);
         }
     }
 
@@ -335,12 +331,12 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
         }
     }
 
-    private emitSegmentUpdated() {
-        this.emit('segmentupdated');
+    private emitSegmentUpdated(segment: Segment) {
+        this.emit('segmentupdated', segment);
     }
 
-    private emitSegmentAdded() {
-        this.emit('segmentadded');
+    private emitSegmentAdded(segment: Segment) {
+        this.emit('segmentadded', segment);
     }
 
     private stopPollingLiveStreamRecordingDuration() {

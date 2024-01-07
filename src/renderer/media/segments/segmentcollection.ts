@@ -8,7 +8,7 @@ import { Segment } from './interfaces';
 
 type SegmentCollectionEvents = {
     reset: (segment: Segment) => void;
-    segmentadded: (segment: Segment) => void;
+    added: (segment: Segment) => void;
 };
 
 export class SegmentCollection extends (EventEmitter as new () => TypedEventEmitter<SegmentCollectionEvents>) {
@@ -251,7 +251,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     }
 
     private emitSegmentAdded(segment: Segment) {
-        this.emit('segmentadded', segment);
+        this.emit('added', segment);
     }
 
     private emitReset(segment: Segment) {

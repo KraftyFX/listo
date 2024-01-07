@@ -132,7 +132,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         return this.recorder.duration;
     }
 
-    async forceFillWithLatestVideoData() {
+    async forceYieldSegmentWithLatestVideoData() {
         this.assertIsRecording();
 
         await this.recorder.yieldPartialRecording();
@@ -214,7 +214,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private assertHasSegments() {
         if (this.segments.isEmpty) {
             throw new Error(
-                `No segments were produced after being told to force render. This is a logic error.`
+                `No segments were produced after being told to force yield. This is a logic error.`
             );
         }
     }
@@ -222,7 +222,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private assertLastSegmentIsPartial() {
         if (!this.segments.lastSegment.isPartial) {
             throw new Error(
-                `A segment was forcefully rendered but and should have been partial but was not. Thre is alogic error`
+                `A segment was forcefully yielded but and should have been partial but was not. Thre is alogic error`
             );
         }
     }
