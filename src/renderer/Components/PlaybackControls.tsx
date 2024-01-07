@@ -70,19 +70,19 @@ export const PlaybackControls = observer(function PlaybackControls(props: Playba
             ) : null}
             <button
                 id="nextFrame"
-                disabled={dvrStore.isLive || dvrStore.isNextFrameDisabled}
+                disabled={dvrStore.isNextFrameDisabled}
                 onClick={() => onCommand?.('nextFrame')}>
                 Next Frame
             </button>
             <button
                 id="slowForward"
-                disabled={dvrStore.isLive || dvrStore.isSlowForwardDisabled}
+                disabled={dvrStore.isSlowForwardDisabled}
                 onClick={() => onCommand?.('slowForward')}>
                 Slow Forward
             </button>
             <button
                 id="fastForward"
-                disabled={dvrStore.isLive || dvrStore.isFastForwardDisabled}
+                disabled={dvrStore.isFastForwardDisabled}
                 onClick={() => onCommand?.('fastForward')}>
                 Fast Forward
             </button>

@@ -164,12 +164,12 @@ export class DvrStore {
             this._isSlowForwardDisabled = dvr.isAtMinSlowSpeed || dvr.isAtEnd;
             this._isFastForwardDisabled = dvr.isAtMaxFastForwardSpeed || dvr.isAtEnd;
         } else {
-            this._isPlayDisabled = false;
-            this._isNextFrameDisabled = false;
+            this._isPlayDisabled = true;
+            this._isNextFrameDisabled = true;
 
             this._isRewindDisabled = !dvr.willHaveVideoDataToPlay;
-            this._isSlowForwardDisabled = false;
-            this._isFastForwardDisabled = false;
+            this._isSlowForwardDisabled = true;
+            this._isFastForwardDisabled = true;
         }
     }
 
