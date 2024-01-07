@@ -169,9 +169,10 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private async onError(err: any) {
-        console.warn(`Segment ${this.currentSegment.index} had an error`);
+        const { index } = this.currentSegment;
+
         if (err instanceof MediaError && err.MEDIA_ERR_DECODE) {
-            console.warn(`Looks like a decoding error. Trying to compensate by skipping past it.`);
+            console.warn(`Decoding error on segment ${index}. Compensating.`);
 
             const next = this.currentTime.add(this.options.decodingErrorSkipSec, 'second');
 
@@ -181,6 +182,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             // TODO: Preserve playback speed?
             await this.play();
         } else {
+            console.error(`Segment ${index} had an unreognized error`);
             this.emitError(this.currentSegment, err);
         }
     }

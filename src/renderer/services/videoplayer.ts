@@ -58,23 +58,36 @@ export class VideoPlayer implements IVideoPlayer {
                 return resolve();
             }
 
-            this.videoElt
-                .play()
-                .then(resolve)
-                .catch((err) => {
-                    // Despite the isPlaying() check above we still got the error.
-                    if (this.isPlayInterruptDomException(err)) {
-                        resolve();
-                    } else {
-                        reject(err);
-                    }
-                });
-            // }, 10);
+            // The timeout helps reduce the risk of "The play() request was interrupted by a call to pause()"
+            // DOMException that gets thrown a lot when switching to a new video and invoking `play()`.
+            setTimeout(() => {
+                this.videoElt
+                    .play()
+                    .then(resolve)
+                    .catch((err) => {
+                        // Despite the isPlaying() check and timeout we still got the error :(.
+                        if (this.isPlayInterruptDomException(err)) {
+                            resolve();
+                        } else if (this.isNoSupportedSourceDomException(err)) {
+                            resolve();
+                        } else {
+                            console.warn(err);
+                            reject(err);
+                        }
+                    });
+            }, 10);
         });
     }
 
     private isPlayInterruptDomException(err: any) {
         return err instanceof DOMException && err.message.startsWith('The play() request');
+    }
+
+    private isNoSupportedSourceDomException(err: any) {
+        return (
+            err instanceof DOMException &&
+            err.message.startsWith('The element has no supported sources')
+        );
     }
 
     /**
