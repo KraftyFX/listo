@@ -20,6 +20,7 @@ export interface RecordingOptions {
 }
 
 export interface PlaybackOptions {
+    decodingErrorSkipSec: number;
     maxPlaySpeedFactor: number;
     minPlaySpeedFactor: number;
     logging: LogLevel;

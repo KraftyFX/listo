@@ -14,6 +14,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
 };
 
 export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
+    decodingErrorSkipSec: 1,
     maxPlaySpeedFactor: 32,
     minPlaySpeedFactor: 1 / 8,
     logging: null,

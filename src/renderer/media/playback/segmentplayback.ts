@@ -19,7 +19,7 @@ type SegmentPlaybackEvents = {
     ended: (where: 'start' | 'end') => void;
 
     timeupdate: (currentTime: Dayjs, speed: number) => void;
-    error: (err: any) => void;
+    error: (segment: Segment, err: any) => void;
 };
 
 export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
@@ -81,7 +81,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
 
             this.player.ontimeupdate = () => this.emitTimeUpdate();
             this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
-            this.player.onerror = (err) => this.onPlaybackError(err);
+            this.player.onerror = (err) => this.onError(err);
 
             this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
             this.controller.on('play', () => this.emitPlay());
@@ -168,14 +168,20 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
     }
 
-    private async onPlaybackError(err: any) {
-        console.warn(`Segment ${this.currentSegment.index} is corrupt`);
-        console.warn(err);
+    private async onError(err: any) {
+        console.warn(`Segment ${this.currentSegment.index} had an error`);
+        if (err instanceof MediaError && err.MEDIA_ERR_DECODE) {
+            console.warn(`Looks like a decoding error. Trying to compensate by skipping past it.`);
 
-        this.currentSegment.hasErrors = true;
-        await this.locator.listo.saveRecording(this.currentSegment, true);
+            const next = this.currentTime.add(this.options.decodingErrorSkipSec, 'second');
 
-        this.emitError(err);
+            await this.releaseAsVideoSource();
+            await this.setAsVideoSource(next);
+
+            await this.play();
+        } else {
+            this.emitError(this.currentSegment, err);
+        }
     }
 
     private async playNextSegment() {
@@ -375,7 +381,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         this.emit('ended', where);
     }
 
-    private emitError(err: any) {
-        this.emit(err);
+    private emitError(segment: Segment, err: any) {
+        this.emit('error', segment, err);
     }
 }
