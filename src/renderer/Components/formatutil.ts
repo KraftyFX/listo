@@ -42,7 +42,11 @@ function isHourMinStyle({ major, minor }: MarkerConfig) {
         const hasHourMajor = isSet(major.hours) && !isSet(major.minutes);
         const hasMinMinor = !isSet(minor.hours) && isSet(minor.minutes);
 
-        return hasHourMajor && hasMinMinor && assertIsEvenlyDivisible(major.hours!, minor.minutes!);
+        return (
+            hasHourMajor &&
+            hasMinMinor &&
+            assertIsEvenlyDivisible(major.hours! * 60, minor.minutes!)
+        );
     } catch (e) {
         throw new Error(`The hour/minute configuration is invalid. ${e}`);
     }
@@ -89,7 +93,9 @@ function isMinSecStyle({ major, minor }: MarkerConfig) {
         const hasSecMinor = !isSet(minor.minutes) && isSet(minor.seconds);
 
         return (
-            hasMinMajor && hasSecMinor && assertIsEvenlyDivisible(major.minutes!, minor.seconds!)
+            hasMinMajor &&
+            hasSecMinor &&
+            assertIsEvenlyDivisible(major.minutes! * 60, minor.seconds!)
         );
     } catch (e) {
         throw new Error(`The hour/minute configuration is invalid. ${e}`);
