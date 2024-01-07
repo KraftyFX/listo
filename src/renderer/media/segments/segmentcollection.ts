@@ -191,17 +191,6 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             `Resetting duration of ${formatSegment(segment)} to ${duration.toFixed(2)}`
         );
 
-        const delta = segment.duration - duration;
-
-        if (delta > 1) {
-            this.logger.warn(
-                `Segment ${segment.index} had a big delta ${delta.toFixed(
-                    2
-                )}s. Adjusting start time.`
-            );
-            segment.startTime = segment.startTime.add(delta, 'seconds');
-        }
-
         segment.duration = duration;
 
         this.assertIsConsistent();
