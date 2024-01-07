@@ -15,6 +15,7 @@ type DvrEvents = {
     play: () => void;
     pause: () => void;
     playbackupdate: (currentTime: Dayjs, speed: number) => void;
+    playbackerror: (segment: Segment, err: any, handled: boolean) => void;
     liveupdate: () => void;
     segmentadded: () => void;
     segmentupdated: () => void;
@@ -128,9 +129,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('timeupdate', (currentTime, speed) =>
                 this.emitPlaybackUpdate(this.playback.currentTime, speed)
             );
-            this.playback.on('error', (err: any) => {
-                console.error(err);
-            });
+            this.playback.on('error', (segment, error, handled) =>
+                this.emitPlaybackError(segment, error, handled)
+            );
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
             this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));
@@ -352,6 +353,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
 
     private emitPlaybackUpdate(currentTime: Dayjs, speed: number): void {
         this.emit('playbackupdate', currentTime, speed);
+    }
+
+    private emitPlaybackError(segment: Segment, error: any, handled: boolean): void {
+        this.emit('playbackerror', segment, error, handled);
     }
 
     private emitPlay() {

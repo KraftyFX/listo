@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
+import { Segment } from '~/renderer/media/segments/interfaces';
 import { CameraStore } from './cameraStore';
 import { TimelineStore } from './timelineStore';
 
@@ -37,6 +38,8 @@ export class DvrStore {
             _isRewindDisabled: observable,
             _isSlowForwardDisabled: observable,
             _isFastForwardDisabled: observable,
+
+            error: observable.ref,
         });
 
         this._timeline = new TimelineStore(this);
@@ -87,6 +90,7 @@ export class DvrStore {
         this.listenForPlayPauseChange();
         this.listenForLiveUpdates();
         this.listenForPlaybackUpdate();
+        this.listenForPlaybackErrors();
 
         this.timeline.init();
     }
@@ -218,6 +222,28 @@ export class DvrStore {
                 this._speed = speed;
 
                 this.refreshControlAbilities();
+            })
+        );
+    }
+
+    public error: { segment: Segment; error: any; handled: boolean } | null = null;
+
+    private listenForPlaybackErrors() {
+        this.dvr.on(
+            'segmentrendered',
+            action(() => {
+                this.error = null;
+            })
+        );
+
+        this.dvr.on(
+            'playbackerror',
+            action((segment, error, handled) => {
+                this.error = {
+                    segment,
+                    error,
+                    handled,
+                };
             })
         );
     }

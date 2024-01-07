@@ -19,7 +19,7 @@ type SegmentPlaybackEvents = {
     ended: (where: 'start' | 'end') => void;
 
     timeupdate: (currentTime: Dayjs, speed: number) => void;
-    error: (segment: Segment, err: any) => void;
+    error: (segment: Segment, err: any, handled: boolean) => void;
 };
 
 export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
@@ -169,9 +169,11 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     private async onError(err: any) {
+        let handled = false;
         const { index } = this.currentSegment;
 
         if (err instanceof MediaError && err.MEDIA_ERR_DECODE) {
+            handled = true;
             console.warn(`Decoding error on segment ${index}. Compensating.`);
 
             const next = this.currentTime.add(this.options.decodingErrorSkipSec, 'second');
@@ -183,8 +185,9 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             await this.play();
         } else {
             console.error(`Segment ${index} had an unreognized error`);
-            this.emitError(this.currentSegment, err);
         }
+
+        this.emitError(this.currentSegment, err, handled);
     }
 
     private async playNextSegment() {
@@ -384,7 +387,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         this.emit('ended', where);
     }
 
-    private emitError(segment: Segment, err: any) {
-        this.emit('error', segment, err);
+    private emitError(segment: Segment, err: any, handled: boolean) {
+        this.emit('error', segment, err, handled);
     }
 }

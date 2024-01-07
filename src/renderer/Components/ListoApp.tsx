@@ -12,6 +12,7 @@ import { MediaStreamReader } from '../services/mediastreamreader';
 import { VideoPlayer as Player } from '../services/videoplayer';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
+import { PlaybackError } from './PlaybackError';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
 
@@ -75,6 +76,7 @@ export const ListoApp = observer(function ListoApp() {
                     location.reload();
                 }}
             />
+            <PlaybackError dvrStore={dvrStore} />
             <VideoPlayer ref={videoRef} />
             {!isDvrReady ? null : (
                 <>
