@@ -11,8 +11,12 @@ export class TimelineStore {
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
-        makeAutoObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
+        makeAutoObservable<
+            TimelineStore,
+            'willHaveVideoDataToPlay' | 'firstRecording' | 'lastRecording'
+        >(this, {
             markerSize: observable.deep,
+            willHaveVideoDataToPlay: computed,
             firstRecording: computed,
             lastRecording: computed,
         });
