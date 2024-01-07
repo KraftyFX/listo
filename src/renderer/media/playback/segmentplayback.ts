@@ -178,6 +178,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             await this.releaseAsVideoSource();
             await this.setAsVideoSource(next);
 
+            // TODO: Preserve playback speed?
             await this.play();
         } else {
             this.emitError(this.currentSegment, err);
