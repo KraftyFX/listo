@@ -99,6 +99,10 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
     }
 
     get playableSegments() {
+        if (this.segments.length === 0) {
+            return [];
+        }
+
         return this.segments.segments;
     }
 

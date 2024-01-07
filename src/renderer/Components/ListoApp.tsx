@@ -36,6 +36,8 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             window.dvr = dvrStore.dvr = new DigitalVideoRecorder();
             window.dvrStore = dvrStore;
 
+            await dvrStore.dvr.switchToLiveStream();
+
             const recordings = await listo.getRecentRecordings(
                 dayjs().startOf('day').toISOString(),
                 dayjs().endOf('day').toISOString()
@@ -44,8 +46,6 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             recordings.forEach(({ startTime, duration, url, hasErrors }) => {
                 dvrStore.dvr.addSegment(startTime, duration, url, hasErrors);
             });
-
-            await dvrStore.dvr.switchToLiveStream();
 
             setIsDvrReady(true);
         };

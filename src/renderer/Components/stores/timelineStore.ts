@@ -25,8 +25,7 @@ export class TimelineStore {
     private _hasInit = false;
 
     public init() {
-        this.listenForSegmentAdded();
-        this.listenForSegmentUpdated();
+        this.listenForSegmentChanges();
 
         this._hasInit = true;
     }
@@ -37,22 +36,18 @@ export class TimelineStore {
         }
     }
 
-    private listenForSegmentAdded() {
+    private listenForSegmentChanges() {
+        this.segments = this.dvrStore.dvr.playableSegments;
+
         this.dvrStore.dvr.on(
             'segmentadded',
-            action(() => this.refreshRecordings())
+            action(() => (this.segments = this.dvrStore.dvr.playableSegments))
         );
-    }
 
-    private listenForSegmentUpdated() {
         this.dvrStore.dvr.on(
             'segmentupdated',
-            action(() => this.refreshRecordings())
+            action(() => (this.segments = this.dvrStore.dvr.playableSegments))
         );
-    }
-
-    private refreshRecordings() {
-        this.segments = this.dvrStore.dvr.playableSegments;
     }
 
     private get startOfTime() {
