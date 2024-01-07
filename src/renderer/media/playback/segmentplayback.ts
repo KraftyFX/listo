@@ -17,7 +17,9 @@ type SegmentPlaybackEvents = {
     play: () => void;
     pause: () => void;
     ended: (where: 'start' | 'end') => void;
+
     timeupdate: (currentTime: Dayjs, speed: number) => void;
+    error: (err: any) => void;
 };
 
 export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
@@ -79,6 +81,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
 
             this.player.ontimeupdate = () => this.emitTimeUpdate();
             this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
+            this.player.onerror = (err) => this.onPlaybackError(err);
 
             this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
             this.controller.on('play', () => this.emitPlay());
@@ -97,6 +100,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.disableAutoPlayback();
             this.player.ontimeupdate = null;
             this.player.ondurationchange = null;
+            this.player.onerror = null;
             await this.player.setVideoSource(null);
 
             this.controller.removeAllListeners();
@@ -162,6 +166,16 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         const duration = this.player.duration;
 
         return isNaN(duration) || duration == Number.POSITIVE_INFINITY ? -1 : duration;
+    }
+
+    private async onPlaybackError(err: any) {
+        console.warn(`Segment ${this.currentSegment.index} is corrupt`);
+        console.warn(err);
+
+        this.currentSegment.hasErrors = true;
+        await this.locator.listo.saveRecording(this.currentSegment, true);
+
+        this.emitError(err);
     }
 
     private async playNextSegment() {
@@ -359,5 +373,9 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
 
     private emitEnded(where: 'start' | 'end') {
         this.emit('ended', where);
+    }
+
+    private emitError(err: any) {
+        this.emit(err);
     }
 }

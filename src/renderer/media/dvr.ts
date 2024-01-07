@@ -128,6 +128,9 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.playback.on('timeupdate', (currentTime, speed) =>
                 this.emitPlaybackUpdate(this.playback.currentTime, speed)
             );
+            this.playback.on('error', (err: any) => {
+                console.error(err);
+            });
             this.playback.on('play', () => this.emitPlay());
             this.playback.on('pause', () => this.emitPause());
             this.playback.on('ended', (where: 'start' | 'end') => this.onPlaybackEnded(where));

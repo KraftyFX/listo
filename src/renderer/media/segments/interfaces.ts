@@ -6,4 +6,6 @@ export interface Segment {
     startTime: Dayjs;
     duration: number;
     isPartial: boolean;
+    blob: Blob;
+    hasErrors: boolean;
 }

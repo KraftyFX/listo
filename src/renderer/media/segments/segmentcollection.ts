@@ -2,6 +2,7 @@ import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import TypedEventEmitter from '../eventemitter';
+import { Recording } from '../recording';
 import { formatSegment } from './formatutil';
 import { Segment } from './interfaces';
 
@@ -38,7 +39,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         return !this.isEmpty && this.lastSegment.isPartial;
     }
 
-    addSegment(startTime: Dayjs, url: string, duration: number, isPartial: boolean) {
+    addSegment({ startTime, duration, isPartial, blob }: Recording, url: string) {
         if (!url || duration < 0) {
             throw new Error(`Arguments are invalid`);
         }
@@ -53,6 +54,8 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             startTime,
             duration,
             isPartial,
+            blob,
+            hasErrors: false,
         };
 
         this.logger.log(`Adding ${formatSegment(segment)}`);

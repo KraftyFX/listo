@@ -54,7 +54,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     }
 
     private async onRecording(recording: Recording) {
-        const { startTime, duration, isPartial } = recording;
+        const { startTime, isPartial } = recording;
 
         this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
 
@@ -64,14 +64,14 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
 
         const url = await this.saveRecording(recording);
 
-        this.segments.addSegment(startTime, url, duration, isPartial);
+        this.segments.addSegment(recording, url);
     }
 
     private async saveRecording(recording: Recording) {
         if (recording.isPartial || this.options.inMemory) {
             return this.locator.host.createObjectURL(recording.blob);
         } else {
-            return this.locator.listo.saveRecording(recording);
+            return this.locator.listo.saveRecording(recording, false);
         }
     }
 
@@ -79,6 +79,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
         if (segment.isPartial || this.options.inMemory) {
             this.locator.host.revokeObjectURL(segment.url);
             segment.url = '';
+            segment.blob = null!;
         } else {
             throw new Error(`Disposing saved segments on disk is invalid for this component.`);
         }
