@@ -15,7 +15,7 @@ export interface TimelineProps {
 }
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
-    const { dvrStore, viewport, marker } = props;
+    const { dvrStore } = props;
     const { timeline } = dvrStore;
     const [timelineWidthPx, setTimelineWidthPx] = useState(1);
 
@@ -32,7 +32,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     useEffect(
         action(function mount() {
-            timeline.markerSize = marker;
+            timeline.viewportSize = props.viewport;
+            timeline.markerSize = props.marker;
 
             setTimelineWidthPx(timelineRef.current.offsetWidth);
 
@@ -60,7 +61,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getPixelsFromDuration(duration: Duration) {
-        const viewportSec = viewport.asSeconds();
+        const viewportSec = timeline.viewportSize.asSeconds();
         const durationSec = duration.asSeconds();
 
         const pixelsPerSec = timelineWidthPx / viewportSec;
@@ -70,7 +71,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getTimeFromPixels(x: number) {
-        const viewportSec = viewport.asSeconds();
+        const viewportSec = timeline.viewportSize.asSeconds();
         const secPerPixel = viewportSec / timelineWidthPx;
 
         const duration = dayjs.duration({ seconds: x * secPerPixel });

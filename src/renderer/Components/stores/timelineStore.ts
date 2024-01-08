@@ -1,6 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
+import { Duration } from 'dayjs/plugin/duration';
 import { action, computed, makeAutoObservable, observable } from 'mobx';
-import { DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
+import { DEFAULT_DVR_OPTIONS, DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
 import { Segment } from '~/renderer/media/segments/interfaces';
 import { DvrStore } from './dvrStore';
 
@@ -8,6 +9,8 @@ export class TimelineStore {
     autoscroll = true;
 
     segments: Segment[] = [];
+
+    viewportSize: Duration = dayjs.duration(DEFAULT_DVR_OPTIONS.timeline.viewport);
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
@@ -24,6 +27,30 @@ export class TimelineStore {
         this.listenForSegmentChanges();
 
         this._hasInit = true;
+    }
+
+    set viewportInSec(value: number) {
+        this.viewportSize = dayjs.duration(value, 'seconds');
+    }
+
+    get viewportInSec() {
+        return this.viewportSize.asSeconds();
+    }
+
+    set minorInSec(value: number) {
+        this.markerSize.minor.seconds = value;
+    }
+
+    get minorInSec() {
+        return this.markerSize.minor.seconds!;
+    }
+
+    set majorInSec(value: number) {
+        this.markerSize.major.seconds = value;
+    }
+
+    get majorInSec() {
+        return this.markerSize.major.seconds!;
     }
 
     private assertHasInitialized() {
