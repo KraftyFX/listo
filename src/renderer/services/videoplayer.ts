@@ -1,3 +1,4 @@
+import { isNoSupportedSourceDomException, isPlayInterruptDomException } from './errorutil';
 import { IVideoPlayer, TimeChangeEvent } from './interfaces';
 
 export class VideoPlayer implements IVideoPlayer {
@@ -66,9 +67,9 @@ export class VideoPlayer implements IVideoPlayer {
                     .then(resolve)
                     .catch((err) => {
                         // Despite the isPlaying() check and timeout we still got the error :(.
-                        if (this.isPlayInterruptDomException(err)) {
+                        if (isPlayInterruptDomException(err)) {
                             resolve();
-                        } else if (this.isNoSupportedSourceDomException(err)) {
+                        } else if (isNoSupportedSourceDomException(err)) {
                             resolve();
                         } else {
                             console.warn(err);
@@ -77,17 +78,6 @@ export class VideoPlayer implements IVideoPlayer {
                     });
             }, 10);
         });
-    }
-
-    private isPlayInterruptDomException(err: any) {
-        return err instanceof DOMException && err.message.startsWith('The play() request');
-    }
-
-    private isNoSupportedSourceDomException(err: any) {
-        return (
-            err instanceof DOMException &&
-            err.message.startsWith('The element has no supported sources')
-        );
     }
 
     /**

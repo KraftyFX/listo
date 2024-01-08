@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
+import { isMediaDecodingError } from '../services/errorutil';
 
 export interface PlaybackErrorProps {
     dvrStore: DvrStore;
@@ -15,9 +16,17 @@ export const PlaybackError = observer(function PlaybackError(props: PlaybackErro
 
     const { error, segment, handled } = dvrStore.error;
 
-    return (
-        <div className={handled ? `error handled` : `error`}>
-            Segment {segment.index}. {error.message}
-        </div>
-    );
+    if (isMediaDecodingError(error) && handled) {
+        return (
+            <div className="error handled">
+                The video seems a little corrupt here. I'm skipping passed that bit.
+            </div>
+        );
+    } else {
+        return (
+            <div className={handled ? `error handled` : `error`}>
+                Segment {segment.index}. {error.message}
+            </div>
+        );
+    }
 });

@@ -7,6 +7,7 @@ import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { IServiceLocator, getLocator } from '~/renderer/services';
+import { isMediaDecodingError } from '~/renderer/services/errorutil';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
 import { PlaybackController } from './playbackcontroller';
@@ -172,7 +173,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         let handled = false;
         const { index } = this.currentSegment;
 
-        if (err instanceof MediaError && err.MEDIA_ERR_DECODE) {
+        if (isMediaDecodingError(err)) {
             handled = true;
             console.warn(`Decoding error on segment ${index}. Compensating.`);
 
