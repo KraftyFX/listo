@@ -10,11 +10,14 @@ describe('SegmentCollection', () => {
 
             let raised: Segment = null!;
 
-            segments.on('segmentadded', (segment) => {
+            segments.on('added', (segment) => {
                 raised = segment;
             });
 
-            const returned = segments.addSegment(host.now, 'test://', 5, false);
+            const returned = segments.addSegment(
+                { startTime: host.now, duration: 5, isPartial: false },
+                'test://'
+            );
 
             assert.isNotNull(raised, 'raised');
             assert.isNotNull(returned, 'returned');
@@ -30,14 +33,17 @@ describe('SegmentCollection', () => {
 
             let raised: Segment = null!;
 
-            segments.on('segmentadded', (segment) => {
+            segments.on('added', (segment) => {
                 raised = segment;
             });
 
             let last: Segment = null!;
 
             for (let i = 0; i < 3; i++) {
-                last = segments.addSegment(host.now, 'test://', 5, false);
+                last = segments.addSegment(
+                    { startTime: host.now, duration: 5, isPartial: false },
+                    'test://'
+                );
 
                 assert.isNotNull(raised, 'raised');
                 assert.isNotNull(last, 'returned');
@@ -55,7 +61,7 @@ describe('SegmentCollection', () => {
             const { host } = getLocator();
             const segments = getWithDenseSegments();
 
-            segments.addSegment(host.now, 'test://', 5, true);
+            segments.addSegment({ startTime: host.now, duration: 5, isPartial: true }, 'test://');
 
             assert.isTrue(segments.isLastSegmentPartial, 'partial');
         });
@@ -64,7 +70,10 @@ describe('SegmentCollection', () => {
             const { host } = getLocator();
             const segments = new SegmentCollection();
 
-            const partial = segments.addSegment(host.now, 'test://', 3, true);
+            const partial = segments.addSegment(
+                { startTime: host.now, duration: 3, isPartial: true },
+                'test://'
+            );
             host.advanceTimeBy(3000);
 
             assert.isTrue(segments.isLastSegmentPartial, 'isLastSegmentPartial');
@@ -72,7 +81,10 @@ describe('SegmentCollection', () => {
             // Fake dispose
             partial.url = '';
 
-            const replacement = segments.addSegment(host.now, 'test://', 4, true);
+            const replacement = segments.addSegment(
+                { startTime: host.now, duration: 4, isPartial: true },
+                'test://'
+            );
             host.advanceTimeBy(4000);
 
             assert.isTrue(segments.isLastSegmentPartial, 'isLastSegmentPartial');
@@ -85,7 +97,10 @@ describe('SegmentCollection', () => {
             const { host } = getLocator();
             const segments = new SegmentCollection();
 
-            const partial = segments.addSegment(host.now, 'test://', 3, true);
+            const partial = segments.addSegment(
+                { startTime: host.now, duration: 3, isPartial: true },
+                'test://'
+            );
             host.advanceTimeBy(3000);
 
             assert.isTrue(segments.isLastSegmentPartial, 'isLastSegmentPartial');
@@ -93,7 +108,10 @@ describe('SegmentCollection', () => {
             // Fake dispose
             partial.url = '';
 
-            const replacement = segments.addSegment(host.now, 'test://', 4, false);
+            const replacement = segments.addSegment(
+                { startTime: host.now, duration: 4, isPartial: false },
+                'test://'
+            );
             host.advanceTimeBy(4000);
 
             assert.isFalse(segments.isLastSegmentPartial, 'isLastSegmentPartial');
@@ -188,7 +206,10 @@ describe('SegmentCollection', () => {
         it('getNextSegment(null) is null', async () => {
             const { host } = getLocator();
             const segments = new SegmentCollection();
-            const curr = segments.addSegment(host.now, 'test://', 0, false);
+            const curr = segments.addSegment(
+                { startTime: host.now, duration: 0, isPartial: false },
+                'test://'
+            );
             const next = null;
 
             assert.equal(segments.getNextSegment(curr), next, 'segment');
@@ -293,7 +314,10 @@ export function getWithDenseSegments() {
     const duration = 5;
 
     for (let i = 0; i < 5; i++) {
-        segments.addSegment(host.now, `test://${i}/${duration}`, duration, false);
+        segments.addSegment(
+            { startTime: host.now, duration, isPartial: false },
+            `test://${i}/${duration}`
+        );
         host.advanceTimeBy((duration + 0.001) * 1000);
     }
 
@@ -320,10 +344,8 @@ export function getWithSparseSegments() {
 
     recordings.forEach(({ offset, duration }, i) => {
         last = segments.addSegment(
-            start.add(offset, 'seconds'),
-            `test://${i}/${duration}`,
-            duration,
-            false
+            { startTime: start.add(offset, 'seconds'), duration, isPartial: false },
+            `test://${i}/${duration}`
         );
     });
 

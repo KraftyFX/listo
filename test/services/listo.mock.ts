@@ -1,8 +1,8 @@
 import { Recording } from '~/renderer/media/recording';
-import { IListoService } from '~/renderer/services';
+import { IListoService, RecordingEx } from '~/renderer/services';
 
 export class MockListoService implements IListoService {
-    async getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<Recording[]> {
+    async getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<RecordingEx[]> {
         return [];
     }
 
