@@ -141,6 +141,10 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this.emitPlay();
     }
 
+    get isAtMaxFastForwardSpeed() {
+        return this._speed >= this.options.maxPlaySpeedFactor;
+    }
+
     async fastForward() {
         if (this.mode !== 'fastForward') {
             this._speed = 2;
@@ -160,13 +164,46 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this.emitPlay();
     }
 
-    get isAtMaxFastForwardSpeed() {
-        return this._speed >= this.options.maxPlaySpeedFactor;
+    async onInterval() {
+        if (this.playback.isRendering) {
+            console.warn('Playback is busy. Skipping this round.');
+            return;
+        }
+
+        const currentTime = this.playback.currentTime;
+        const nextTime =
+            this.deltaInSec >= 0
+                ? currentTime.add(this.deltaInSec, 'seconds')
+                : currentTime.subtract(this.deltaInSec * -1, 'seconds');
+
+        if (this.deltaInSec === 0) {
+            this.logger.info('Unexpected Stop');
+
+            this.stopInterval();
+
+            await this.playback.goToTime(currentTime);
+            this.emitPause();
+        } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
+            this.logger.info('Reached the beginning');
+
+            this.stopInterval();
+
+            await this.playback.goToStart();
+            this.emitPause();
+            this.emitEnded('start');
+        } else if (this.playback.isAfterEnd(nextTime) && this.direction === 'forward') {
+            this.logger.info('Reached the end');
+
+            this.stopInterval();
+
+            await this.playback.goToEnd();
+            this.emitPause();
+            this.emitEnded('end');
+        } else {
+            await this.playback.goToTime(nextTime);
+        }
     }
 
-    get isActive() {
-        return this._interval !== 0;
-    }
     private _interval: any = 0;
 
     private startInterval() {
@@ -174,47 +211,7 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
         this.logger.log('Starting playback timer');
 
-        this._interval =
-            this._interval ||
-            setInterval(async () => {
-                if (this.playback.isRendering) {
-                    console.warn('Playback is busy. Skipping this round.');
-                    return;
-                }
-
-                const currentTime = this.playback.currentTime;
-                const nextTime =
-                    this.deltaInSec >= 0
-                        ? currentTime.add(this.deltaInSec, 'seconds')
-                        : currentTime.subtract(this.deltaInSec * -1, 'seconds');
-
-                if (this.deltaInSec === 0) {
-                    this.logger.info('Unexpected Stop');
-
-                    this.stopInterval();
-
-                    await this.playback.goToTime(currentTime);
-                    this.emitPause();
-                } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
-                    this.logger.info('Reached the beginning');
-
-                    this.stopInterval();
-
-                    await this.playback.goToStart();
-                    this.emitPause();
-                    this.emitEnded('start');
-                } else if (this.playback.isAfterEnd(nextTime) && this.direction === 'forward') {
-                    this.logger.info('Reached the end');
-
-                    this.stopInterval();
-
-                    await this.playback.goToEnd();
-                    this.emitPause();
-                    this.emitEnded('end');
-                } else {
-                    await this.playback.goToTime(nextTime);
-                }
-            }, REFRESH_RATE_IN_MS);
+        this._interval = this._interval || setInterval(() => this.onInterval(), REFRESH_RATE_IN_MS);
     }
 
     private stopInterval() {
