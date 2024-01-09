@@ -10,7 +10,7 @@ import { IServiceLocator, getLocator } from '~/renderer/services';
 import { isMediaDecodingError } from '~/renderer/services/errorutil';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
-import { PlaybackController } from './playbackcontroller';
+import { Scrubber } from './scrubber';
 
 type SegmentPlaybackEvents = {
     segmentrendered: (segment: Segment) => void;
@@ -25,7 +25,7 @@ type SegmentPlaybackEvents = {
 
 export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
     private logger: Logger;
-    private controller: PlaybackController;
+    private scrubber: Scrubber;
     public readonly options: PlaybackOptions;
     private readonly _segments: SegmentCollection;
     private locator: IServiceLocator;
@@ -38,7 +38,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
 
         this.locator = getLocator();
         this.logger = getLog('pbk', this.options);
-        this.controller = new PlaybackController(this, this.options);
+        this.scrubber = new Scrubber(this, this.options);
     }
 
     get player() {
@@ -52,7 +52,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get speed() {
-        return this.controller.speed;
+        return this.scrubber.speed;
     }
 
     get currentTime() {
@@ -84,9 +84,9 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.player.ondurationchange = () => this.syncSegmentDuration(this.currentSegment);
             this.player.onerror = (err) => this.onError(err);
 
-            this.controller.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
-            this.controller.on('play', () => this.emitPlay());
-            this.controller.on('pause', () => this.emitPause());
+            this.scrubber.on('ended', (where: 'start' | 'end') => this.emitEnded(where));
+            this.scrubber.on('play', () => this.emitPlay());
+            this.scrubber.on('pause', () => this.emitPause());
 
             if (this.paused) {
                 this.emitPause();
@@ -104,8 +104,8 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.player.onerror = null;
             await this.player.setVideoSource(null);
 
-            this.controller.removeAllListeners();
-            this.controller.stop();
+            this.scrubber.removeAllListeners();
+            this.scrubber.stop();
 
             this.currentSegment = null!;
             this._isVideoSource = false;
@@ -253,7 +253,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     }
 
     get paused() {
-        return this.controller.paused;
+        return this.scrubber.paused;
     }
 
     async play() {
@@ -268,17 +268,17 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.logger.info('At the end of currentSegment. Starting play at the next one.');
             await this.playNextSegment();
         } else {
-            await this.controller.play();
+            await this.scrubber.play();
         }
     }
 
     async pause() {
         this.disableAutoPlayback();
-        await this.controller.pause();
+        await this.scrubber.pause();
     }
 
     get isAtMaxRewindSpeed() {
-        return this.controller.isAtMaxRewindSpeed;
+        return this.scrubber.isAtMaxRewindSpeed;
     }
 
     async rewind() {
@@ -288,11 +288,11 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         }
 
         this.disableAutoPlayback();
-        await this.controller.rewind();
+        await this.scrubber.rewind();
     }
 
     get isAtMinSlowSpeed() {
-        return this.controller.isAtMinSlowSpeed;
+        return this.scrubber.isAtMinSlowSpeed;
     }
 
     async slowForward() {
@@ -302,11 +302,11 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         }
 
         this.disableAutoPlayback();
-        await this.controller.slowForward();
+        await this.scrubber.slowForward();
     }
 
     get isAtMaxFastForwardSpeed() {
-        return this.controller.isAtMaxFastForwardSpeed;
+        return this.scrubber.isAtMaxFastForwardSpeed;
     }
 
     async fastForward() {
@@ -316,7 +316,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         }
 
         this.disableAutoPlayback();
-        await this.controller.fastForward();
+        await this.scrubber.fastForward();
     }
 
     async nextFrame() {
@@ -326,7 +326,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         }
 
         this.disableAutoPlayback();
-        await this.controller.nextFrame();
+        await this.scrubber.nextFrame();
     }
 
     get isAtBeginning() {

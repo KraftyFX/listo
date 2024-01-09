@@ -6,13 +6,13 @@ import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
 import { SegmentPlayback } from './segmentplayback';
 
-type PlaybackControllerEvents = {
+type ScrubberEvents = {
     play: () => void;
     pause: () => void;
     ended: (where: 'start' | 'end') => void;
 };
 
-export class PlaybackController extends (EventEmitter as new () => TypedEventEmitter<PlaybackControllerEvents>) {
+export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<ScrubberEvents>) {
     private logger: Logger;
     private playback: SegmentPlayback;
 
