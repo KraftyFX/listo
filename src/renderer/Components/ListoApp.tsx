@@ -1,19 +1,14 @@
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { DvrStore } from '~/renderer/Components/stores/dvrStore';
-import { DEFAULT_RECORDING_OPTIONS } from '~/renderer/media';
-import { DigitalVideoRecorder } from '../media/dvr';
-import { ServiceLocator, setLocator } from '../services';
-import { HostService } from '../services/host';
-import { ListoService } from '../services/listo';
-import { MediaStreamReader } from '../services/mediastreamreader';
-import { VideoPlayer as Player } from '../services/videoplayer';
+import { DvrStore } from '~/renderer/Components/stores';
+import { DigitalVideoRecorder } from '~/renderer/media';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { PlaybackError } from './PlaybackError';
 import { Timeline } from './Timeline';
 import { VideoPlayer } from './VideoPlayer';
+import { getLiveStream, initailizeServiceLocator } from './initutil';
 
 export interface ListoAppProps {
     dvrStore: DvrStore;
@@ -85,34 +80,3 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
         </>
     );
 });
-
-async function initailizeServiceLocator(
-    videoRef: React.MutableRefObject<HTMLVideoElement>,
-    stream: MediaStream,
-    mimeType: string
-) {
-    return setLocator(
-        new ServiceLocator(
-            new Player(videoRef.current),
-            new MediaStreamReader(stream, mimeType),
-            new ListoService(),
-            new HostService()
-        )
-    );
-}
-
-async function getLiveStream(deviceId: string) {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-            deviceId,
-        },
-    });
-
-    if (!stream) {
-        throw new Error(`The user denied access to the camera. Can't acquire live stream.`);
-    }
-
-    const { mimeType } = DEFAULT_RECORDING_OPTIONS;
-
-    return { stream, mimeType };
-}

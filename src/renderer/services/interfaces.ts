@@ -1,5 +1,5 @@
 import { Dayjs } from 'dayjs';
-import { Recording } from '../media/recording';
+import { Recording } from '~/renderer/media/recording';
 
 export type TimeChangeEvent = ((this: IVideoPlayer) => any) | null;
 

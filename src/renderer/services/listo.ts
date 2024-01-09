@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { Recording } from '../media/recording';
+import { Recording } from '~/renderer/media/recording';
 import { IListoService, RecordingEx } from './interfaces';
 
 export class ListoService implements IListoService {

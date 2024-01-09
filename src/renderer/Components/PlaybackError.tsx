@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
-import { isMediaDecodingError } from '../services/errorutil';
+import { isMediaDecodingError } from '~/renderer/services/errorutil';
 
 export interface PlaybackErrorProps {
     dvrStore: DvrStore;

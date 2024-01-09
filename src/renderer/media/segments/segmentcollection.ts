@@ -1,8 +1,8 @@
 import { Dayjs } from 'dayjs';
 import EventEmitter from 'events';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import { Recording } from '~/renderer/media/recording';
 import TypedEventEmitter from '../eventemitter';
-import { Recording } from '../recording';
 import { formatSegment } from './formatutil';
 import { Segment } from './interfaces';
 
