@@ -88,10 +88,10 @@ function registerApiHandlers() {
     Object.keys(listoApi).forEach((eventName) => {
         console.log(`Registering api handler ${eventName}`);
 
-        ipcMain.handle(eventName, function handle() {
+        ipcMain.handle(eventName, async function handle() {
             const handler = (listoApi as any)[eventName];
 
-            return handler.apply(null, arguments);
+            return await handler.apply(null, arguments);
         });
     });
 }

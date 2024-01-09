@@ -8,17 +8,15 @@ import { IpcMainHandlers } from './interfaces';
 const desktop = app.getPath('desktop');
 const listoRootDir = join(desktop, 'listo');
 
-const timestampFormat = 'YYYY-MM-DD-hh-mm-ssa';
+const timestampFormat = 'YYYY-MM-DD-h-mm-ssa';
 
 export const listoApi: IpcMainHandlers<ListoApiKeys> = {
-    getRecentRecordings(
+    async getRecentRecordings(
         event: Electron.IpcMainInvokeEvent,
         startTimeIso: string,
         endTimeIso: string
-    ): Recording[] {
-        if (!fs.existsSync(listoRootDir)) {
-            fs.mkdirSync(listoRootDir, { recursive: true });
-        }
+    ): Promise<Recording[]> {
+        ensureRecordingDirectory();
 
         const recordings = getRecordings();
 
@@ -28,13 +26,11 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         return recordings;
     },
 
-    startNewRecording(event: Electron.IpcMainInvokeEvent, chunks: Uint8Array[]) {
+    async startNewRecording(event: Electron.IpcMainInvokeEvent, chunks: Uint8Array[]) {
         const recordingFilename = dayjs().format(timestampFormat) + `.webm`;
         const recordingFilepath = join(listoRootDir, recordingFilename);
 
-        if (!fs.existsSync(listoRootDir)) {
-            fs.mkdirSync(listoRootDir, { recursive: true });
-        }
+        ensureRecordingDirectory();
 
         if (fs.existsSync(recordingFilepath)) {
             fs.rmSync(recordingFilepath);
@@ -45,7 +41,11 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         return `listo://recordings/${recordingFilename}`;
     },
 
-    appendToRecording(event: Electron.IpcMainInvokeEvent, path: string, chunks: Uint8Array[]) {
+    async appendToRecording(
+        event: Electron.IpcMainInvokeEvent,
+        path: string,
+        chunks: Uint8Array[]
+    ) {
         if (!path.startsWith('listo://recordings/')) {
             throw new Error(`Unrecognized filepath ${path}`);
         }
@@ -69,14 +69,12 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         chunks: Uint8Array[],
         hasErrors: boolean
     ) {
-        const startTimeFormat = dayjs(startTimeIso).format('YYYY-MM-DD-h-mm-ssa');
+        const startTimeFormat = dayjs(startTimeIso).format(timestampFormat);
         const suffix = hasErrors ? `-err` : ``;
         const recordingFilename = `${startTimeFormat}-${durationSec.toFixed(3)}${suffix}.webm`;
         const recordingFilepath = join(listoRootDir, recordingFilename);
 
-        if (!fs.existsSync(listoRootDir)) {
-            fs.mkdirSync(listoRootDir, { recursive: true });
-        }
+        ensureRecordingDirectory();
 
         if (fs.existsSync(recordingFilepath)) {
             fs.rmSync(recordingFilepath);
@@ -87,6 +85,12 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         return `listo://recordings/${recordingFilename}`;
     },
 };
+
+function ensureRecordingDirectory() {
+    if (!fs.existsSync(listoRootDir)) {
+        fs.mkdirSync(listoRootDir, { recursive: true });
+    }
+}
 
 function insertDebugRecordings(recordings: Recording[]) {
     const debugRecordings = getDebugRecordings();
