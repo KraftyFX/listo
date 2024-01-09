@@ -122,14 +122,14 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         await this.renderSegment(segment, offset);
     }
 
-    private _isRendering = false;
+    private _isBusy = false;
 
-    get isRendering() {
-        return this._isRendering;
+    get isBusyDontTouchThePlayback() {
+        return this._isBusy;
     }
 
     private async renderSegment(segment: Segment, offset: number) {
-        this._isRendering = true;
+        this._isBusy = true;
 
         let segmentChanged = false;
 
@@ -150,7 +150,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
             this.emitSegmentRendered(segment);
         }
 
-        this._isRendering = false;
+        this._isBusy = false;
     }
 
     private async getSegmentUrl(segment: Segment) {

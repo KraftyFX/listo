@@ -167,7 +167,7 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
     }
 
     async onInterval() {
-        if (this.playback.isRendering) {
+        if (this.playback.isBusyDontTouchThePlayback) {
             console.warn('Playback is busy. Skipping this round.');
             return;
         }
