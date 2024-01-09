@@ -177,6 +177,11 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
         this._interval =
             this._interval ||
             setInterval(async () => {
+                if (this.playback.isRendering) {
+                    console.warn('Playback is busy. Skipping this round.');
+                    return;
+                }
+
                 const currentTime = this.playback.currentTime;
                 const nextTime =
                     this.deltaInSec >= 0
@@ -188,14 +193,14 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
                     this.stopInterval();
 
-                    this.playback.goToTime(currentTime);
+                    await this.playback.goToTime(currentTime);
                     this.emitPause();
                 } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
                     this.logger.info('Reached the beginning');
 
                     this.stopInterval();
 
-                    this.playback.goToStart();
+                    await this.playback.goToStart();
                     this.emitPause();
                     this.emitEnded('start');
                 } else if (this.playback.isAfterEnd(nextTime) && this.direction === 'forward') {
@@ -203,11 +208,11 @@ export class PlaybackController extends (EventEmitter as new () => TypedEventEmi
 
                     this.stopInterval();
 
-                    this.playback.goToEnd();
+                    await this.playback.goToEnd();
                     this.emitPause();
                     this.emitEnded('end');
                 } else {
-                    this.playback.goToTime(nextTime);
+                    await this.playback.goToTime(nextTime);
                 }
             }, REFRESH_RATE_IN_MS);
     }

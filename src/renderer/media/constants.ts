@@ -21,7 +21,7 @@ export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
 };
 
 export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
-    viewport: { seconds: 20 },
+    viewport: { minutes: 7 },
     marker: {
         major: { minutes: 1 },
         minor: { seconds: 5 },
