@@ -1,11 +1,11 @@
 import { assert } from 'chai';
 import { MockHostService } from 'test/services/host.mock';
 import { MockVideoPlayer } from 'test/services/videoplayer.mock';
-import { SegmentPlayback } from '~/renderer/media/playback/segmentplayback';
+import { Playback } from '~/renderer/media/playback/playback';
 import { getLocator } from '~/renderer/services';
 import { getWithSparseSegments } from './segmentcollection.spec';
 
-describe('SegmentPlayback', () => {
+describe('Playback', () => {
     describe('Video Source', () => {
         it('can set the video source', async () => {
             const { player, playback, segments } = getPlayableInstance();
@@ -106,7 +106,7 @@ function getPlayableInstance() {
 
     player.segments = segments;
 
-    const playback = new SegmentPlayback(segments);
+    const playback = new Playback(segments);
 
     return { playback, segments, player, host: host as MockHostService };
 }

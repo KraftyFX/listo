@@ -5,7 +5,7 @@ import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
 import { DvrOptions } from './interfaces';
 import { Logger, getLog } from './logutil';
-import { SegmentPlayback } from './playback/segmentplayback';
+import { Playback } from './playback/playback';
 import { LiveStreamRecorder } from './recording/livestreamrecorder';
 import { Segment } from './segments/interfaces';
 import { SegmentCollection } from './segments/segmentcollection';
@@ -26,7 +26,7 @@ type DvrEvents = {
 export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventEmitter<DvrEvents>) {
     private logger: Logger;
     private liveStreamRecorder: LiveStreamRecorder;
-    private playback: SegmentPlayback;
+    private playback: Playback;
     private segments: SegmentCollection;
 
     readonly options: DvrOptions;
@@ -50,7 +50,7 @@ export class DigitalVideoRecorder extends (EventEmitter as new () => TypedEventE
             this.emitRecodingChange(isRecording)
         );
 
-        this.playback = new SegmentPlayback(this.segments, this.options.playback);
+        this.playback = new Playback(this.segments, this.options.playback);
         this.playback.on('error', (segment, error, handled) =>
             this.emitPlaybackError(segment, error, handled)
         );

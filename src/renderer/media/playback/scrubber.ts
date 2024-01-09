@@ -4,7 +4,7 @@ import { REFRESH_RATE_IN_MS, SECONDS_PER_FRAME } from '~/renderer/media/constant
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { SegmentPlayback } from './segmentplayback';
+import { Playback } from './playback';
 
 type ScrubberEvents = {
     play: () => void;
@@ -14,9 +14,9 @@ type ScrubberEvents = {
 
 export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<ScrubberEvents>) {
     private logger: Logger;
-    private playback: SegmentPlayback;
+    private playback: Playback;
 
-    constructor(playback: SegmentPlayback, public readonly options: PlaybackOptions) {
+    constructor(playback: Playback, public readonly options: PlaybackOptions) {
         super();
 
         this.logger = getLog('pbk-cntr', this.options);
@@ -173,10 +173,6 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
         }
 
         const currentTime = this.playback.currentTime;
-        const nextTime =
-            this.deltaInSec >= 0
-                ? currentTime.add(this.deltaInSec, 'seconds')
-                : currentTime.subtract(this.deltaInSec * -1, 'seconds');
 
         if (this.deltaInSec === 0) {
             this.logger.info('Unexpected Stop');
@@ -185,7 +181,14 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
 
             await this.playback.goToTime(currentTime);
             this.emitPause();
-        } else if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
+        }
+
+        const nextTime =
+            this.deltaInSec >= 0
+                ? currentTime.add(this.deltaInSec, 'seconds')
+                : currentTime.subtract(this.deltaInSec * -1, 'seconds');
+
+        if (this.playback.isBeforeStart(nextTime) && this.direction === 'backward') {
             this.logger.info('Reached the beginning');
 
             this.stopInterval();

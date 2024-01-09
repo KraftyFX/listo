@@ -23,7 +23,7 @@ type SegmentPlaybackEvents = {
     error: (segment: Segment, err: any, handled: boolean) => void;
 };
 
-export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
+export class Playback extends (EventEmitter as new () => TypedEventEmitter<SegmentPlaybackEvents>) {
     private logger: Logger;
     private scrubber: Scrubber;
     public readonly options: PlaybackOptions;
