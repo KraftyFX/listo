@@ -1,4 +1,5 @@
 import { Dayjs } from 'dayjs';
+import { DurationUnitsObjectType } from 'dayjs/plugin/duration';
 import { MarkerConfig } from '~/renderer/media';
 
 export function getPlayTime(currentTime: Dayjs, speed: number) {
@@ -11,6 +12,44 @@ export function getPlayTime(currentTime: Dayjs, speed: number) {
     }
 
     return parts.join(' ');
+}
+
+export const markerFormats: MarkerConfig[] = [
+    minsec(1, 5),
+    minsec(1, 15),
+    minsec(1, 30),
+
+    minmin(5, 1),
+    minmin(10, 5),
+    minmin(15, 5),
+
+    minmin(30, 5),
+    minmin(30, 10),
+    minmin(30, 15),
+
+    hourmin(1, 5),
+    hourmin(1, 15),
+    hourmin(1, 30),
+];
+
+export function markerConfigEquals(a: MarkerConfig, b: MarkerConfig) {
+    return durationTypeEquals(a.major, b.major) && durationTypeEquals(a.minor, b.minor);
+}
+
+function durationTypeEquals(a: DurationUnitsObjectType, b: DurationUnitsObjectType) {
+    return a.minutes === b.minutes && a.seconds === b.seconds && a.hours === b.hours;
+}
+
+function minsec(minutes: number, seconds: number) {
+    return { major: { minutes }, minor: { seconds } };
+}
+
+function minmin(minutes1: number, minutes: number) {
+    return { major: { minutes: minutes1 }, minor: { minutes } };
+}
+
+function hourmin(hours: number, minutes: number) {
+    return { major: { hours }, minor: { minutes } };
 }
 
 export function getMarkerFormat(markerSize: MarkerConfig, time: Dayjs) {

@@ -154,11 +154,21 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         return elts;
     }
 
+    const onWheel = action(({ deltaY, ctrlKey }: React.WheelEvent<HTMLDivElement>) => {
+        if (ctrlKey) {
+            timeline.markerFormatIndex = timeline.markerFormatIndex + (deltaY > 0 ? 1 : -1);
+        } else {
+            timeline.viewportInSec += deltaY * 0.05;
+        }
+    });
+
     const onMouseDown = action((ev: React.MouseEvent<HTMLDivElement>) => {
         const { x } = getRelativeMouseCoordinates(ev);
         const time = getTimeFromPixels(x);
 
-        timeline.currentTime = time;
+        if (dvrStore.willHaveVideoDataToPlay) {
+            timeline.currentTime = time;
+        }
     });
 
     const onMouseEnter = action(() => (timeline.autoscroll = false));
@@ -168,6 +178,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         <div
             ref={timelineRef}
             className="timeline"
+            onWheel={onWheel}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}>
             <div onMouseDown={onMouseDown}>

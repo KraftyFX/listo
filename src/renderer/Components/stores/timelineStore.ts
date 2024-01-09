@@ -3,6 +3,7 @@ import { Duration } from 'dayjs/plugin/duration';
 import { action, computed, makeAutoObservable, observable } from 'mobx';
 import { DEFAULT_DVR_OPTIONS, DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
 import { Segment } from '~/renderer/media/segments/interfaces';
+import { markerConfigEquals, markerFormats } from '../formatutil';
 import { DvrStore } from './dvrStore';
 
 export class TimelineStore {
@@ -29,8 +30,42 @@ export class TimelineStore {
         this._hasInit = true;
     }
 
+    get markerFormatIndex() {
+        return markerFormats.findIndex((m) => markerConfigEquals(m, this.markerSize));
+    }
+
+    set markerFormatIndex(value: number) {
+        let max = 0;
+        let min = 0;
+
+        if (this.viewportInSec >= 1800) {
+            min = 9;
+            max = markerFormats.length - 1;
+        } else if (this.viewportInSec >= 60 * 5) {
+            min = 3;
+            max = 5;
+        } else if (this.viewportInSec >= 60 * 3) {
+            min = 2;
+            max = 4;
+        } else if (this.viewportInSec >= 60) {
+            min = 1;
+            max = 2;
+        } else {
+            min = 0;
+            max = 0;
+        }
+
+        value = Math.min(Math.max(min, value), max);
+
+        this.markerSize = markerFormats[value];
+    }
+
     set viewportInSec(value: number) {
+        value = Math.min(Math.max(15, value), 3600);
+
         this.viewportSize = dayjs.duration(value, 'seconds');
+
+        this.markerFormatIndex = this.markerFormatIndex;
     }
 
     get viewportInSec() {
