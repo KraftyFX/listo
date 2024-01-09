@@ -126,19 +126,19 @@ function swapOutReplacements(recordings: Recording[]) {
 
 function getRecordings() {
     return getRecorings('', (name) => !name.startsWith('replace-'))
-        .map(getRealRecordingFromFilename)
+        .map(getRecordingFromFilename)
         .filter((r) => r) as Recording[];
 }
 
 function getDebugRecordings() {
     return getRecorings('debug', (name) => !name.startsWith('replace-'))
-        .map(getRealRecordingFromFilename)
+        .map(getRecordingFromFilename)
         .filter((r) => r) as Recording[];
 }
 
 function getReplacementRecordings() {
     return getRecorings('debug', (name) => name.startsWith('replace-'))
-        .map(getReplaceRecordingFromFilename)
+        .map(getRecordingFromReplaceFilename)
         .filter((r) => r) as Recording[];
 }
 
@@ -154,7 +154,7 @@ function getRecorings(dir: string, filter: (name: string) => boolean = () => tru
     return recordings;
 }
 
-function getReplaceRecordingFromFilename(name: string): Recording | null {
+function getRecordingFromReplaceFilename(name: string): Recording | null {
     try {
         const url = `listo://recordings/${name}`;
 
@@ -186,7 +186,7 @@ function getReplaceRecordingFromFilename(name: string): Recording | null {
     }
 }
 
-function getRealRecordingFromFilename(name: string): Recording | null {
+function getRecordingFromFilename(name: string): Recording | null {
     try {
         const url = `listo://recordings/${name}`;
 
