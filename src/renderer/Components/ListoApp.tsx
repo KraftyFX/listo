@@ -44,6 +44,7 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             );
 
             recordings.forEach(({ startTime, duration, url, hasErrors }) => {
+                console.log(startTime.format('h:mm:ssa') + ' ' + duration + 's');
                 dvrStore.dvr.addSegment(startTime, duration, url, hasErrors);
             });
 

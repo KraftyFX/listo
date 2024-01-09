@@ -20,25 +20,12 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
             fs.mkdirSync(listoRootDir, { recursive: true });
         }
 
-        const realRecordings = getRealRecordings();
-        const debugRecordings = getDebugRecordings();
+        const recordings = getRecordings();
 
-        // replace real recordings with their debug versions.
-        while (debugRecordings.length > 0) {
-            const debug = debugRecordings[0];
-            const index = parseInt(debug.startTimeIso);
+        insertDebugRecordings(recordings);
+        swapOutReplacements(recordings);
 
-            if (index < realRecordings.length) {
-                const real = realRecordings[index];
-
-                real.url = debug.url;
-                real.duration = debug.duration;
-            }
-
-            debugRecordings.shift();
-        }
-
-        return realRecordings;
+        return recordings;
     },
 
     startNewRecording(event: Electron.IpcMainInvokeEvent, chunks: Uint8Array[]) {
@@ -101,20 +88,64 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
     },
 };
 
-function getDebugRecordings() {
-    return getRecorings((name) => name.startsWith('debug-'))
-        .map(getDebugRecordingFromFilename)
-        .filter((r) => r) as Recording[];
+function insertDebugRecordings(recordings: Recording[]) {
+    const debugRecordings = getDebugRecordings();
+    let startTime =
+        recordings.length > 0 ? dayjs(recordings[0].startTimeIso, timestampFormat) : dayjs();
+
+    startTime = startTime.subtract(5, 'seconds');
+
+    debugRecordings.forEach((debug) => {
+        startTime = startTime.subtract(debug.duration, 'seconds');
+
+        const recording = { ...debug };
+
+        recording.startTimeIso = startTime.toISOString();
+        recording.url = recording.url.replace('/recordings', '/recordings/debug');
+
+        recordings.unshift(recording);
+    });
 }
 
-function getRealRecordings() {
-    return getRecorings((name) => !name.startsWith('debug-'))
+function swapOutReplacements(recordings: Recording[]) {
+    const replaceRecordings = getReplacementRecordings();
+
+    // replace real recordings with their debug versions.
+    while (replaceRecordings.length > 0) {
+        const replace = replaceRecordings.shift()!;
+        const index = parseInt(replace.startTimeIso);
+
+        if (index < recordings.length) {
+            const real = recordings[index];
+
+            real.url = replace.url.replace('/recordings', '/recordings/debug');
+            real.duration = replace.duration;
+        }
+    }
+}
+
+function getRecordings() {
+    return getRecorings('', (name) => !name.startsWith('replace-'))
         .map(getRealRecordingFromFilename)
         .filter((r) => r) as Recording[];
 }
 
-function getRecorings(filter: (name: string) => boolean) {
-    const entries = fs.readdirSync(listoRootDir, { withFileTypes: true });
+function getDebugRecordings() {
+    return getRecorings('debug', (name) => !name.startsWith('replace-'))
+        .map(getRealRecordingFromFilename)
+        .filter((r) => r) as Recording[];
+}
+
+function getReplacementRecordings() {
+    return getRecorings('debug', (name) => name.startsWith('replace-'))
+        .map(getReplaceRecordingFromFilename)
+        .filter((r) => r) as Recording[];
+}
+
+function getRecorings(dir: string, filter: (name: string) => boolean = () => true) {
+    dir = join(listoRootDir, dir);
+
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
     const recordings = entries
         .filter((e) => e.isFile())
         .map((e) => e.name.toLowerCase())
@@ -123,11 +154,11 @@ function getRecorings(filter: (name: string) => boolean) {
     return recordings;
 }
 
-function getDebugRecordingFromFilename(name: string): Recording | null {
+function getReplaceRecordingFromFilename(name: string): Recording | null {
     try {
         const url = `listo://recordings/${name}`;
 
-        name = name.substring(`debug-`.length);
+        name = name.substring(`replace-`.length);
 
         let hasErrors = false;
         if (name.endsWith(`-err.webm`)) {
