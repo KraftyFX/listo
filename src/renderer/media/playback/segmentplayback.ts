@@ -124,7 +124,7 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
 
     private _isRendering = false;
 
-    public get isRendering() {
+    get isRendering() {
         return this._isRendering;
     }
 
