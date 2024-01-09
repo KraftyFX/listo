@@ -21,8 +21,7 @@ export const listoScheme = {
                 const recordingFilepath = join(listoRootDir, recordingFilename);
                 const cacheWindow = dayjs.duration({ hours: 1 });
 
-                console.log('\n');
-                console.log(`[${reqId}] returning ${req.url}`);
+                // console.log(`[${reqId}] returning ${req.url}`);
 
                 return new Response(toReadableStream(recordingFilepath, reqId.toString()), {
                     headers: {
@@ -40,11 +39,10 @@ export const listoScheme = {
 function toReadableStream(filepath: string, tag: string) {
     const stream = fs.createReadStream(filepath);
     const iterator = getStreamIterator();
-    let c = 0;
 
     return new ReadableStream({
         start(controller) {
-            console.log(`[${tag}] start`);
+            // console.log(`[${tag}] start`);
         },
 
         async pull(controller) {
@@ -52,10 +50,8 @@ function toReadableStream(filepath: string, tag: string) {
                 const { value, done } = await iterator.next();
 
                 if (done) {
-                    console.log(`[${tag}] done`);
                     controller.close();
                 } else {
-                    if (++c % 150 === 0) console.log(`[${tag}] queue ${c}`);
                     controller.enqueue(value);
                 }
             } catch (e) {
@@ -69,14 +65,10 @@ function toReadableStream(filepath: string, tag: string) {
     });
 
     async function* getStreamIterator() {
-        console.log(`[${tag}] iterator start`);
         let c = 0;
 
         for await (const chunk of stream) {
-            if (++c % 150 === 0) console.log(`[${tag}] yield ${c}`);
             yield chunk;
         }
-
-        console.log(`[${tag}] iterator done`);
     }
 }
