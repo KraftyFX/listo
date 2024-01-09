@@ -55,7 +55,7 @@ export interface RecordingEx extends Recording {
 }
 
 export interface IListoService {
-    getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<RecordingEx[]>;
+    getRecentRecordings(startTime: Dayjs, endTime: Dayjs): Promise<RecordingEx[]>;
     saveRecording(recording: Recording, blob: Blob, hasErrors: boolean): Promise<string>;
 }
 

@@ -34,8 +34,8 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             await dvrStore.dvr.switchToLiveStream();
 
             const recordings = await listo.getRecentRecordings(
-                dayjs().startOf('day').toISOString(),
-                dayjs().endOf('day').toISOString()
+                dayjs().startOf('day'),
+                dayjs().endOf('day')
             );
 
             recordings.forEach(({ startTime, duration, url, hasErrors }) => {

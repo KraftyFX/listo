@@ -1,8 +1,9 @@
+import { Dayjs } from 'dayjs';
 import { Recording } from '~/renderer/media/recording';
 import { IListoService, RecordingEx } from '~/renderer/services';
 
 export class MockListoService implements IListoService {
-    async getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<RecordingEx[]> {
+    async getRecentRecordings(startTimeIso: Dayjs, endTimeIso: Dayjs): Promise<RecordingEx[]> {
         return [];
     }
 

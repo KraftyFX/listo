@@ -1,10 +1,13 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { Recording } from '~/renderer/media/recording';
 import { IListoService, RecordingEx } from './interfaces';
 
 export class ListoService implements IListoService {
-    async getRecentRecordings(startTimeIso: string, endTimeIso: string): Promise<RecordingEx[]> {
-        const recordings = await window.listoApi.getRecentRecordings(startTimeIso, endTimeIso);
+    async getRecentRecordings(startTime: Dayjs, endTime: Dayjs): Promise<RecordingEx[]> {
+        const recordings = await window.listoApi.getRecentRecordings(
+            startTime.toISOString(),
+            endTime.toISOString()
+        );
 
         return recordings.map(
             ({ startTimeIso, duration, url, hasErrors }) =>
