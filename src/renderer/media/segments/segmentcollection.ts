@@ -18,6 +18,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
     constructor() {
         super();
 
+        // TODO: What to do about this logger?
         this.logger = getLog('seg-coll', { logging: null });
     }
 
