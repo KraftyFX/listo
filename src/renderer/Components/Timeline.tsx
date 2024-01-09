@@ -32,8 +32,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     useEffect(
         action(function mount() {
-            timeline.viewportSize = props.viewport;
             timeline.markerSize = props.marker;
+            timeline.viewportInSec = props.viewport.asSeconds();
 
             setTimelineWidthPx(timelineRef.current.offsetWidth);
 
