@@ -40,7 +40,9 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
     }
 
     private get player() {
-        return this.playback.player;
+        const { player } = getLocator();
+
+        return player;
     }
 
     get paused() {

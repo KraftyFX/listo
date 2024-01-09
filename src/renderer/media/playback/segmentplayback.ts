@@ -6,7 +6,7 @@ import { DEFAULT_PLAYBACK_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
 import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
-import { IServiceLocator, getLocator } from '~/renderer/services';
+import { getLocator } from '~/renderer/services';
 import { isMediaDecodingError } from '~/renderer/services/errorutil';
 import TypedEventEmitter from '../eventemitter';
 import { Segment } from '../segments/interfaces';
@@ -28,7 +28,6 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
     private scrubber: Scrubber;
     public readonly options: PlaybackOptions;
     private readonly _segments: SegmentCollection;
-    private locator: IServiceLocator;
 
     constructor(segments: SegmentCollection, options?: Partial<PlaybackOptions>) {
         super();
@@ -36,13 +35,14 @@ export class SegmentPlayback extends (EventEmitter as new () => TypedEventEmitte
         this._segments = segments;
         this.options = _merge({}, DEFAULT_PLAYBACK_OPTIONS, options);
 
-        this.locator = getLocator();
         this.logger = getLog('pbk', this.options);
         this.scrubber = new Scrubber(this, this.options);
     }
 
-    get player() {
-        return this.locator.player;
+    private get player() {
+        const { player } = getLocator();
+
+        return player;
     }
 
     get segments() {
