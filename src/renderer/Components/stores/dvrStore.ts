@@ -159,7 +159,7 @@ export class DvrStore {
         return this._isFastForwardDisabled;
     }
 
-    private refreshControlAbilities() {
+    refreshControlAbilities() {
         const dvr = this.dvr;
 
         this._willHaveVideoDataToPlay = dvr.willHaveVideoDataToPlay;

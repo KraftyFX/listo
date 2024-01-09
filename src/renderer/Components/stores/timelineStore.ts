@@ -99,12 +99,18 @@ export class TimelineStore {
 
         this.dvrStore.dvr.on(
             'segmentadded',
-            action(() => (this.segments = this.dvrStore.dvr.playableSegments))
+            action(() => {
+                this.segments = this.dvrStore.dvr.playableSegments;
+                this.dvrStore.refreshControlAbilities();
+            })
         );
 
         this.dvrStore.dvr.on(
             'segmentupdated',
-            action(() => (this.segments = this.dvrStore.dvr.playableSegments))
+            action(() => {
+                this.segments = this.dvrStore.dvr.playableSegments;
+                this.dvrStore.refreshControlAbilities();
+            })
         );
     }
 
