@@ -4,12 +4,11 @@ import _merge from 'lodash.merge';
 import { PlaybackOptions } from '~/renderer/media';
 import { DEFAULT_PLAYBACK_OPTIONS } from '~/renderer/media/constants';
 import { Logger, getLog } from '~/renderer/media/logutil';
+import { Segment, SegmentCollection } from '~/renderer/media/segments';
 import { formatSegment } from '~/renderer/media/segments/formatutil';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
 import { getLocator } from '~/renderer/services';
 import { isMediaDecodingError } from '~/renderer/services/errorutil';
 import TypedEventEmitter from '../eventemitter';
-import { Segment } from '../segments/interfaces';
 import { Scrubber } from './scrubber';
 
 type SegmentPlaybackEvents = {

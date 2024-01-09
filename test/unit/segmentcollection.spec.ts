@@ -1,6 +1,5 @@
 import { assert } from 'chai';
-import { Segment } from '~/renderer/media/segments/interfaces';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { Segment, SegmentCollection } from '~/renderer/media/segments';
 import { getLocator } from '~/renderer/services';
 
 describe('SegmentCollection', () => {

@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { action, makeAutoObservable, observable } from 'mobx';
 import { DigitalVideoRecorder } from '~/renderer/media/dvr';
-import { Segment } from '~/renderer/media/segments/interfaces';
+import { Segment } from '~/renderer/media/segments';
 import { CameraStore } from './cameraStore';
 import { TimelineStore } from './timelineStore';
 

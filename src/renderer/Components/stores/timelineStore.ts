@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
 import { action, computed, makeAutoObservable, observable } from 'mobx';
 import { DEFAULT_DVR_OPTIONS, DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
-import { Segment } from '~/renderer/media/segments/interfaces';
+import { Segment } from '~/renderer/media/segments';
 import { markerConfigEquals, markerFormats } from '../formatutil';
 import { DvrStore } from './dvrStore';
 

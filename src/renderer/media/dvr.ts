@@ -5,10 +5,9 @@ import { DEFAULT_DVR_OPTIONS } from './constants';
 import TypedEventEmitter from './eventemitter';
 import { DvrOptions } from './interfaces';
 import { Logger, getLog } from './logutil';
-import { Playback } from './playback/playback';
-import { LiveStreamRecorder } from './recording/livestreamrecorder';
-import { Segment } from './segments/interfaces';
-import { SegmentCollection } from './segments/segmentcollection';
+import { Playback } from './playback';
+import { LiveStreamRecorder } from './recording';
+import { Segment, SegmentCollection } from './segments';
 
 type DvrEvents = {
     modechange: (isLive: boolean) => void;

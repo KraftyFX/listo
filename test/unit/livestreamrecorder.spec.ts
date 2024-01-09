@@ -1,6 +1,6 @@
 import { assert } from 'chai';
-import { LiveStreamRecorder } from '~/renderer/media/recording/livestreamrecorder';
-import { Segment } from '~/renderer/media/segments/interfaces';
+import { LiveStreamRecorder } from '~/renderer/media/recording';
+import { Segment } from '~/renderer/media/segments';
 import { getLocator } from '~/renderer/services';
 
 describe('LiveStreamRecorder', () => {

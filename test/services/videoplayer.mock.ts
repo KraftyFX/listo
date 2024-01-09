@@ -1,4 +1,4 @@
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { SegmentCollection } from '~/renderer/media/segments';
 import { IVideoPlayer, TimeChangeEvent, getLocator } from '~/renderer/services';
 import { MockMediaStreamReader } from './mediastreamreader.mock';
 

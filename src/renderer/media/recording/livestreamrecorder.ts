@@ -3,10 +3,9 @@ import EventEmitter from 'events';
 import _merge from 'lodash.merge';
 import { DEFAULT_RECORDING_OPTIONS, RecordingOptions } from '~/renderer/media';
 import { Logger, getLog } from '~/renderer/media/logutil';
-import { SegmentCollection } from '~/renderer/media/segments/segmentcollection';
+import { Segment, SegmentCollection } from '~/renderer/media/segments';
 import { getLocator } from '~/renderer/services';
 import TypedEventEmitter from '../eventemitter';
-import { Segment } from '../segments/interfaces';
 import { Recording } from './interfaces';
 import { MediaStreamRecorder } from './mediastreamrecorder';
 

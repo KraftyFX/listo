@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { MockHostService } from 'test/services/host.mock';
 import { MockVideoPlayer } from 'test/services/videoplayer.mock';
-import { Playback } from '~/renderer/media/playback/playback';
+import { Playback } from '~/renderer/media/playback';
 import { getLocator } from '~/renderer/services';
 import { getWithSparseSegments } from './segmentcollection.spec';
 
