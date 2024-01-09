@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { MediaStreamRecorder } from '~/renderer/media/recording/mediastreamrecorder';
 import { getLocator } from '~/renderer/services';
-import { RecordingAccumulator } from './accumulators';
+import { RecordingAccumulator } from './recording';
 
 describe('SegmentRecorder', function () {
     it(`can start and stop before minimum recording size`, async () => {

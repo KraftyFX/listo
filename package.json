@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron-forge start",
     "test": "yarn test:unit",
-    "test:unit": "mocha test/**/*.ts",
+    "test:unit": "mocha test/**/*.spec.ts test/**/**/*.spec.ts",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
