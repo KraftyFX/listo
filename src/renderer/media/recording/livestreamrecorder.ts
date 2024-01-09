@@ -58,7 +58,7 @@ export class LiveStreamRecorder extends (EventEmitter as new () => TypedEventEmi
     private async onRecording(recording: Recording, blob: Blob) {
         const { startTime, isPartial } = recording;
 
-        this.logger.log(`Recording yielded ${startTime.format('mm:ss.SS')} partial=${isPartial}`);
+        this.logger.log(`Recording yielded ${startTime.format('mm:ss')} partial=${isPartial}`);
 
         if (this.segments.isLastSegmentPartial) {
             this.disposeSegment(this.segments.lastSegment);
