@@ -100,7 +100,9 @@ function insertIntoPast(recordings: Recording[], debugRecordings: Recording[]) {
 
     startTime = startTime.subtract(5, 'seconds');
 
-    debugRecordings.forEach((debug) => {
+    for (let i = debugRecordings.length - 1; i >= 0; i--) {
+        const debug = debugRecordings[i];
+
         startTime = startTime.subtract(debug.duration, 'seconds');
 
         const recording = { ...debug };
@@ -108,5 +110,5 @@ function insertIntoPast(recordings: Recording[], debugRecordings: Recording[]) {
         recording.startTimeIso = startTime.toISOString();
 
         recordings.unshift(recording);
-    });
+    }
 }

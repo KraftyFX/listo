@@ -7,7 +7,7 @@ import { listoRootDir } from './constants';
 
 const timestampRe =
     /(?<timestamp>\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d(am|pm))-(?<duration>\d+\.\d+)(?<error>-err)?\.webm/i;
-const replaceRe = /replace-(?<duration>\d+\.\d+)(?<error>-err)?\.webm/i;
+const replaceRe = /replace-(?<index>\d+)-(?<duration>\d+\.\d+)(?<error>-err)?\.webm/i;
 
 export function getRecordingsBetween(startTime: Dayjs, endTime: Dayjs, dir: string = '') {
     const recordings: Recording[] = [];
@@ -44,11 +44,11 @@ export function getRecordingsBetween(startTime: Dayjs, endTime: Dayjs, dir: stri
         const replaceMatch = name.match(replaceRe)?.groups;
 
         if (replaceMatch) {
-            const { duration, error } = replaceMatch;
+            const { index, duration, error } = replaceMatch;
 
             replacements.push({
                 url,
-                startTimeIso: i.toString(),
+                startTimeIso: index.toString(),
                 duration: parseFloat(duration),
                 hasErrors: !!error,
             });
