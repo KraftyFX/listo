@@ -14,10 +14,10 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
         startTimeIso: string,
         endTimeIso: string
     ): Promise<Recording[]> {
-        ensureRecordingDirectoryExists();
-
         const startTime = dayjs(startTimeIso);
         const endTime = dayjs(endTimeIso);
+
+        ensureRecordingDirectoryExists();
 
         const recordings = getRecordingsBetween(startTime, endTime);
 
@@ -52,6 +52,8 @@ export const listoApi: IpcMainHandlers<ListoApiKeys> = {
 
         const recordingFilename = path.substring('listo://recordings/'.length);
         const recordingFilepath = join(listoRootDir, recordingFilename);
+
+        ensureRecordingDirectoryExists();
 
         if (!fs.existsSync(recordingFilepath)) {
             throw new Error(`File ${recordingFilepath} does not exist.`);
