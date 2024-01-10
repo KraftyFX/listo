@@ -19,6 +19,8 @@ export class VideoPlayer implements IVideoPlayer {
             this.videoElt.addEventListener('loadeddata', () => resolve(), { once: true });
 
             if (typeof src === 'string') {
+                // TODO: Clearing the old source var might be raising the loaded data event prematurely
+                // and also causing some of the play exceptions. Just something to think about.
                 this.videoElt.srcObject = null;
                 this.videoElt.src = src;
             } else if (src instanceof MediaStream) {
@@ -59,14 +61,16 @@ export class VideoPlayer implements IVideoPlayer {
                 return resolve();
             }
 
-            // The timeout helps reduce the risk of "The play() request was interrupted by a call to pause()"
-            // DOMException that gets thrown a lot when switching to a new video and invoking `play()`.
+            // When `play()` is invoked right after switching the video player source a DOMException with
+            // "The play() request was interrupted by a call to pause()" gets thrown often. I havent noticed
+            // anything in the application logic that would explain this and think it's a timing issue in
+            // the chrome player itself. The if check above and the timeout here helps reduce how often it
+            // happens but doesn't eliminate it entirely; hence, the try catch block as a fail safe.
             setTimeout(() => {
                 this.videoElt
                     .play()
                     .then(resolve)
                     .catch((err) => {
-                        // Despite the isPlaying() check and timeout we still got the error :(.
                         if (isPlayInterruptDomException(err)) {
                             resolve();
                         } else if (isNoSupportedSourceDomException(err)) {
