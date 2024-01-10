@@ -22,7 +22,10 @@ export function getRecordingsBetween(startTime: Dayjs, endTime: Dayjs, dir: stri
 
         const { name } = dirent;
 
-        const url = `listo://recordings/${name}`.replace('recordings/', `recordings/${dir}`);
+        const url = `listo://recordings/${name}`.replace(
+            'recordings/',
+            `${join(`recordings`, dir)}/`
+        );
         const timestampMatch = name.match(timestampRe)?.groups;
 
         if (timestampMatch) {
