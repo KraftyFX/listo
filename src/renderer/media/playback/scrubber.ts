@@ -77,10 +77,22 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
         this.emitPause();
     }
 
+    private _speed = 0;
+
     get speed() {
         return this._speed;
     }
-    private _speed = 0;
+
+    set speed(value: number) {
+        this._speed = value;
+
+        if (this._speed === 0) {
+            this.stopInterval();
+        } else {
+            this.startInterval();
+        }
+    }
+
     private get deltaInSec() {
         return SECONDS_PER_FRAME * this._speed;
     }

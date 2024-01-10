@@ -186,13 +186,15 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             handled = true;
             console.warn(`Decoding error on segment ${index}. Compensating.`);
 
+            const { speed } = this.scrubber;
             const next = this.currentTime.add(this.options.decodingErrorSkipSec, 'second');
 
             await this.releaseAsVideoSource();
             await this.setAsVideoSource(next);
 
-            // TODO: Preserve playback speed?
             await this.play();
+
+            this.scrubber.speed = speed;
         } else {
             console.error(`Segment ${index} had an unreognized error`);
         }
