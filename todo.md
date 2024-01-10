@@ -1,26 +1,37 @@
-[DONE] Scrub the TODOs in code
-
-Srubbing
-
--   [DONE] Backwards scrub skips gaps just like forward
--   [DONE] Hitting a video error preserves scrubbing speed
-
 Reskin the app
 
-Tune the timeline
+-   Material UI
 
--   markers
--   viewport zoom
--   Save last known marker and viewport setting
--   Auto scroll
+Tune
 
-Constrain the timeline to the current day
-
--   [DONE] Midnight switchover testing
+-   recording duration (1min?)
+-   marker min/max thresholds
+-   review marker formatting depending on sec-min, min-min, min-hour
+-   viewport zoom speed based on granularity
 
 Settings UI
 
--   Tune defaults
 -   Camera source
+-   Video Location (open folder)
+-   Debug Mode
+-   Reset settings (i.e. localStorage and logs)
 -   Recording settings?
--   (nice to have) Share UX?
+
+Features
+
+-   Date picker
+-   Save last known marker and viewport setting
+-   Share UX?
+
+Bug Fixes
+
+-   Get auto scroll working correctly
+-   If the camera loading fails, auto fallback to default
+
+Releasability
+
+-   Logger
+-   Menus
+-   Title screen
+-   About box
+-   Auto update
