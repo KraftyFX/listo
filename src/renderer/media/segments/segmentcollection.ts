@@ -76,7 +76,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    async getSegmentAtTime(time: Dayjs) {
+    async getSegmentAtTime(time: Dayjs, bias: 'forward' | 'backward' = 'forward') {
         const segments = this.segments;
 
         if (time.isSameOrBefore(this.firstSegmentStartTime)) {
@@ -89,7 +89,7 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
             return { segment, offset: segment.duration };
         }
 
-        const segment = this.findClosestSegmentForTime(time);
+        const segment = this.findClosestSegmentForTime(time, bias);
 
         if (time.isSameOrBefore(segment.startTime)) {
             return { segment, offset: 0 };
@@ -98,16 +98,28 @@ export class SegmentCollection extends (EventEmitter as new () => TypedEventEmit
         }
     }
 
-    private findClosestSegmentForTime(time: Dayjs) {
+    private findClosestSegmentForTime(time: Dayjs, bias: 'forward' | 'backward') {
         const segments = this.segments;
 
-        for (let i = 0; i < segments.length; i++) {
-            const segment = segments[i];
-            const end = segment.startTime.add(segment.duration, 'seconds');
+        if (bias === 'forward') {
+            for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const end = segment.startTime.add(segment.duration, 'seconds');
 
-            if (end.isAfter(time)) {
-                return segment;
+                if (end.isAfter(time)) {
+                    return segment;
+                }
             }
+        } else if (bias === 'backward') {
+            for (let i = segments.length - 1; i >= 0; i--) {
+                const segment = segments[i];
+
+                if (segment.startTime.isBefore(time)) {
+                    return segment;
+                }
+            }
+        } else {
+            throw new Error(`Unrecognized bias for function "${bias}"`);
         }
 
         const timecode = this.getAsTimecode(time);

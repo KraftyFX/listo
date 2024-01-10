@@ -113,8 +113,8 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
 
     private currentSegment: Segment = null!;
 
-    async goToTime(time: Dayjs) {
-        const { segment, offset } = await this.segments.getSegmentAtTime(time);
+    async goToTime(time: Dayjs, bias: 'forward' | 'backward' = 'forward') {
+        const { segment, offset } = await this.segments.getSegmentAtTime(time, bias);
 
         this.logger.log(`Requesting segment for ${this.segments.getAsTimecode(time)}`);
 
@@ -123,7 +123,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
 
     private _isBusy = false;
 
-    get isBusyDontTouchThePlayback() {
+    get isBusyDoNotInterrupt() {
         return this._isBusy;
     }
 

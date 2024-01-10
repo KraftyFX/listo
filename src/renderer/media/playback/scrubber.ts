@@ -167,7 +167,7 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
     }
 
     async onInterval() {
-        if (this.playback.isBusyDontTouchThePlayback) {
+        if (this.playback.isBusyDoNotInterrupt) {
             console.warn('Playback is busy. Skipping this round.');
             return;
         }
@@ -184,7 +184,7 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
         }
 
         const nextTime =
-            this.deltaInSec >= 0
+            this.deltaInSec > 0
                 ? currentTime.add(this.deltaInSec, 'seconds')
                 : currentTime.subtract(this.deltaInSec * -1, 'seconds');
 
@@ -205,7 +205,9 @@ export class Scrubber extends (EventEmitter as new () => TypedEventEmitter<Scrub
             this.emitPause();
             this.emitEnded('end');
         } else {
-            await this.playback.goToTime(nextTime);
+            const bias = this.deltaInSec > 0 ? 'forward' : 'backward';
+
+            await this.playback.goToTime(nextTime, bias);
         }
     }
 
