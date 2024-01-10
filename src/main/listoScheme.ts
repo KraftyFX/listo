@@ -1,10 +1,7 @@
 import dayjs from 'dayjs';
-import { app } from 'electron';
 import fs from 'node:fs';
 import { join } from 'upath';
-
-const desktop = app.getPath('desktop');
-const listoRootDir = join(desktop, 'listo');
+import { listoRootDir } from './constants';
 
 let reqId = 0;
 

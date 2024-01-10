@@ -1,11 +1,8 @@
-import { app } from 'electron';
 import pathToFfmpeg from 'ffmpeg-ffprobe-static';
 import ffmpeg, { ffprobe } from 'fluent-ffmpeg';
 import * as fs from 'node:fs';
 import { join } from 'upath';
-
-const desktop = app.getPath('desktop');
-const listoRootDir = join(desktop, 'listo');
+import { listoRootDir } from './constants';
 
 // ffmpeg.setFfmpegPath(pathToFfmpeg.ffmpegPath!);
 // ffmpeg.setFfprobePath(pathToFfmpeg.ffprobePath!);
