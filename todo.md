@@ -1,9 +1,9 @@
-Scrub the TODOs in code
+[DONE] Scrub the TODOs in code
 
 Srubbing
 
--   Backwards scrub skips gaps just like forward
--   Hitting a video error preserves scrubbing speed
+-   [DONE] Backwards scrub skips gaps just like forward
+-   [DONE] Hitting a video error preserves scrubbing speed
 
 Reskin the app
 
@@ -16,7 +16,7 @@ Tune the timeline
 
 Constrain the timeline to the current day
 
--   Midnight switchover testing
+-   [DONE] Midnight switchover testing
 
 Settings UI
 
@@ -24,7 +24,3 @@ Settings UI
 -   Camera source
 -   Recording settings?
 -   (nice to have) Share UX?
-
-Thought
-
--   Make getting/setting the current time async and putting a lock around it?
