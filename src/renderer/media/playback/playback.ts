@@ -154,6 +154,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
 
     private async getSegmentUrl(segment: Segment) {
         if (segment.url.startsWith('listo://')) {
+            // TODO: Add caching?
             const response = await fetch(segment.url);
             const url = URL.createObjectURL(await response.blob());
 
