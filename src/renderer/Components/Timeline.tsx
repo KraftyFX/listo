@@ -154,12 +154,8 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         return elts;
     }
 
-    const onWheel = action(({ deltaY, ctrlKey }: React.WheelEvent<HTMLDivElement>) => {
-        if (ctrlKey) {
-            timeline.markerFormatIndex = timeline.markerFormatIndex + (deltaY > 0 ? 1 : -1);
-        } else {
-            timeline.viewportInSec += deltaY * 0.05;
-        }
+    const onWheel = action(({ deltaY }: React.WheelEvent<HTMLDivElement>) => {
+        timeline.viewportInSec += deltaY;
     });
 
     const onMouseDown = action((ev: React.MouseEvent<HTMLDivElement>) => {

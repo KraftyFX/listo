@@ -3,7 +3,7 @@ import { Duration } from 'dayjs/plugin/duration';
 import { action, computed, makeAutoObservable, observable } from 'mobx';
 import { DEFAULT_DVR_OPTIONS, DEFAULT_TIMELINE_OPTIONS, MarkerConfig } from '~/renderer/media';
 import { Segment } from '~/renderer/media/segments';
-import { markerConfigEquals, markerFormats } from '../formatutil';
+import { minmin, minsec } from '../formatutil';
 import { DvrStore } from './dvrStore';
 
 export class TimelineStore {
@@ -11,15 +11,19 @@ export class TimelineStore {
 
     segments: Segment[] = [];
 
-    viewportSize: Duration = dayjs.duration(DEFAULT_DVR_OPTIONS.timeline.viewport);
+    private _viewportSize: Duration = dayjs.duration(DEFAULT_DVR_OPTIONS.timeline.viewport);
     markerSize: MarkerConfig = DEFAULT_TIMELINE_OPTIONS.marker;
 
     constructor(public readonly dvrStore: DvrStore) {
-        makeAutoObservable<TimelineStore, 'firstRecording' | 'lastRecording'>(this, {
-            markerSize: observable.deep,
-            firstRecording: computed,
-            lastRecording: computed,
-        });
+        makeAutoObservable<TimelineStore, '_viewportSize' | 'firstRecording' | 'lastRecording'>(
+            this,
+            {
+                markerSize: observable.deep,
+                _viewportSize: observable,
+                firstRecording: computed,
+                lastRecording: computed,
+            }
+        );
     }
 
     private _hasInit = false;
@@ -30,42 +34,50 @@ export class TimelineStore {
         this._hasInit = true;
     }
 
-    get markerFormatIndex() {
-        return markerFormats.findIndex((m) => markerConfigEquals(m, this.markerSize));
+    get viewportSize() {
+        return this._viewportSize;
     }
 
-    set markerFormatIndex(value: number) {
-        let max = 0;
-        let min = 0;
+    set viewportSize(value: Duration) {
+        this._viewportSize = value;
 
-        if (this.viewportInSec >= 1800) {
-            min = 9;
-            max = markerFormats.length - 1;
-        } else if (this.viewportInSec >= 60 * 5) {
-            min = 3;
-            max = 5;
-        } else if (this.viewportInSec >= 60 * 3) {
-            min = 2;
-            max = 4;
-        } else if (this.viewportInSec >= 60) {
-            min = 1;
-            max = 2;
-        } else {
-            min = 0;
-            max = 0;
+        const valueSec = value.asSeconds();
+
+        switch (true) {
+            case valueSec <= 60 * 1:
+                this.markerSize = minsec(1, 5);
+                break;
+            case valueSec <= 60 * 3:
+                this.markerSize = minsec(1, 15);
+                break;
+            case valueSec <= 60 * 5:
+                this.markerSize = minsec(1, 30);
+                break;
+            case valueSec <= 60 * 6:
+                this.markerSize = minmin(5, 1);
+                break;
+            case valueSec <= 60 * 10:
+                this.markerSize = minmin(10, 1);
+                break;
+            case valueSec <= 60 * 12:
+                this.markerSize = minmin(15, 1);
+                break;
+            case valueSec <= 60 * 45:
+                this.markerSize = minmin(15, 5);
+                break;
+            case valueSec <= 60 * 120:
+                this.markerSize = minmin(30, 5);
+                break;
+            default:
+                this.markerSize = minmin(30, 15);
+                break;
         }
-
-        value = Math.min(Math.max(min, value), max);
-
-        this.markerSize = markerFormats[value];
     }
 
     set viewportInSec(value: number) {
         value = Math.min(Math.max(15, value), 3600);
 
         this.viewportSize = dayjs.duration(value, 'seconds');
-
-        this.markerFormatIndex = this.markerFormatIndex;
     }
 
     get viewportInSec() {

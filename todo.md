@@ -4,9 +4,9 @@ Reskin the app
 
 Tune
 
+-   [DONE] marker min/max thresholds
+-   [DONE] review marker formatting depending on sec-min, min-min, min-hour
 -   recording duration (1min?)
--   marker min/max thresholds
--   review marker formatting depending on sec-min, min-min, min-hour
 -   viewport zoom speed based on granularity
 
 Settings UI

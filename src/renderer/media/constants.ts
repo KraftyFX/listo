@@ -8,7 +8,7 @@ export const DEFAULT_RECORDING_OPTIONS: RecordingOptions = {
     inMemory: true,
     source: 'default',
     mimeType: 'video/webm',
-    minSizeInSec: 5,
+    minSizeInSec: 60,
     fixDuration: true,
     logging: null,
 };
@@ -21,7 +21,7 @@ export const DEFAULT_PLAYBACK_OPTIONS: PlaybackOptions = {
 };
 
 export const DEFAULT_TIMELINE_OPTIONS: TimelineOptions = {
-    viewport: { minutes: 7 },
+    viewport: { minutes: 12 },
     marker: {
         major: { minutes: 1 },
         minor: { seconds: 5 },

@@ -14,24 +14,6 @@ export function getPlayTime(currentTime: Dayjs, speed: number) {
     return parts.join(' ');
 }
 
-export const markerFormats: MarkerConfig[] = [
-    minsec(1, 5),
-    minsec(1, 15),
-    minsec(1, 30),
-
-    minmin(5, 1),
-    minmin(10, 5),
-    minmin(15, 5),
-
-    minmin(30, 5),
-    minmin(30, 10),
-    minmin(30, 15),
-
-    hourmin(1, 5),
-    hourmin(1, 15),
-    hourmin(1, 30),
-];
-
 export function markerConfigEquals(a: MarkerConfig, b: MarkerConfig) {
     return durationTypeEquals(a.major, b.major) && durationTypeEquals(a.minor, b.minor);
 }
@@ -40,16 +22,12 @@ function durationTypeEquals(a: DurationUnitsObjectType, b: DurationUnitsObjectTy
     return a.minutes === b.minutes && a.seconds === b.seconds && a.hours === b.hours;
 }
 
-function minsec(minutes: number, seconds: number) {
+export function minsec(minutes: number, seconds: number) {
     return { major: { minutes }, minor: { seconds } };
 }
 
-function minmin(minutes1: number, minutes: number) {
+export function minmin(minutes1: number, minutes: number) {
     return { major: { minutes: minutes1 }, minor: { minutes } };
-}
-
-function hourmin(hours: number, minutes: number) {
-    return { major: { hours }, minor: { minutes } };
 }
 
 export function getMarkerFormat(markerSize: MarkerConfig, time: Dayjs) {
@@ -95,7 +73,7 @@ function getMinMinFormat({ major, minor }: MarkerConfig, time: Dayjs) {
     if (time.minute() === 0 && time.second() === 0) {
         return { type: 'major', format: time.format('ha') };
     } else if (time.minute() % (major.minutes ?? 0) === 0) {
-        return { type: 'major', format: time.format('h:mma') };
+        return { type: 'major', format: time.format('h:mm') };
     } else if (time.second() % (minor.minutes ?? 0) === 0) {
         return { type: 'minor', format: time.format('m') };
     } else {
@@ -146,7 +124,7 @@ function getMinSecFormat({ minor }: MarkerConfig, time: Dayjs) {
         if (time.hour() === 0) {
             return { type: 'major', format: time.format('ha') };
         } else {
-            return { type: 'major', format: time.format('h:mma') };
+            return { type: 'major', format: time.format('h:mm') };
         }
     } else if (time.second() % (minor.seconds ?? 0) === 0) {
         return { type: 'minor', format: time.format('ss') + 's' };
