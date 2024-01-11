@@ -97,7 +97,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
 
     async releaseAsVideoSource() {
         if (this._isVideoSource) {
-            this.disableAutoPlayback();
+            this.disableAutoPlayNextSegment();
             this.player.ontimeupdate = null;
             this.player.ondurationchange = null;
             this.player.onerror = null;
@@ -220,11 +220,11 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
         }
     }
 
-    private enableAutoPlayNextSegmet() {
+    private enableAutoPlayNextSegment() {
         this.player.onended = () => this.playNextSegment();
     }
 
-    private disableAutoPlayback() {
+    private disableAutoPlayNextSegment() {
         this.player.onended = null;
     }
 
@@ -264,7 +264,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             return;
         }
 
-        this.enableAutoPlayNextSegmet();
+        this.enableAutoPlayNextSegment();
 
         if (this.isAtCurrentSegmentEnd) {
             this.logger.info('At the end of currentSegment. Starting play at the next one.');
@@ -275,7 +275,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
     }
 
     async pause() {
-        this.disableAutoPlayback();
+        this.disableAutoPlayNextSegment();
         await this.scrubber.pause();
     }
 
@@ -289,7 +289,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             return;
         }
 
-        this.disableAutoPlayback();
+        this.disableAutoPlayNextSegment();
         await this.scrubber.rewind();
     }
 
@@ -303,7 +303,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             return;
         }
 
-        this.disableAutoPlayback();
+        this.disableAutoPlayNextSegment();
         await this.scrubber.slowForward();
     }
 
@@ -317,7 +317,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             return;
         }
 
-        this.disableAutoPlayback();
+        this.disableAutoPlayNextSegment();
         await this.scrubber.fastForward();
     }
 
@@ -327,7 +327,7 @@ export class Playback extends (EventEmitter as new () => TypedEventEmitter<Segme
             return;
         }
 
-        this.disableAutoPlayback();
+        this.disableAutoPlayNextSegment();
         await this.scrubber.nextFrame();
     }
 
