@@ -2,22 +2,17 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Duration } from 'dayjs/plugin/duration';
 import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DvrStore } from '~/renderer/Components/stores/dvrStore';
-import { MarkerConfig } from '~/renderer/media';
 import { getMarkerFormat } from './formatutil';
 
 export interface TimelineProps {
     dvrStore: DvrStore;
-    autoScrollTimeout: number;
-    viewport: Duration;
-    marker: MarkerConfig;
 }
 
 export const Timeline = observer(function Timeline(props: TimelineProps) {
     const { dvrStore } = props;
     const { timeline } = dvrStore;
-    const [timelineWidthPx, setTimelineWidthPx] = useState(1);
 
     const timelineRef = useRef<HTMLDivElement>(null!);
     const markerUnderThumbRef = useRef<HTMLDivElement>(null);
@@ -32,15 +27,12 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     useEffect(
         action(function mount() {
-            timeline.markerSize = props.marker;
-            timeline.viewportInSec = props.viewport.asSeconds();
-
-            setTimelineWidthPx(timelineRef.current.offsetWidth);
+            timeline.widthInPx = timelineRef.current.offsetWidth;
 
             const dispose = reaction(
                 () => dvrStore.currentTime,
                 () => {
-                    if (timeline.autoscroll) {
+                    if (timeline.autoscroll && !isThumbInView()) {
                         animateMarkerUnderThumbIntoView();
                     }
                 }
@@ -53,6 +45,13 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         []
     );
 
+    function isThumbInView() {
+        const thumbTime = timeline.currentTime;
+        const thumbX = getPixelsFromTime(thumbTime);
+
+        return 0 < thumbX && thumbX < timeline.widthInPx;
+    }
+
     function getPixelsFromTime(time: Dayjs) {
         const duration = dayjs.duration(time.diff(timeline.startOfTimeline));
         const pixels = getPixelsFromDuration(duration);
@@ -64,7 +63,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
         const viewportSec = timeline.viewportSize.asSeconds();
         const durationSec = duration.asSeconds();
 
-        const pixelsPerSec = timelineWidthPx / viewportSec;
+        const pixelsPerSec = timeline.widthInPx / viewportSec;
         const pixels = durationSec * pixelsPerSec;
 
         return pixels;
@@ -72,7 +71,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
 
     function getTimeFromPixels(x: number) {
         const viewportSec = timeline.viewportSize.asSeconds();
-        const secPerPixel = viewportSec / timelineWidthPx;
+        const secPerPixel = viewportSec / timeline.widthInPx;
 
         const duration = dayjs.duration({ seconds: x * secPerPixel });
         const time = timeline.startOfTimeline.add(duration.asSeconds(), 'seconds');
@@ -97,7 +96,7 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     function getSegments() {
         const segments = [...timeline.segments, timeline.liveRecording];
 
-        return segments.map(({ isPartial: isPartial, startTime, duration }, i, recordings) => {
+        return segments.map(({ isPartial, startTime, duration }, i, recordings) => {
             const style: React.CSSProperties = {
                 left: `${getPixelsFromTime(startTime)}px`,
                 width: `${getPixelsFromDuration(dayjs.duration(duration, 'seconds'))}px`,
@@ -118,15 +117,18 @@ export const Timeline = observer(function Timeline(props: TimelineProps) {
     }
 
     function getMarkers() {
-        const thumbTime = timeline.currentTime;
         let currTime = timeline.startOfTimeline;
 
         const endOfTimeline = timeline.endOfTimeline;
-        const viewportEndTime = getTimeFromPixels(timelineWidthPx - 1);
+        const viewportEndTime = getTimeFromPixels(timeline.widthInPx - 1);
         const endTime = endOfTimeline.isBefore(viewportEndTime) ? viewportEndTime : endOfTimeline;
 
         const elts: React.JSX.Element[] = [];
         const minorMarkerDuration = dayjs.duration(timeline.markerSize.minor);
+        const thumbTime =
+            dvrStore.speed >= 0
+                ? timeline.currentTime.add(minorMarkerDuration.seconds() / 3, 'seconds')
+                : timeline.currentTime.subtract(minorMarkerDuration.seconds(), 'seconds');
 
         const style: React.CSSProperties = {
             width: `${getPixelsFromDuration(minorMarkerDuration)}px`,

@@ -6,8 +6,8 @@ Tune
 
 -   [DONE] marker min/max thresholds
 -   [DONE] review marker formatting depending on sec-min, min-min, min-hour
--   recording duration (1min?)
--   viewport zoom speed based on granularity
+-   [DONE] recording duration (1min?)
+-   [PUNT] viewport zoom speed based on granularity
 
 Settings UI
 
@@ -20,7 +20,7 @@ Settings UI
 Features
 
 -   Date picker
--   Save last known marker and viewport setting
+-   [DONE] Save last known viewport setting
 -   Share UX?
 
 Bug Fixes

@@ -69,12 +69,7 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             {!isDvrReady ? null : (
                 <>
                     <PlaybackControls dvrStore={dvrStore} />
-                    <Timeline
-                        autoScrollTimeout={2000}
-                        dvrStore={dvrStore}
-                        viewport={dayjs.duration(dvrStore.dvr.options.timeline.viewport)}
-                        marker={dvrStore.dvr.options.timeline.marker}
-                    />
+                    <Timeline dvrStore={dvrStore} />
                 </>
             )}
         </>

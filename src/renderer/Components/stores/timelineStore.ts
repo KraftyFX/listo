@@ -24,6 +24,12 @@ export class TimelineStore {
                 lastRecording: computed,
             }
         );
+
+        const savedViewPortInSec = parseInt(localStorage.getItem('viewportInSec') || '0');
+
+        this.viewportSize = !isNaN(savedViewPortInSec)
+            ? dayjs.duration(savedViewPortInSec, 'seconds')
+            : dayjs.duration(DEFAULT_TIMELINE_OPTIONS.viewport);
     }
 
     private _hasInit = false;
@@ -39,9 +45,13 @@ export class TimelineStore {
     }
 
     set viewportSize(value: Duration) {
+        const valueSec = value.asSeconds();
+
+        value = dayjs.duration(Math.min(Math.max(15, valueSec), 3600), 'seconds');
+
         this._viewportSize = value;
 
-        const valueSec = value.asSeconds();
+        localStorage.setItem('viewportInSec', valueSec.toString());
 
         switch (true) {
             case valueSec <= 60 * 1:
@@ -75,8 +85,6 @@ export class TimelineStore {
     }
 
     set viewportInSec(value: number) {
-        value = Math.min(Math.max(15, value), 3600);
-
         this.viewportSize = dayjs.duration(value, 'seconds');
     }
 
@@ -152,6 +160,8 @@ export class TimelineStore {
             duration: this.dvrStore.recordingDuration,
         };
     }
+
+    widthInPx: number = 1;
 
     get currentTime() {
         return this.dvrStore.currentTime;
