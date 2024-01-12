@@ -14,12 +14,22 @@ export class CameraStore {
             startWatchingCameraList: false,
             stopWatchingCameraList: false,
         });
+
+        this._lastSelectedCameraId = localStorage.getItem('videoinput') || 'default';
     }
 
     startWatchingCameraList() {
         const loadCameraList = async () => {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const cameras = devices.filter((d) => d.kind === 'videoinput');
+
+            const lastSelectedCameraExists = cameras.find(
+                ({ deviceId }) => deviceId === this._lastSelectedCameraId
+            );
+
+            if (!lastSelectedCameraExists) {
+                this._lastSelectedCameraId = 'default';
+            }
 
             return runInAction(() => (this.cameras = cameras));
         };
@@ -35,10 +45,6 @@ export class CameraStore {
     private _lastSelectedCameraId!: string;
 
     get lastSelectedCameraId() {
-        if (!this._lastSelectedCameraId) {
-            this._lastSelectedCameraId = localStorage.getItem('videoinput') || 'default';
-        }
-
         return this._lastSelectedCameraId!;
     }
 

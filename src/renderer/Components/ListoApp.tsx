@@ -57,12 +57,8 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
     return (
         <>
             <CameraList
-                cameras={dvrStore.cameraStore.cameras}
-                selectedCamera={dvrStore.cameraStore.lastSelectedCameraId}
-                onChangeCamera={(selectedId) => {
-                    dvrStore.cameraStore.lastSelectedCameraId = selectedId;
-                    location.reload();
-                }}
+                cameraStore={dvrStore.cameraStore}
+                onChangeCamera={() => location.reload()}
             />
             <PlaybackError dvrStore={dvrStore} />
             <VideoPlayer ref={videoRef} />
