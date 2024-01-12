@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { DvrStore } from '~/renderer/Components/stores';
 import { DigitalVideoRecorder } from '~/renderer/media';
+import { getLocator } from '../services';
 import { CameraList } from './CameraList';
 import { PlaybackControls } from './PlaybackControls';
 import { PlaybackError } from './PlaybackError';
@@ -22,26 +23,12 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
 
     useEffect(function mount() {
         const initAsync = async () => {
-            await dvrStore.cameraStore.startWatchingCameraList();
-            const cameraId = dvrStore.cameraStore.lastSelectedCameraId;
-            const { stream, mimeType } = await getLiveStream(cameraId);
-
-            const { listo } = await initailizeServiceLocator(videoRef, stream, mimeType);
-
-            window.dvr = dvrStore.dvr = new DigitalVideoRecorder();
-            window.dvrStore = dvrStore;
+            await initCoreServices();
+            await initDvr();
 
             await dvrStore.dvr.switchToLiveStream();
 
-            const recordings = await listo.getRecentRecordings(
-                dayjs().startOf('day'),
-                dayjs().endOf('day')
-            );
-
-            recordings.forEach(({ startTime, duration, url, hasErrors }) => {
-                console.log(startTime.format('h:mm:ssa') + ' ' + duration + 's');
-                dvrStore.dvr.addSegment(startTime, duration, url, hasErrors);
-            });
+            await loadRecordingsFromEarlierToday();
 
             setIsDvrReady(true);
         };
@@ -70,4 +57,34 @@ export const ListoApp = observer(function ListoApp(props: ListoAppProps) {
             )}
         </>
     );
+
+    async function initCoreServices() {
+        const { cameraStore } = dvrStore;
+
+        await dvrStore.cameraStore.startWatchingCameraList();
+        const { stream, mimeType } = await getLiveStream(cameraStore.lastSelectedCameraId);
+
+        await initailizeServiceLocator(videoRef, stream, mimeType);
+    }
+
+    async function initDvr() {
+        const dvr = new DigitalVideoRecorder();
+
+        dvrStore.dvr = dvr;
+        window.dvr = dvr;
+    }
+
+    async function loadRecordingsFromEarlierToday() {
+        const { listo } = getLocator();
+
+        const recordings = await listo.getRecentRecordings(
+            dayjs().startOf('day'),
+            dayjs().endOf('day')
+        );
+
+        recordings.forEach(({ startTime, duration, url, hasErrors }) => {
+            console.log(startTime.format('h:mm:ssa') + ' ' + duration + 's');
+            dvrStore.dvr.addSegment(startTime, duration, url, hasErrors);
+        });
+    }
 });

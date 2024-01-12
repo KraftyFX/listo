@@ -20,5 +20,7 @@ window.onload = async () => {
 
     const dvrStore = new DvrStore();
 
+    window.dvrStore = dvrStore;
+
     root.render(<ListoApp dvrStore={dvrStore} />);
 };
